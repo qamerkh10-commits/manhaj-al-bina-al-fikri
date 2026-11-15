@@ -13,7 +13,7 @@
 <title>منهج البناء الفكري</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;600;700&family=Noto+Naskh+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@600;700;800&family=Noto+Naskh+Arabic:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{
  --bg:#f3eee3;--card:#fffdf8;--soft:#f8f4ea;--ink:#1c2731;--muted:#6a7680;--line:#e6dcc8;
@@ -194,12 +194,143 @@ nav.tabs button .ti{margin-inline-end:4px}
 }
 footer{color:var(--muted);font-size:13.5px;padding:20px 0 40px;border-top:1px solid var(--line)}
 @media print{nav.tabs,.btn{display:none}section[hidden]{display:block!important}body{background:#fff}}
+
+/* ===== Design v2 ===== */
+:root{
+ --bg:#f6f2ea;--card:#ffffff;--soft:#f3eee4;--ink:#1b2530;--muted:#6b7680;--line:#ebe4d6;
+ --navy:#16303f;--teal:#13806f;--gold:#b88a2e;--red:#c0392b;
+ --r:20px;--sh:0 1px 2px rgba(22,48,63,.04),0 10px 30px -12px rgba(22,48,63,.18);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1418;--card:#151e24;--soft:#1b252c;--ink:#e9e6df;--muted:#97a3aa;--line:#24313a;--navy:#e3edf2;--teal:#43c2ae;--gold:#e0b65c;--sh:0 10px 30px -14px rgba(0,0,0,.6)}}
+:root[data-theme="dark"]{--bg:#0e1418;--card:#151e24;--soft:#1b252c;--ink:#e9e6df;--muted:#97a3aa;--line:#24313a;--navy:#e3edf2;--teal:#43c2ae;--gold:#e0b65c;--sh:0 10px 30px -14px rgba(0,0,0,.6)}
+body{font-family:"IBM Plex Sans Arabic","Noto Naskh Arabic",sans-serif;font-size:16px;line-height:1.8;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,.k{font-family:"Noto Kufi Arabic","IBM Plex Sans Arabic",sans-serif;letter-spacing:0}
+.wrap{max-width:1080px}
+/* header */
+.top{background:linear-gradient(135deg,#16303f 0%,#1d4152 60%,#13806f 140%);color:#f6f2ea}
+.top .wrap{padding-top:22px;padding-bottom:18px}
+.top h1{font-size:clamp(22px,3.6vw,30px);font-weight:800}
+.top .sub{opacity:.78;font-size:14px;margin-top:4px}
+.themeBtn{border-color:rgba(255,255,255,.3);width:38px;height:38px;padding:0;display:grid;place-items:center}
+nav.tabs{background:rgba(22,48,63,.97);backdrop-filter:saturate(1.4) blur(10px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) nav.tabs{background:rgba(10,16,20,.96)}}
+nav.tabs button{opacity:.7;font-family:"IBM Plex Sans Arabic";font-weight:500;font-size:14px;padding:8px 14px;transition:opacity .15s,background .15s}
+nav.tabs button:hover{opacity:1}
+nav.tabs button[aria-selected="true"]{background:#f6f2ea;color:#16303f;font-weight:600;opacity:1}
+main{padding:26px 0 70px}
+/* typography rhythm */
+.h2{font-size:21px;font-weight:700;margin:10px 0 6px}
+.lead{font-size:15px;line-height:1.85}
+/* cards */
+.card{border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:20px}
+.grid{gap:16px}
+.tag{border:0;background:var(--soft);color:var(--muted);padding:2px 10px;font-weight:600;font-family:"IBM Plex Sans Arabic"}
+/* stats strip */
+.stats2{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+@media (max-width:760px){.stats2{grid-template-columns:repeat(2,1fr)}}
+.stat2{border:0;border-radius:18px;padding:14px 16px;background:var(--card);box-shadow:var(--sh);position:relative;overflow:hidden}
+.stat2::before{content:"";position:absolute;inset-inline-start:0;top:14px;bottom:14px;width:4px;border-radius:4px;background:var(--teal)}
+.stat2:nth-child(2)::before{background:#e07a2f}.stat2:nth-child(3)::before{background:var(--gold)}.stat2:nth-child(4)::before{background:#6a5acd}
+.stat2 b{font-size:20px;font-weight:800}
+.stat2 span{font-size:12.5px}
+/* todo */
+#todoCard h3,#noteCard h3{font-size:17px!important}
+.todo li{border-top:0;padding:10px 12px;margin-bottom:6px;background:var(--soft);border-radius:14px;align-items:center;transition:background .15s}
+.todo li:hover{background:color-mix(in srgb,var(--teal) 8%,var(--soft))}
+.todo li.done{background:color-mix(in srgb,var(--teal) 12%,var(--soft))}
+.todo li span{font-size:15px;line-height:1.6}
+input[type=checkbox]{accent-color:var(--teal);margin-top:0}
+.addrow input,textarea.note{border:1px solid var(--line);background:var(--card);border-radius:14px}
+textarea.note{min-height:120px;line-height:1.8}
+/* buttons */
+.btn{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 18px;font-family:"IBM Plex Sans Arabic";font-weight:600;font-size:13.5px;color:var(--ink)}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff;box-shadow:0 6px 16px -8px var(--teal)}
+/* reading now */
+.today{padding:22px 24px}
+.today .date{font-family:"IBM Plex Sans Arabic";font-weight:500}
+.today .stripe{width:6px;border-radius:0 6px 6px 0}
+.bar{height:8px;border:0;background:var(--soft)}
+.bar i{background:linear-gradient(90deg,var(--teal),color-mix(in srgb,var(--teal) 60%,#7fd6c8))}
+.ben{background:color-mix(in srgb,var(--gold) 9%,var(--card));border:1px solid color-mix(in srgb,var(--gold) 22%,var(--line));border-radius:14px;font-size:14px}
+.ben b{color:var(--gold);font-family:"IBM Plex Sans Arabic";font-weight:700}
+.mini{border-top:1px solid var(--line)}
+.ico{border-radius:12px;background:var(--soft)}
+/* covers */
+.cv{background:linear-gradient(160deg,color-mix(in srgb,var(--c) 85%,#fff) 0%,var(--c) 55%,color-mix(in srgb,var(--c) 70%,#000) 100%);border-radius:8px;box-shadow:0 8px 18px -10px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.12);font-family:"Noto Kufi Arabic";padding:8px 7px;color:#fff}
+.cv::after{width:6px;background:linear-gradient(90deg,rgba(0,0,0,.28),rgba(0,0,0,0))}
+.cv::before{content:"";position:absolute;inset:auto 8px 10px 8px;height:1px;background:rgba(255,255,255,.35)}
+.cv .ct{font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.cv .ca{position:relative;z-index:1;padding-top:6px;font-weight:600;opacity:.9}
+/* week */
+.week{gap:10px}
+.day{border:0;border-radius:16px;box-shadow:var(--sh);padding:12px;min-height:110px}
+.day b{font-family:"IBM Plex Sans Arabic";font-weight:700;color:var(--navy);font-size:12.5px}
+.day.off{box-shadow:none;background:transparent;border:1px dashed var(--line)}
+.day.ex{box-shadow:none;border:1px dashed color-mix(in srgb,var(--red) 40%,var(--line));background:color-mix(in srgb,var(--red) 5%,transparent)}
+/* path timeline */
+.phase>summary{padding:18px 20px}
+.phase>summary h3{font-size:18px;font-weight:800}
+.tl{border-inline-start:2px dashed var(--line)}
+.tl li{padding:12px 18px 12px 6px;border-radius:14px;transition:background .15s}
+.tl li:hover{background:var(--soft)}
+.tl li::before{width:14px;height:14px;top:20px;inset-inline-start:-8px;box-shadow:0 0 0 4px var(--card)}
+.tl li.now{background:color-mix(in srgb,var(--teal) 10%,transparent)}
+.tl .d{font-family:"IBM Plex Sans Arabic";font-weight:500;font-size:12px;background:var(--soft);border-radius:10px;padding:4px 8px;line-height:1.6}
+.step{font-family:"IBM Plex Sans Arabic";font-weight:700;font-size:11.5px;letter-spacing:.2px}
+.linkish{font-weight:700}
+.per h4{font-size:15px;font-weight:700}
+/* calendar */
+.cal{gap:8px}
+.cell{border:0;border-radius:14px;box-shadow:var(--sh);padding:8px;min-height:90px}
+.cell.off{box-shadow:none;background:transparent;border:1px dashed var(--line)}
+.cell.ex{box-shadow:none;background:color-mix(in srgb,var(--red) 6%,transparent);border:1px dashed color-mix(in srgb,var(--red) 35%,var(--line))}
+.cell .n{font-family:"IBM Plex Sans Arabic";font-weight:700;color:var(--navy)}
+.cell .bk{border-inline-start-width:3px;border-radius:2px;background:color-mix(in srgb,var(--c) 8%,transparent);padding:1px 5px;margin-top:4px}
+.calhead h3{font-weight:800}
+/* library */
+.search{border-radius:16px;padding:12px 16px;box-shadow:var(--sh);border:1px solid var(--line)}
+.chip{border:0;background:var(--card);box-shadow:var(--sh);padding:5px 14px;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--navy);color:var(--bg)}
+.book{border-top:0;position:relative;overflow:hidden}
+.book::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;background:var(--c)}
+.book .t{font-size:15.5px;font-weight:700;line-height:1.6}
+.lnks a{border:0;background:var(--soft);padding:3px 11px;font-family:"IBM Plex Sans Arabic";font-weight:600}
+.lnks a:hover{background:color-mix(in srgb,var(--teal) 14%,var(--soft))}
+/* tables & settings */
+table.t th{background:var(--soft);font-family:"IBM Plex Sans Arabic";font-weight:700}
+table.t td,table.t th{border-bottom:1px solid var(--line)}
+.settings label{border:0;background:var(--card);box-shadow:var(--sh);border-radius:14px}
+.seg{background:var(--card);box-shadow:var(--sh);border:0}
+dialog{border-radius:24px}
+.dlg{padding:26px}
+footer{border-top:0}
+@media (max-width:640px){
+ .card{padding:16px;border-radius:18px}
+ .today{padding:18px}
+ nav.tabs button{min-width:62px}
+ nav.tabs button[aria-selected="true"]{background:rgba(246,242,234,.14);color:#fff}
+}
+
+/* ===== alignment & borders fix ===== */
+.stat2::before{display:none}
+.stat2{--acc:var(--teal);border:1px solid var(--line);box-shadow:inset -4px 0 0 var(--acc),var(--sh);padding:14px 18px 14px 16px;display:flex;flex-direction:column;justify-content:center;gap:2px;min-height:76px}
+.stat2:nth-child(2){--acc:#e07a2f}.stat2:nth-child(3){--acc:var(--gold)}.stat2:nth-child(4){--acc:#6a5acd}
+.stat2 b{line-height:1.4;display:flex;align-items:center;gap:6px}
+.stat2 span{line-height:1.4}
+.card,.day,.cell:not(.off):not(.ex),.chip,.settings label,.search,.seg{border:1px solid var(--line)}
+.day.off,.cell.off,.day.ex,.cell.ex{border-style:dashed}
+.today .stripe{display:none}
+.today{box-shadow:inset -4px 0 0 var(--teal),var(--sh)}
+.todo li{border:1px solid transparent}
+.todo li.done{border-color:color-mix(in srgb,var(--teal) 25%,transparent)}
+.hero,.grid,.stats2,.week{align-items:stretch}
+.mini{align-items:center}
 </style>
 </head>
 <body>
 <header class="top"><div class="wrap">
  <div class="row"><h1>منهج البناء الفكري</h1><button class="themeBtn" id="themeBtn" aria-label="تبديل الوضع الليلي">🌓</button></div>
- <div class="sub">المسار الفكري · العلوم الشرعية تُدرس على الشيوخ والمعاهد</div>
+ <div class="sub">خطة قراءة يومية في الفكر الإسلامي والعلوم الإنسانية والتراث</div>
 </div></header>
 <nav class="tabs" aria-label="أقسام"><div class="wrap" id="tabbar"></div></nav>
 <div class="wrap" id="installBar" hidden style="padding-top:10px"><div class="card" style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:12px 16px"><span class="small">ثبّت المنهج تطبيقًا على جهازك، ويعمل بدون إنترنت.</span><button class="btn primary" id="installBtn">تثبيت التطبيق</button></div></div>
