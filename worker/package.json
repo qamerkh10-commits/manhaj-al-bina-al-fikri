@@ -1,0 +1,7 @@
+{
+  "name": "manhaj-bot-worker",
+  "private": true,
+  "type": "module",
+  "scripts": { "deploy": "wrangler deploy", "dev": "wrangler dev" },
+  "devDependencies": { "wrangler": "4.42.0" }
+}

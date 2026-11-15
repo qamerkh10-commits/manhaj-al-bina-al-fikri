@@ -1,0 +1,22 @@
+name = "manhaj-bot"
+main = "src/index.mjs"
+compatibility_date = "2025-06-01"
+workers_dev = true
+
+# reminders, the morning card and closing the day run on this clock
+[triggers]
+crons = ["*/5 * * * *"]
+
+[[durable_objects.bindings]]
+name = "BOT"
+class_name = "BotState"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["BotState"]
+
+[vars]
+TG_API = "https://api.telegram.org"
+# the bot's public numeric id; a token is accepted only if Telegram confirms it belongs to this bot.
+# The token itself arrives from the GitHub sync job (repo secret TELEGRAM_TOKEN).
+BOT_ID = "9188968782"

@@ -1,0 +1,35 @@
+name: manhaj-sync
+# The bot itself runs on Cloudflare (worker/). This job computes the schedule from the app every hour
+# (and when the app changes) and sends it to the bot. On its first run it moves the old GitHub-era state.
+on:
+  schedule:
+    - cron: '7 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['index.html', 'bot/**']
+permissions:
+  contents: read
+concurrency:
+  group: manhaj-sync
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: bot/package-lock.json
+      - run: npm ci --prefix bot --no-audit --no-fund
+      - name: Fetch the old GitHub-era state (moved once)
+        run: |
+          if git fetch --depth=1 origin bot-data 2>/dev/null; then git show FETCH_HEAD:state.enc > state.enc || rm -f state.enc; fi
+      - name: Sync schedule to the bot
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          WORKER_URL: ${{ vars.WORKER_URL }}
+        run: node bot/sync.mjs
