@@ -23,7 +23,7 @@ export async function buildSchedule(indexPath, settings, from, to) {
         if(g&&g.lane!=='R'){t.bid=g.id;if(g.rv?g.a===g.b:(g.lane==='L'&&g.b===g.tot))t.last=1}return t});
       o[k]={tasks,why:tasks.length?'':reason(k)}}
     // every book in the app, for hashtags and the summaries index
-    const books=[];const add=(id,t,a,l)=>books.push({id,t,a:String(a||'').split('،')[0].trim(),l});
+    const books=[];const add=(id,t,a,l)=>{const b={id,t,a:String(a||'').split('،')[0].trim(),l};if(RANGE[id])b.s=RANGE[id].s;books.push(b)};
     BOOKS.forEach(b=>add(b.id,b.ttl,b.by,laneOf(b)));
     (D.SCI||[]).forEach((b,i)=>add('sci-'+i,b.title,b.author,'B'));
     (D.LK||[]).forEach((st,i)=>(st.books||[]).forEach((b,j)=>add('lk-'+i+'-'+j,b.title,b.author,'C')));

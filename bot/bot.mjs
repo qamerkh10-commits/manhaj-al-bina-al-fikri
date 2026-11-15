@@ -62,8 +62,10 @@ async function tg(method, body) {
   if (!j.ok && !/message is not modified|query is too old|query ID is invalid/.test(j.description || '')) console.error(method, j.description || r.status);
   return j.result;
 }
-const MENU_RE = /^(📋|📌|📊|🙏|💾|🎙️)/;
-const MENU = { keyboard: [[{ text: '📋 ورد اليوم' }, { text: '📌 الدَّين' }], [{ text: '📊 تقريري' }, { text: '🙏 عذر' }], [{ text: '💾 نسخة للتطبيق' }, { text: '🎙️ القناة' }]], resize_keyboard: true, is_persistent: true };
+const MENU_V = 2;
+const COMMANDS = [{ command: 'today', description: 'ورد اليوم' }, { command: 'debt', description: 'الدَّين' }, { command: 'report', description: 'تقريري' }, { command: 'excuse', description: 'عذر (اكتب السبب بعده)' }, { command: 'backup', description: 'نسخة للتطبيق' }, { command: 'channel', description: 'قناة الملخصات' }, { command: 'books', description: 'اختر كتابًا وسجّل ملخصه' }, { command: 'help', description: 'نظام المتابعة' }];
+const MENU_RE = /^(📋|📌|📊|🙏|💾|🎙️|📚)/;
+const MENU = { keyboard: [[{ text: '📋 ورد اليوم' }, { text: '📌 الدَّين' }], [{ text: '📚 اختر كتابًا' }, { text: '🎙️ القناة' }], [{ text: '📊 تقريري' }, { text: '🙏 عذر' }], [{ text: '💾 نسخة للتطبيق' }]], resize_keyboard: true, is_persistent: true };
 const send = (text, extra = {}) => tg('sendMessage', { chat_id: S.owner, text, parse_mode: 'HTML', disable_web_page_preview: true, ...extra });
 
 /* ---------- state ---------- */
@@ -83,7 +85,7 @@ const tasks = k => {
 };
 
 async function ensureSchedule(force) {
-  const key = sha(sha(fs.readFileSync(INDEX, 'utf8')) + JSON.stringify(S.settings));
+  const key = sha('v2' + sha(fs.readFileSync(INDEX, 'utf8')) + JSON.stringify(S.settings)); // bump v when the extracted data changes
   if (!force && S.schedKey === key && S.sched[addDays(TODAY, 14)] && S.books) return;
   const r = await buildSchedule(INDEX, S.settings, addDays(TODAY, -2), addDays(TODAY, 60));
   const past = Object.fromEntries(Object.entries(S.sched).filter(([k]) => k < addDays(TODAY, -2) && k >= addDays(TODAY, -120)));
@@ -204,6 +206,13 @@ async function askSummary(k) {
 async function onCallback(q) {
   tg('answerCallbackQuery', { callback_query_id: q.id }).catch(() => {});
   const [a, k, i] = (q.data || '').split('|'), mid = q.message && q.message.message_id;
+  if (a === 'noop') return;
+  if (a === 'k') return chooseBook(+k);
+  if (a === 'L') {
+    if (k === 'find') { S.await = { find: true }; return send('🔎 اكتب جزءًا من اسم الكتاب أو المؤلف:', { reply_markup: { force_reply: true, input_field_placeholder: 'اسم الكتاب…' } }); }
+    const v = k === 'home' ? booksMenu() : laneView(k, +i);
+    return tg('editMessageText', { chat_id: S.owner, message_id: mid, text: v.text, parse_mode: 'HTML', reply_markup: v.reply_markup });
+  }
   if (a === 'b') return publish(k, +i);
   if (a === 's') { if (!S.pending[k]) return send('هذا الملخص نُشر أو أُلغي من قبل.'); S.await = { search: k }; return send('🔎 اكتب جزءًا من اسم الكتاب أو المؤلف:', { reply_markup: { force_reply: true, input_field_placeholder: 'اسم الكتاب…' } }); }
   if (a === 'x') { delete S.pending[k]; return tg('editMessageText', { chat_id: S.owner, message_id: mid, text: 'تمام، لن يُنشر.' }); }
@@ -287,10 +296,16 @@ async function onMessage(m) {
     if (!hits.length) return send('لم أجد كتابًا بهذا الاسم في الخطة. جرّب كلمة أخرى من العنوان أو اسم المؤلف.', { reply_markup: { force_reply: true } });
     S.await = null; return askBook(pmid, hits, 'اختر الكتاب:');
   }
+  if (S.await && S.await.find && txt && !txt.startsWith('/') && !MENU_RE.test(txt)) {
+    const hits = searchBooks(txt);
+    if (!hits.length) return send('لم أجد كتابًا بهذا الاسم. جرّب كلمة أخرى من العنوان أو اسم المؤلف.', { reply_markup: { force_reply: true } });
+    S.await = null;
+    return send('📚 اختر الكتاب:', { reply_markup: { inline_keyboard: hits.map(i => [{ text: ((S.sums[S.books[i].id] || []).length ? '✅ ' : '') + shortT(S.books[i].t), callback_data: `k|${i}` }]) } });
+  }
   if (S.await && S.await.rec && txt && !txt.startsWith('/') && !MENU_RE.test(txt)) return onSummary(m);
   if (/^\/start/.test(txt)) {
-    S.startedOn ||= TODAY;
-    await tg('setMyCommands', { commands: [{ command: 'today', description: 'ورد اليوم' }, { command: 'debt', description: 'الدَّين' }, { command: 'report', description: 'تقريري' }, { command: 'excuse', description: 'عذر (اكتب السبب بعده)' }, { command: 'backup', description: 'نسخة للتطبيق' }, { command: 'channel', description: 'قناة الملخصات' }, { command: 'help', description: 'نظام المتابعة' }] });
+    S.startedOn ||= TODAY; S.menuV = MENU_V;
+    await tg('setMyCommands', { commands: COMMANDS });
     await send(`السلام عليكم 👋\nأنا متابِعك اليومي في «منهج البناء الفكري». سأكون صارمًا معك.\n\n${RULES}`, { reply_markup: MENU });
     const k = openDay();
     if (k) await sendCard(k); else { const nx = Object.keys(S.sched).sort().find(x => x > TODAY && tasks(x).length); await send(`اليوم لا ورد عليك (${esc((S.sched[TODAY] || {}).why || '')}).${nx ? `\nأول ورد: ${fL(nx)}.` : ''}`); }
@@ -310,9 +325,44 @@ async function onMessage(m) {
   if (/^\/excuse|^🙏/.test(txt)) { const r = txt.replace(/^\/excuse(@\w+)?|^🙏\s*عذر/, '').trim(); if (r) return excuse(r.slice(0, 200)); S.await = { excuse: true }; return send('ما عذرك اليوم؟ اكتبه في رسالة.', { reply_markup: { force_reply: true } }); }
   if (/^\/backup|^💾/.test(txt)) return sendBackup();
   if (/^\/help/.test(txt)) return send(RULES, { reply_markup: MENU });
+  if (/^\/books|^📚/.test(txt)) { const v = booksMenu(); return send(v.text, { reply_markup: v.reply_markup }); }
   if (/^\/channel|^🎙️/.test(txt)) return send(S.channel ? `🎙️ القناة المربوطة: «${esc(S.channel.title)}»\nالملخصات المنشورة: ${nA(Object.values(S.sums).reduce((a, x) => a + x.length, 0))}${S.indexMsgs[0] ? `\n<a href="${postLink(S.indexMsgs[0])}">افتح الفهرس</a>` : ''}\n\nأرسل ريكورد أو ملخصًا مكتوبًا لأنشره.` : CHANNEL_HOWTO);
   if (txt.split(/\s+/).length >= 25 && !txt.startsWith('/')) return onSummary(m);
   return send('استخدم الأزرار بالأسفل 👇', { reply_markup: MENU });
+}
+
+/* ---------- book browser: pick a book, then record ---------- */
+const PAGE = 8;
+const laneBooks = l => (S.books || []).map((b, i) => ({ b, i })).filter(x => x.b.l === l && x.b.s).sort((x, y) => x.b.s < y.b.s ? -1 : x.b.s > y.b.s ? 1 : x.i - y.i);
+function booksMenu() {
+  const kb = [[{ text: '⭐ كتبي الحالية', callback_data: 'L|cur|0' }]];
+  ['A', 'B', 'C', 'L'].forEach(l => kb.push([{ text: `${LANE_NAME[l]} (${nA(laneBooks(l).length)})`, callback_data: `L|${l}|-1` }]));
+  kb.push([{ text: '🔎 بحث باسم الكتاب', callback_data: 'L|find|0' }]);
+  return { text: '📚 <b>اختر الكتاب الذي ستسجّل ملخصه</b>\nالكتب مرتبة بترتيب الخطة، و✅ بجوار ما لخّصته.', reply_markup: { inline_keyboard: kb } };
+}
+function laneView(l, page) {
+  const list = l === 'cur' ? currentBooks().map(id => ({ b: bookById(id), i: S.books.findIndex(x => x.id === id) })) : laneBooks(l);
+  const pages = Math.max(1, Math.ceil(list.length / PAGE));
+  if (page < 0) page = Math.floor(Math.max(0, list.filter(x => x.b.s && x.b.s <= TODAY).length - 1) / PAGE); // open on the page you are reading now
+  page = Math.min(Math.max(0, page), pages - 1);
+  const kb = list.slice(page * PAGE, page * PAGE + PAGE).map(({ b, i }) => { const n = (S.sums[b.id] || []).length; return [{ text: (n ? `✅${n > 1 ? nA(n) : ''} ` : '') + shortT(b.t), callback_data: `k|${i}` }]; });
+  if (pages > 1) {
+    const nav = [];
+    if (page > 0) nav.push({ text: '▶️ السابق', callback_data: `L|${l}|${page - 1}` });
+    nav.push({ text: `${nA(page + 1)} / ${nA(pages)}`, callback_data: 'noop' });
+    if (page < pages - 1) nav.push({ text: 'التالي ◀️', callback_data: `L|${l}|${page + 1}` });
+    kb.push(nav);
+  }
+  kb.push([{ text: '↩️ المسارات', callback_data: 'L|home|0' }]);
+  return { text: `📚 <b>${l === 'cur' ? '⭐ كتبك الحالية' : LANE_NAME[l]}</b>\nاضغط الكتاب، ثم أرسل الريكورد.${list.length ? '' : '\n\nلا كتب هنا الآن.'}`, reply_markup: { inline_keyboard: kb } };
+}
+async function chooseBook(bi) {
+  const b = S.books[bi];
+  if (!b) return;
+  if (!S.channel) return send('لم تربط قناة الملخصات بعد.\n' + CHANNEL_HOWTO);
+  S.await = { rec: b.id };
+  const n = (S.sums[b.id] || []).length;
+  await send(`🎙️ <b>${esc(plain(b.t))}</b>${b.a ? '\n✍️ ' + esc(b.a) : ''}${n ? `\n(لك عليه ${nA(n)} ملخص، وهذا سيكون الجزء ${nA(n + 1)})` : ''}\n\nسجّل الريكورد الآن وابعته هنا، أو اكتب الملخص، وسأنشره في القناة مباشرة.`);
 }
 
 /* ---------- summaries channel ---------- */
@@ -482,6 +532,11 @@ for (const u of ups) {
   if (!S.owner && m && /^\/start/.test(m.text || '')) S.owner = chat;
   if (chat !== S.owner) { if (m) await tg('sendMessage', { chat_id: chat, text: 'هذا بوت متابعة خاص.' }); continue; }
   try { if (m) await onMessage(m); else await onCallback(q); } catch (e) { console.error('update failed', e); }
+}
+if (S.owner && S.menuV !== MENU_V) {
+  S.menuV = MENU_V;
+  await tg('setMyCommands', { commands: COMMANDS });
+  await send('🆕 أضفت زر <b>«📚 اختر كتابًا»</b>: تختار الكتاب من قائمة كتب الخطة، ثم ترسل الريكورد فيُنشر في القناة مباشرة.', { reply_markup: MENU });
 }
 if (S.owner) { closeDays(); await duties(); }
 for (const [k, p] of Object.entries(S.pending)) if (Date.now() - p.at > 3 * 864e5) delete S.pending[k];
