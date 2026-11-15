@@ -3,6 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#182d3b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="البناء الفكري">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <title>منهج البناء الفكري</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -157,6 +164,7 @@ footer{color:var(--muted);font-size:13.5px;padding:20px 0 40px;border-top:1px so
  <div class="sub">المسار الفكري · العلوم الشرعية تُدرس على الشيوخ والمعاهد</div>
 </div></header>
 <nav class="tabs" aria-label="أقسام"><div class="wrap" id="tabbar"></div></nav>
+<div class="wrap" id="installBar" hidden style="padding-top:10px"><div class="card" style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:12px 16px"><span class="small">ثبّت المنهج تطبيقًا على جهازك، ويعمل بدون إنترنت.</span><button class="btn primary" id="installBtn">تثبيت التطبيق</button></div></div>
 <main class="wrap">
 
 <section data-tab="today">
@@ -556,6 +564,12 @@ document.getElementById('expBtn').onclick=()=>{const o={};try{for(let i=0;i<loca
 document.getElementById('impFile').onchange=e=>{const fl=e.target.files[0];if(!fl)return;fl.text().then(t=>{try{const o=JSON.parse(t);Object.entries(o).forEach(([k,v])=>{if(k.startsWith('manhaj'))localStorage.setItem(k,v)});alert('تم استيراد التقدّم');location.reload()}catch(err){alert('الملف غير صالح')}})};
 document.getElementById('resetAll').onclick=()=>{if(confirm('مسح كل علامات التقدّم وأعداد الصفحات والإعدادات المحفوظة؟')){['manhaj-bina-fikri-v1','manhaj-pages-v1','manhaj-budget-v1','manhaj-lk-v1','manhaj-sci-v1','manhaj-lanes-v1','manhaj-lit-v1','manhaj-litdays','manhaj-daydone'].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});location.reload()}};
 renderAll();show(LS.get('manhaj-tab2','today'));
+</script>
+<script>
+if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
+let _dp=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();_dp=e;const b=document.getElementById('installBar');if(b)b.hidden=false});
+document.addEventListener('click',e=>{if(e.target&&e.target.id==='installBtn'&&_dp){_dp.prompt();_dp.userChoice.finally(()=>{_dp=null;document.getElementById('installBar').hidden=true})}});
+addEventListener('appinstalled',()=>{const b=document.getElementById('installBar');if(b)b.hidden=true});
 </script>
 </body>
 </html>
