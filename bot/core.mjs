@@ -34,8 +34,8 @@ async function tg(method, body) {
   if (!j.ok && !/message is not modified|query is too old|query ID is invalid/.test(j.description || '')) console.error(method, j.description || r.status);
   return j.result;
 }
-const MENU_V = 4;
-const COMMANDS = [{ command: 'today', description: 'ورد اليوم' }, { command: 'debt', description: 'الدَّين' }, { command: 'report', description: 'تقريري' }, { command: 'excuse', description: 'عذر (اكتب السبب بعده)' }, { command: 'backup', description: 'نسخة للتطبيق' }, { command: 'channel', description: 'قناة الملخصات' }, { command: 'books', description: 'اختر كتابًا وسجّل ملخصه' }, { command: 'alerts', description: 'مواعيد التنبيه' }, { command: 'help', description: 'نظام المتابعة' }];
+const MENU_V = 5;
+const COMMANDS = [{ command: 'today', description: 'ورد اليوم' }, { command: 'debt', description: 'الدَّين' }, { command: 'report', description: 'تقريري' }, { command: 'excuse', description: 'عذر (اكتب السبب بعده)' }, { command: 'backup', description: 'نسخة للتطبيق' }, { command: 'channel', description: 'قناة الملخصات' }, { command: 'books', description: 'اختر كتابًا وسجّل ملخصه' }, { command: 'alerts', description: 'مواعيد التنبيه' }, { command: 'sync', description: 'رابط ربط صفحتك بالبوت' }, { command: 'help', description: 'نظام المتابعة' }];
 const MENU_RE = /^(📋|📌|📊|🙏|💾|🎙️|📚)/;
 const MENU = { keyboard: [[{ text: '📋 ورد اليوم' }, { text: '📌 الدَّين' }], [{ text: '📚 اختر كتابًا' }, { text: '🎙️ القناة' }], [{ text: '📊 تقريري' }, { text: '🙏 عذر' }], [{ text: '💾 نسخة للتطبيق' }]], resize_keyboard: true, is_persistent: true };
 const send = (text, extra = {}) => tg('sendMessage', { chat_id: S.owner, text, parse_mode: 'HTML', disable_web_page_preview: true, ...extra });
@@ -209,14 +209,28 @@ async function onDocument(m) {
   const f = await tg('getFile', { file_id: doc.file_id });
   if (!f) return send('تعذّر تنزيل الملف.');
   let o; try { o = await (await fetch(`${BASE}/file/bot${TOKEN}/${f.file_path}`)).json(); } catch (e) { return send('الملف غير صالح.'); }
-  const keep = {}; for (const [k, v] of Object.entries(o)) if ((profile.ns ? k.startsWith(K('')) : k.startsWith('manhaj')) && ![K('notes'), K('tab2'), K('theme')].includes(k) && typeof v === 'string') keep[k] = v;
-  if (!Object.keys(keep).length) return send('لم أجد في الملف إعدادات للخطة.');
-  S.settings = keep;
-  // take over what was ticked in the app
-  try { const td = JSON.parse(keep[K('todo')] || '{}'); for (const [k, v] of Object.entries(td)) if (v && v.done) Object.assign(day(k).done, v.done); } catch (e) {}
-  S.settingsVer = (S.settingsVer || 0) + 1; S.settingsPending = true;
-  await send('✅ استلمت إعداداتك. سيُعاد حساب جدولك وفقها خلال ساعة تقريبًا، وأخبرك حين يتم.');
+  return setSettings(o, 'file');
 }
+async function setSettings(o, how) {
+  const keep = {}; for (const [k, v] of Object.entries(o || {})) if ((profile.ns ? k.startsWith(K('')) : k.startsWith('manhaj')) && ![K('notes'), K('tab2'), K('theme'), K('mylinks'), K('synctoken'), K('alerts')].includes(k) && typeof v === 'string') keep[k] = v;
+  if (!Object.keys(keep).length) return how === 'file' ? send('لم أجد في الملف إعدادات للخطة.') : null;
+  const same = JSON.stringify(keep) === JSON.stringify(S.settings || {});
+  S.settings = keep;
+  // what was ticked in the app counts here too
+  try {
+    const td = JSON.parse(keep[K('todo')] || '{}');
+    for (const [k, v] of Object.entries(td)) if (v && v.done && S.sched[k]) Object.assign(day(k).done, v.done);
+    for (const k of [YDAY, TODAY]) { const d = day(k); if (isOpen(k) && !d.completeAt && tasks(k).length && allDone(k)) { d.completeAt = Date.now(); await refreshCard(k); await send(`🔥 أحسنت! أتممت ورد ${k === TODAY ? 'اليوم' : fL(k)} (من التطبيق).\nالسلسلة: <b>${daysN(streak())}</b> بلا انقطاع`); } }
+  } catch (e) {}
+  if (same && how !== 'file') return;
+  S.settingsVer = (S.settingsVer || 0) + 1; S.settingsPending = how;
+  if (how === 'file') await send('✅ استلمت إعداداتك. سيُعاد حساب جدولك وفقها خلال ربع ساعة تقريبًا، وأخبرك حين يتم.');
+}
+function ensureSyncToken() {
+  if (!S.syncToken) { const b = new Uint8Array(18); crypto.getRandomValues(b); S.syncToken = btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+  return S.syncToken;
+}
+const syncLinkMsg = () => profile.url ? `🔗 <b>اربط صفحتك بالبوت (مرة واحدة)</b>\nافتح هذا الرابط من الجهاز الذي تستخدم عليه التطبيق، وبعدها أي تعديل في صفحتك (عدد الصفحات، الامتحانات، نقل الكتب، علامات المهام) يصلني تلقائيًا:\n${profile.url}#sync=${ensureSyncToken()}\n\n⚠️ هذا الرابط لك وحدك، فلا ترسله لأحد.` : '';
 async function sendBackup() {
   const o = { ...S.settings };
   const td = (() => { try { return JSON.parse(o[K('todo')] || '{}'); } catch (e) { return {}; } })();
@@ -284,12 +298,14 @@ async function onMessage(m) {
     return send(alertsText('✅ <b>حُفظت مواعيدك:</b>'), { reply_markup: MENU });
   }
   if (/^\/alerts/.test(txt)) return send(alertsText('⏰ <b>مواعيد تنبيهاتك:</b>'));
+  if (/^\/sync/.test(txt)) return profile.url ? send(syncLinkMsg()) : send('المزامنة غير متاحة.');
   if (/^\/start/.test(txt)) {
     S.startedOn ||= TODAY; S.menuV = MENU_V;
     await tg('setMyCommands', { commands: COMMANDS });
     await send(`السلام عليكم${PNAME ? ' يا ' + esc(PNAME) : ''} 👋\nأنا متابِعك اليومي في «منهج البناء الفكري». سأكون صارمًا معك.\n\n${RULES}`, { reply_markup: MENU });
     const k = openDay();
     if (k) await sendCard(k); else { const nx = Object.keys(S.sched).sort().find(x => x > TODAY && tasks(x).length); await send(`اليوم لا ورد عليك (${esc((S.sched[TODAY] || {}).why || '')}).${nx ? `\nأول ورد: ${fL(nx)}.` : ''}`); }
+    if (profile.url) await send(syncLinkMsg());
     return;
   }
   if (S.await && S.await.sum && txt && !txt.startsWith('/') && !MENU_RE.test(txt)) {
@@ -521,9 +537,8 @@ async function tick() {
   if (S.menuV !== MENU_V) {
     S.menuV = MENU_V;
     await tg('setMyCommands', { commands: COMMANDS });
-    await send(`🆕 <b>تحديث:</b> صار للخطة صفحتان: صفحتك وصفحة ${profile.admin ? 'محمد' : 'خالد'}، ولكل واحد متابعته هنا بتفاصيله هو.
-• فهرسك في القناة اسمه <b>«فهرس ${esc(PNAME || 'ملخصاتك')}»</b>، وكل ملخص مكتوب عليه اسم صاحبه.
-• في صفحتك تقدر تشيل كتابًا أو تنقله أو تضيف كتابًا من عندك، وتعدّل امتحاناتك. وبعد أي تعديل أرسل لي ملف «تصدير التقدّم» ليتطابق الجدول.`, { reply_markup: MENU });
+    await send(`🆕 <b>تحديث:</b> صارت صفحتك على الموقع تتزامن مع البوت تلقائيًا: أي تعديل فيها (عدد صفحات كتاب، امتحان، نقل كتاب، علامة مهمة) يصلني وحده، بلا ملفات.\nيكفي أن تفتح رابطك الخاص مرة واحدة 👇`, { reply_markup: MENU });
+    if (profile.url) await send(syncLinkMsg());
     if (S.channel && (S.indexMsgs || []).length) await updateIndex();
   }
   if (S.channel && !(S.indexMsgs || []).length) await updateIndex();
@@ -536,12 +551,21 @@ async function tick() {
 async function applyData(data) {
   const from = Object.keys(data.days).sort()[0];
   const past = Object.fromEntries(Object.entries(S.sched).filter(([k]) => k < from && k >= addDays(TODAY, -120)));
+  const sig = () => JSON.stringify([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map(i => (S.sched[addDays(TODAY, i)] || {}).tasks || []));
+  const before = sig(), todayBefore = JSON.stringify(tasks(TODAY)), finBefore = S.fin;
   S.sched = { ...past, ...data.days }; S.fin = data.fin; S.books = data.books; S.schedKey = data.key; TAGS = null;
   if (S.settingsPending && data.settingsVer === S.settingsVer && S.owner) {
-    S.settingsPending = false;
+    const how = S.settingsPending; S.settingsPending = false;
+    if (how !== 'file') {
+      if (sig() === before && S.fin === finBefore) return;
+      const d = day(TODAY), changedToday = JSON.stringify(tasks(TODAY)) !== todayBefore;
+      await send(`🔄 تغيّر جدولك وفق تعديلاتك في صفحتك.\nنهاية النواة: ${S.fin ? fL(S.fin) + ' ' + (+S.fin.slice(0, 4)).toLocaleString('ar-EG', { useGrouping: false }) : '—'}`);
+      if (changedToday && d.sent && !d.completeAt && !d.closed) await sendCard(TODAY, 'وردك اليوم بعد التعديل:\n\n');
+      return;
+    }
     await send(`✅ تم تحديث جدولك وفق إعداداتك في التطبيق (الصفحات والسرعة والامتحانات وأيام الأدب).\nنهاية النواة: ${S.fin ? fL(S.fin) + ' ' + (+S.fin.slice(0, 4)).toLocaleString('ar-EG', { useGrouping: false }) : '—'}`);
     const k = openDay(); if (k) await sendCard(k);
   }
 }
-return { handleUpdate, tick, applyData, state: () => S };
+return { handleUpdate, tick, applyData, prefs: o => setSettings(o, 'auto'), state: () => S };
 }

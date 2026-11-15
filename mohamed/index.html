@@ -510,7 +510,7 @@ const col=t=>`var(--c-${t})`;
 const PROF=D.PROFILE||{key:'',name:'',ns:''},NS=PROF.ns||'';
 const KK=k=>NS&&k.startsWith('manhaj-')?'manhaj-'+NS+'-'+k.slice(7):k;   // each person's keys on the shared site
 const OWN=k=>NS?k.startsWith('manhaj-'+NS+'-'):(k.startsWith('manhaj')&&k!=='manhaj-who'&&!(D.OTHER_NS||[]).some(n=>k.startsWith('manhaj-'+n+'-')));
-const LS={get(k,d){try{return JSON.parse(localStorage.getItem(KK(k)))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(KK(k),JSON.stringify(v))}catch(e){}}};
+const LS={get(k,d){try{return JSON.parse(localStorage.getItem(KK(k)))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(KK(k),JSON.stringify(v))}catch(e){}if(window.__onLS)window.__onLS(k)}};
 let done=LS.get('manhaj-bina-fikri-v1',{}),pOver=LS.get('manhaj-pages-v1',{}),bOver=LS.get('manhaj-budget-v1',{}),lkCfg=Object.assign({start:'2027-08-31',bud:10},LS.get('manhaj-lk-v1',{}));
 const S=D.SCHED;S.black=LS.get('manhaj-black',S.black);
 const BOOKS=D.items.filter(i=>i.t!=='audio'&&i.t!=='acad');
@@ -662,7 +662,7 @@ function openBook(id){const b=BOOKS.find(x=>x.id===id);if(!b)return;OPENB=id;con
 document.addEventListener('click',e=>{const o=e.target.closest('[data-open]');if(o)openBook(o.dataset.open);
  const r=e.target.closest('[data-pgreset]');if(r){delete pOver[r.dataset.pgreset];LS.set('manhaj-pages-v1',pOver);renderAll();pagesSaved()}});
 function pagesSaved(){const dl=document.getElementById('bookDlg');if(dl&&dl.open&&OPENB)openBook(OPENB);let t=document.getElementById('pgToast');if(!t){t=document.createElement('div');t.id='pgToast';t.className='toast';document.body.appendChild(t)}
- t.innerHTML='✓ حُفظ عدد الصفحات وتغيّر الجدول.'+(PROF.key?' ولو ربطت البوت: الإعدادات ← «تصدير التقدّم»، وأرسل الملف للبوت.':'');t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),5000)}
+ t.innerHTML='✓ حُفظ عدد الصفحات وتغيّر الجدول.'+(PROF.key?(syncState()?' ويصل للبوت تلقائيًا خلال دقائق.':' ولتصل للبوت تلقائيًا: اكتب له /sync وافتح الرابط مرة واحدة.'):'');t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),5000)}
 /* ---------- to-do + day notes (text & voice) ---------- */
 let TODO=LS.get('manhaj-todo',{}),NOTES=LS.get('manhaj-notes',{});
 const todoKey=()=>DAYS[TODAY]?TODAY:(nextRead(TODAY)||TODAY);
@@ -834,7 +834,7 @@ function renderStats(){
 function applyTheme(){const t=LS.get('manhaj-theme','');if(t)document.documentElement.setAttribute('data-theme',t);else document.documentElement.removeAttribute('data-theme')}
 applyTheme();
 if(PROF.key){const pb=document.getElementById('profBar');pb.hidden=false;document.title='منهج البناء الفكري · '+PROF.name;
- pb.innerHTML=`صفحة <b>${esc(PROF.name)}</b> · <a href="../?choose=1">تبديل الشخص</a>${D.BOT_URL?' · <a id="botLink" href="#" target="_blank" rel="noopener">🤖 اربط البوت بصفحتك</a>':''}`;
+ pb.innerHTML=`صفحة <b>${esc(PROF.name)}</b> · <a href="../?choose=1">تبديل الشخص</a>${D.BOT_URL?(LS.get('manhaj-synctoken','')?' · <span title="تعديلاتك تصل للبوت تلقائيًا">🔄 متزامنة مع البوت</span>':' · <a id="botLink" href="#" target="_blank" rel="noopener">🤖 اربط البوت بصفحتك</a>'):''}`;
  const bl=document.getElementById('botLink');if(bl)bl.onclick=e=>{if(bl.dataset.ok)return;e.preventDefault();fetch(D.BOT_URL+'/botname').then(r=>r.json()).then(j=>{if(!j.username)throw 0;bl.href='https://t.me/'+j.username+'?start='+PROF.key;bl.dataset.ok=1;window.open(bl.href,'_blank')}).catch(()=>alert('تعذّر الوصول للبوت الآن، جرّب بعد قليل'))};}
 document.getElementById('themeBtn').onclick=()=>{const cur=document.documentElement.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');LS.set('manhaj-theme',cur==='dark'?'light':'dark');applyTheme()};
 function renderExams(){const el=document.getElementById('examCard');if(!el)return;const L=S.black.slice().sort((x,y)=>x[0]<y[0]?-1:1);
@@ -872,6 +872,17 @@ function renderPagesCard(){const el=document.getElementById('pagesCard');if(!el)
  el.querySelector('#pgSum').textContent=`${nA(ORDER.length)} كتابًا في الجدول · ${nA(nU)} غير معروف · ${nA(nE)} عدّلتها أنت`;
  const q=PGF.q,L=ORDER.filter(b=>(!PGF.unk||pages(b.ttl)[1]==='none')&&(!q||b.ttl.includes(q)||b.by.includes(q)));
  el.querySelector('#pgList').innerHTML=`<table class="t"><tr><th>#</th><th>الكتاب</th><th>الصفحات</th></tr>${L.map(b=>{const pg=pages(b.ttl);return `<tr><td>${nA(STEP[b.id])}</td><td><button class="linkish" data-open="${b.id}">${esc(b.ttl)}</button><div class="muted small">${esc(b.by.split('،')[0])}</div></td><td><input class="pgin" type="number" min="1" data-pg="${esc(b.ttl)}" value="${pg[0]}" style="${pg[1]==='none'?'border-color:var(--red);color:var(--red)':''}" aria-label="عدد صفحات ${esc(b.ttl)}">${pg[1]==='user'?' <span class="tag">معدّل</span>':''}</td></tr>`}).join('')||'<tr><td colspan="3" class="muted">لا نتائج</td></tr>'}</table>`;}
+/* ---------- automatic sync with the bot ---------- */
+const SYNC_SKIP=['notes','theme','tab2','mylinks','synctoken','alerts','who'];
+let pushT=null,lastPush='';
+function collectPrefs(){const o={},pre=NS?'manhaj-'+NS+'-':'manhaj-';try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(!k||!OWN(k))continue;if(SYNC_SKIP.includes(k.startsWith(pre)?k.slice(pre.length):k))continue;o[k]=localStorage.getItem(k)}}catch(e){}return o}
+function syncState(){return LS.get('manhaj-synctoken','')}
+function pushPrefs(){const t=syncState();if(!t||!D.BOT_URL||!PROF.key)return;const o=collectPrefs(),body=JSON.stringify(o);if(body===lastPush)return;
+ fetch(D.BOT_URL+'/prefs',{method:'POST',headers:{'content-type':'text/plain'},body:JSON.stringify({p:PROF.key,token:t,settings:o})}).then(r=>{if(r.ok){lastPush=body;LS.set('manhaj-lastsync',Date.now())}else if(r.status===403){toast('رابط المزامنة لم يعد صالحًا. اكتب /sync للبوت وافتح الرابط الجديد.')}}).catch(()=>{})}
+window.__onLS=k=>{if(SYNC_SKIP.concat(['lastsync']).some(x=>k==='manhaj-'+x))return;clearTimeout(pushT);pushT=setTimeout(pushPrefs,3000)};
+function toast(msg){let t=document.getElementById('pgToast');if(!t){t=document.createElement('div');t.id='pgToast';t.className='toast';document.body.appendChild(t)}t.innerHTML=msg;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),6000)}
+(function(){const m=/[#&]sync=([\w-]{16,})/.exec(location.hash);if(!m||!PROF.key)return;LS.set('manhaj-synctoken',m[1]);history.replaceState(null,'',location.pathname+location.search);lastPush='';setTimeout(()=>{toast('✓ رُبطت صفحتك بالبوت: أي تعديل تعمله هنا يصله تلقائيًا.');pushPrefs();const bl=document.getElementById('botLink');if(bl)bl.outerHTML='<span>🔄 متزامنة مع البوت</span>'},900)})();
+addEventListener('online',()=>setTimeout(pushPrefs,1000));
 function renderAll(){compute();renderAlertCard();renderExams();renderEditCard();renderPagesCard();renderStats();renderToday();renderTodo();renderNotes();renderPath();renderCal();renderLib();renderAudio();renderAlam();renderLit();renderSci();renderLK();renderRef()}
 document.getElementById('tabbar').innerHTML=TABS.map(([k,n,i])=>`<button data-t="${k}"><span class="ti">${i}</span>${n}</button>`).join('');
 document.getElementById('tabbar').onclick=e=>{const b=e.target.closest('button');if(b)show(b.dataset.t)};

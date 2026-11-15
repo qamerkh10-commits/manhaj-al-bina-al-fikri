@@ -1,9 +1,9 @@
 name: manhaj-sync
-# The bot itself runs on Cloudflare (worker/). This job computes the schedule from the app every hour
+# The bot itself runs on Cloudflare (worker/). This job computes the schedule from the app every 15 minutes
 # (and when the app changes) and sends it to the bot. On its first run it moves the old GitHub-era state.
 on:
   schedule:
-    - cron: '7 * * * *'
+    - cron: '*/15 * * * *'
   workflow_dispatch:
   push:
     branches: [main]

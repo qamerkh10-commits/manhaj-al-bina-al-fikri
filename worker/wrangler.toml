@@ -20,3 +20,5 @@ TG_API = "https://api.telegram.org"
 # the bot's public numeric id; a token is accepted only if Telegram confirms it belongs to this bot.
 # The token itself arrives from the GitHub sync job (repo secret TELEGRAM_TOKEN).
 BOT_ID = "9188968782"
+# each person's page (the bot sends a private sync link to it)
+SITE_URL = "https://qamerkh10-commits.github.io/manhaj-al-bina-al-fikri/"

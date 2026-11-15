@@ -81,7 +81,7 @@ export class BotState extends DurableObject {
   async run(pk, token, fn) {
     const P = this.P[pk], before = this.shared.channel && this.shared.channel.id;
     P.S.channel = this.shared.channel;
-    const bot = makeBot({ state: P.S, token, apiBase: this.env.TG_API, now: new Date(), profile: PROFILES[pk] });
+    const bot = makeBot({ state: P.S, token, apiBase: this.env.TG_API, now: new Date(), profile: { ...PROFILES[pk], url: this.env.SITE_URL ? this.env.SITE_URL + pk + '/' : '' } });
     let out;
     try { out = await fn(bot); } catch (e) { console.error(pk, e && e.stack || e); out = { ok: false, error: String(e) }; }
     P.S = bot.state();
@@ -116,6 +116,19 @@ export class BotState extends DurableObject {
     if (path === '/botname') { // public: the page's "link the bot" button needs the bot's username
       if (!this.uname) { const me = await fetch(`${this.env.TG_API}/bot${token}/getMe`).then(r => r.json()).catch(() => ({})); this.uname = me.ok ? me.result.username : ''; }
       return Response.json({ username: this.uname }, { headers: { 'access-control-allow-origin': '*' } });
+    }
+    if (path === '/prefs') { // a person's page sends its settings; only his private sync key is accepted
+      const cors = { 'access-control-allow-origin': '*' };
+      const pk = body && PROFILES[body.p] ? body.p : null;
+      if (!pk || !body.token || typeof body.settings !== 'object') return new Response('bad request', { status: 400, headers: cors });
+      return this.lock(async () => {
+        await this.load();
+        const P = this.P[pk];
+        if (!P.S.syncToken || body.token !== P.S.syncToken) return new Response('forbidden', { status: 403, headers: cors });
+        await this.run(pk, token, bot => bot.prefs(body.settings));
+        await this.save();
+        return Response.json({ ok: true }, { headers: cors });
+      });
     }
     if (path === '/tg') {
       if (req.headers.get('X-Telegram-Bot-Api-Secret-Token') !== await hookKey(token)) return new Response('forbidden', { status: 403 });
@@ -184,7 +197,8 @@ export class BotState extends DurableObject {
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
-    if (url.pathname === '/tg' || url.pathname === '/botname' || url.pathname.startsWith('/sync/')) {
+    if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'POST, GET', 'access-control-allow-headers': 'content-type' } });
+    if (url.pathname === '/tg' || url.pathname === '/botname' || url.pathname === '/prefs' || url.pathname.startsWith('/sync/')) {
       const stub = env.BOT.get(env.BOT.idFromName('main'));
       const h = new Headers(req.headers); h.set('X-Origin', url.origin);
       return stub.fetch('https://bot' + url.pathname + url.search, { method: req.method, headers: h, body: req.method === 'POST' ? await req.text() : undefined });
