@@ -829,7 +829,7 @@ document.getElementById('resetAll').onclick=()=>{if(confirm('مسح كل علا�
 renderAll();show(LS.get('manhaj-tab2','today'));
 </script>
 <script>
-if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
+if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;let rl=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl){rl=true;location.reload()}});addEventListener('load',()=>navigator.serviceWorker.register('sw.js').then(r=>r.update()).catch(()=>{}))}
 (function(){
  const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
  const b=document.getElementById('dlBtn'); if(!b)return;
