@@ -1,0 +1,7 @@
+{
+  "name": "manhaj-bot",
+  "private": true,
+  "type": "module",
+  "description": "Strict daily follow-up Telegram bot for the reading plan",
+  "dependencies": { "jsdom": "24.1.3" }
+}
