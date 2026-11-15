@@ -855,13 +855,15 @@ function renderAlertCard(){const el=document.getElementById('alertCard');if(!el|
  <label>🌙 آخر وقت لإتمام اليوم<select id="alC">${[0,1,2,3,4,5,6].map(h=>`<option value="${h}" ${+A.c===h?'selected':''}>${h===0?'١٢ منتصف الليل':nA(h)+' بعد منتصف الليل'}</option>`).join('')}</select></label>
  <label>📊 التقرير الأسبوعي<select id="alWD">${DN.map((d,i)=>`<option value="${i}" ${+A.wd===i?'selected':''}>${d}</option>`).join('')}</select><input type="time" id="alWT" value="${A.wt}"></label></div>
  <div style="margin-top:10px"><a class="btn primary" id="alSend" href="#" target="_blank" rel="noopener">احفظ وأرسل للبوت</a> <span class="muted small" id="alNote"></span></div>
- <p class="muted small" style="margin-top:8px">لازم تكون ربطت البوت بصفحتك أولًا (الرابط تحت عنوان الصفحة).</p>`;
+ <p class="muted small" style="margin-top:8px">لازم تكون ربطت البوت بصفحتك أولًا (الرابط تحت عنوان الصفحة).</p>
+ <h3 style="font-size:16px;color:var(--navy);margin:16px 0 6px">🔄 المزامنة التلقائية مع البوت</h3><p class="muted small" style="margin:0 0 8px">${syncState()?'✅ صفحتك متزامنة: أي تعديل فيها يصل للبوت وحده.':'غير متزامنة بعد. اكتب للبوت /sync، وافتح الرابط الذي يرسله. وعلى الآيفون إن كنت تستخدم التطبيق المثبّت: انسخ الرابط والصقه هنا.'}</p><div class="addrow"><input id="syncPaste" placeholder="الصق رابط المزامنة من البوت"><button class="btn" id="syncGo">ربط</button></div>`;
  const hm=v=>v?v.replace(':',''):'x';
  const read=()=>({m:el.querySelector('#alM').value||'07:00',r:[0,1,2,3].map(i=>el.querySelector('#alR'+i).value),c:+el.querySelector('#alC').value,wd:+el.querySelector('#alWD').value,wt:el.querySelector('#alWT').value||'09:00'});
  const link=()=>{const a=read();return BOTU?`https://t.me/${BOTU}?start=al-${hm(a.m)}-${a.r.map(hm).join('-')}-${String(a.c).padStart(2,'0')}-${a.wd}-${hm(a.wt)}`:'#'};
  const btn=el.querySelector('#alSend'),upd=()=>{btn.href=link()};
  el.querySelectorAll('input,select').forEach(x=>x.oninput=x.onchange=upd);
  btn.onclick=e=>{const a=read();if(a.r.some(t=>t&&t<=a.m)){e.preventDefault();alert('اجعل التذكيرات بعد موعد ورد الصبح');return}if(!BOTU){e.preventDefault();alert('لحظة، جارٍ الاتصال بالبوت… جرّب بعد ثانية');return}LS.set('manhaj-alerts',a);el.querySelector('#alNote').textContent='حُفظت هنا ✓ اضغط Start في تيليجرام لتصل للبوت'};
+ el.querySelector('#syncGo').onclick=()=>{const m=/sync=([\w-]{16,})/.exec(el.querySelector('#syncPaste').value);if(!m){alert('الصق الرابط كما أرسله البوت');return}LS.set('manhaj-synctoken',m[1]);lastPush='';pushPrefs();toast('✓ رُبطت صفحتك بالبوت: أي تعديل تعمله هنا يصله تلقائيًا.');renderAlertCard()};
  if(BOTU)upd();else fetch(D.BOT_URL+'/botname').then(r=>r.json()).then(j=>{BOTU=j.username||'';upd()}).catch(()=>{});
 }
 let PGF={q:'',unk:false};
