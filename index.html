@@ -192,6 +192,7 @@ nav.tabs button .ti{margin-inline-end:4px}
  .top .wrap{padding-top:14px}
  .h2{font-size:19px}
 }
+.stagehead{margin:26px 4px 10px;padding-inline-start:12px;border-inline-start:4px solid var(--gold)}.stagehead h3{font-size:20px;color:var(--navy);margin:0 0 2px}.stagehead p{margin:4px 0 0}
 footer{color:var(--muted);font-size:13.5px;padding:20px 0 40px;border-top:1px solid var(--line)}
 @media print{nav.tabs,.btn{display:none}section[hidden]{display:block!important}body{background:#fff}}
 
@@ -367,6 +368,7 @@ section[data-tab]>.grid,section[data-tab]>.hero{margin-bottom:22px}
 
 <section data-tab="path" hidden>
  <h2 class="h2">المسار: ماذا تقرأ ومتى</h2>
+ <p class="lead">كل كتاب يظهر في <b>السنة والفترة التي ستقرؤه فيها فعلًا</b> بسرعتك الحالية، والمراحل موقّتة على قدر ذلك. وإن غيّرت السرعة من الإعدادات تغيّر التوزيع.</p>
  <p class="lead"><b>النواة:</b> الكتب المجدولة هنا، وهي ما تُحاسب نفسك عليه. وكل ما عداها في «المكتبة المرجعية» آخر الصفحة. بعد كل كتاب أيام مراجعة 🔁 على قدر حجمه (يوم لكل ١٥٠ صفحة تقريبًا، من يوم إلى ٤). ويوم في الأسبوع للأدب 📜. والورد اليومي ثلاثة مسارات تُقرأ معًا: 📘 الفكر الإسلامي، و🔬 العلوم والإنسانيات، و🏛️ التراث والمنطق والكلام. والكتب مرقّمة خطوةً خطوة بترتيب قراءتها: تبدأ بالخطوة ١، وكل خطوة معها فائدتها وتاريخ بدايتها ونهايتها. اضغط اسم أي كتاب لترى تفاصيله كاملة، والكتاب الذي قبله والذي بعده.</p>
  <div id="pathBody"></div>
 </section>
@@ -628,7 +630,7 @@ function renderToday(){
 }
 function openBook(id){const b=BOOKS.find(x=>x.id===id);if(!b)return;const r=RANGE[id],pg=pages(b.ttl),pr=D.PAGES[b.ttl]||{},i=STEP[id];const prev=i>1?ORDER[i-2]:null,next=i?ORDER[i]:null;
  document.getElementById('dlgBody').innerHTML=`<div class="row">${cover(b,1)}<div style="flex:1"><div class="step">${i?'الخطوة '+nA(i)+' من '+nA(ORDER.length):''}</div><h3 style="font-size:19px;color:var(--navy)">${esc(b.ttl)}</h3><div class="muted">${esc(b.by)}</div>${ben(b)}</div></div>
- <dl><dt>توجه المؤلف</dt><dd>${esc(b.o||'—')}</dd><dt>موضعه</dt><dd>${esc(perName(b.period))}</dd><dt>متى تقرؤه</dt><dd>${r?fL(toD(r.s))+' ← '+fL(toD(r.e)):'—'}</dd><dt>الصفحات</dt><dd>${nA(pg[0])}${pg[1]==='none'?' (غير معروف)':pg[1]==='estimate'?' (تقديري)':''}${pr.edition?' · '+esc(pr.edition):''}${pr.source?` · <a href="${esc(pr.source)}" target="_blank" rel="noopener">المصدر</a>`:''}</dd><dt>لماذا هنا</dt><dd>${esc(b.note||'—')}</dd><dt>مصدر الترشيح</dt><dd>${esc(b.src)}</dd><dt>المسار</dt><dd><span style="color:${col(b.t)}">${esc(T[b.t].n)}</span></dd><dt>روابط</dt><dd>${links(b.ttl,b.by,pr.source)}</dd></dl>
+ <dl><dt>توجه المؤلف</dt><dd>${esc(b.o||'—')}</dd><dt>موضعه</dt><dd>${esc(r?timeLabel(r.s):'خارج الجدول · '+perName(b.period))}</dd><dt>متى تقرؤه</dt><dd>${r?fL(toD(r.s))+' ← '+fL(toD(r.e)):'—'}</dd><dt>الصفحات</dt><dd>${nA(pg[0])}${pg[1]==='none'?' (غير معروف)':pg[1]==='estimate'?' (تقديري)':''}${pr.edition?' · '+esc(pr.edition):''}${pr.source?` · <a href="${esc(pr.source)}" target="_blank" rel="noopener">المصدر</a>`:''}</dd><dt>لماذا هنا</dt><dd>${esc(b.note||'—')}</dd><dt>مصدر الترشيح</dt><dd>${esc(b.src)}</dd><dt>المسار</dt><dd><span style="color:${col(b.t)}">${esc(T[b.t].n)}</span></dd><dt>روابط</dt><dd>${links(b.ttl,b.by,pr.source)}</dd></dl>
  <div style="display:flex;justify-content:space-between;gap:8px;margin-top:16px;flex-wrap:wrap">${prev?`<button class="btn" onclick="openBook('${prev.id}')">→ قبله: ${esc(prev.ttl.slice(0,26))}</button>`:'<span></span>'}${next?`<button class="btn" onclick="openBook('${next.id}')">بعده: ${esc(next.ttl.slice(0,26))} ←</button>`:''}</div>
  ${b.dossier&&D.DOSSIER?`<h3 style="font-size:16px;color:var(--navy);margin-top:16px">فصول الملف</h3>`+D.DOSSIER.map((ch,ci)=>`<h4 style="font-size:14px;color:var(--teal);margin:12px 0 4px">${nA(ci+1)}. ${esc(ch.title)}</h4><ul class="list">${(ch.items||[]).map(x=>`<li><div><a class="t" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)} ↗</a><div class="muted small">${esc(x.author||'')}${x.venue?' · '+esc(x.venue):''}${x.year?' · '+esc(String(x.year)):''}${x.orientation?' · '+esc(x.orientation):''}${x.pages?' · نحو '+nA(x.pages)+' صفحات':''}</div>${x.summary?`<div class="small">${esc(x.summary)}</div>`:''}</div></li>`).join('')}</ul>`).join(''):''}<div style="text-align:center;margin-top:12px"><button class="btn primary" onclick="document.getElementById('bookDlg').close()">إغلاق</button></div>`;
  const dl=document.getElementById('bookDlg');if(!dl.open)dl.showModal()}
@@ -682,18 +684,36 @@ function renderNotes(){
  };
 }
 /* ---------- path ---------- */
+/* ---------- time view: the life calendar ---------- */
+const nY=y=>Number(y).toLocaleString('ar-EG',{useGrouping:false});
+const acYear=k=>{const [y,m]=k.split('-').map(Number);return m>=10?y:y-1};   // an academic year starts in October
+const YEAR_NAME=id=>{if(!id||id==='after')return '';const n=+id.split('-')[1];if(id.startsWith('p1-'))return 'السنة الثالثة';if(id.startsWith('p2-'))return n<=5?'السنة الرابعة':'السنة الخامسة';if(id.startsWith('p3-'))return n<=1?'الامتياز: السنة الأولى':'الامتياز: السنة الثانية';return ''};
+const perShort=id=>PER[id]?PER[id].name.replace(/^السنة [^:]+: /,''):'';
+const afterN=y=>y-acYear(LASTWIN);
+function timeLabel(k){const w=periodAt(k);if(w&&w!=='after')return `${YEAR_NAME(w)} · ${perShort(w)} (${PER[w].when})`;const y=acYear(k);return `بعد الامتياز: السنة ${nA(afterN(y))} (${nY(y)}–${nY(y+1)})`}
 function renderPath(){
- let h='';const curPer=(DAYS[TODAY]||DAYS[nextRead(TODAY)]||{}).per||'';
- D.phases.forEach(ph=>{
-  const bs=BOOKS.filter(b=>b.phase===ph.id&&b.core);if(!bs.length)return;
-  const rs=bs.filter(b=>RANGE[b.id]).map(b=>RANGE[b.id]);const s=rs.length?rs.reduce((a,r)=>r.s<a?r.s:a,'9999'):null,e=rs.length?rs.reduce((a,r)=>r.e>a?r.e:a,''):null;
-  const dn=bs.filter(b=>done[b.id]).length;const open=curPer.startsWith(ph.id+'-');
-  h+=`<details class="card phase" style="padding:0" ${open?'open':''}><summary><div><h3>${esc(ph.name)}</h3><div class="muted small">${s?fS(toD(s))+' ← '+fS(toD(e)):''} · ${nA(bs.length)} كتابًا</div></div><span class="tag" style="color:var(--teal)">${nA(dn)} / ${nA(bs.length)}</span></summary><div class="pbody"><p class="muted small" style="margin:10px 0 0">${esc(ph.goal)}</p>`;
-  ph.periods.forEach(p=>{const pb=bs.filter(b=>b.period===p.id);if(!pb.length)return;
-   h+=`<div class="per"><h4>${esc(p.name)} <span class="muted small">· ${esc(p.when)}</span></h4><ul class="tl">`;
-   pb.forEach(b=>{const r=RANGE[b.id],now=r&&r.s<=TODAY&&r.e>=TODAY;
-    h+=`<li class="${done[b.id]?'done':''} ${now?'now':''}" style="--c:${col(b.t)}"><input type="checkbox" data-done="${b.id}" ${done[b.id]?'checked':''} aria-label="${esc(b.ttl)}">${cover(b)}<div><div class="step">${STEP[b.id]?'الخطوة '+nA(STEP[b.id]):''}${b.q?' · <b style="color:var(--red)">❓ سؤال الدولة</b>':''}${now?' · <b style="color:var(--teal)">تقرؤه الآن</b>':''}</div><button class="linkish t" data-open="${b.id}">${esc(b.ttl)}</button><div class="muted small">${esc(b.by)} · ${nA(pages(b.ttl)[0])} صفحة</div>${ben(b)}</div><div class="d">${r?fS(toD(r.s))+'<br>'+fS(toD(r.e)):''}</div></li>`});
-   h+='</ul>';if(p.deliv)h+=`<p class="small" style="margin:8px 0 0;color:var(--gold)">✍️ مخرَج الفترة: ${esc(p.deliv)}</p>`;h+='</div>'});
+ const core=BOOKS.filter(b=>b.core&&RANGE[b.id]).sort((x,y)=>RANGE[x.id].s<RANGE[y.id].s?-1:RANGE[x.id].s>RANGE[y.id].s?1:(STEP[x.id]||0)-(STEP[y.id]||0));
+ const PH=Object.fromEntries(D.phases.map((p,i)=>[p.id,i]));
+ const years=[],yi={};
+ core.forEach(b=>{const s=RANGE[b.id].s,y=acYear(s),w=periodAt(s)||'after',wk=w==='after'?'after-'+y:w;let Y=yi[y];if(!Y){Y=yi[y]={y,wins:{},order:[],books:[]};years.push(Y)}if(!Y.wins[wk]){Y.wins[wk]=[];Y.order.push(wk)}Y.wins[wk].push(b);Y.books.push(b)});
+ // stages are timed by real capacity: a stage ends in the year by which 80% of its books have been started
+ const endY=D.phases.map(ph=>{const bs=core.filter(b=>b.phase===ph.id).map(b=>acYear(RANGE[b.id].s)).sort((x,y)=>x-y);return bs.length?bs[Math.ceil(bs.length*0.8)-1]:null});
+ let st=0;years.forEach(Y=>{while(st<D.phases.length-1&&(endY[st]==null||Y.y>endY[st])&&D.phases[st+1].id!=='p5')st++;Y.stage=st});
+ // a planned period's written output is due where its last book ends
+ const deliv={};D.phases.forEach(ph=>ph.periods.forEach(p=>{if(!p.deliv)return;const bs=core.filter(b=>b.period===p.id);if(!bs.length)return;const e=bs.reduce((x,b)=>RANGE[b.id].e>x?RANGE[b.id].e:x,'');const w=periodAt(e);const wk=w&&w!=='after'?w:'after-'+acYear(e);(deliv[wk]=deliv[wk]||[]).push(p.deliv)}));
+ const k0=nextRead(TODAY)||TODAY;
+ const li=b=>{const r=RANGE[b.id],now=r&&r.s<=TODAY&&r.e>=TODAY;return `<li class="${done[b.id]?'done':''} ${now?'now':''}" style="--c:${col(b.t)}"><input type="checkbox" data-done="${b.id}" ${done[b.id]?'checked':''} aria-label="${esc(b.ttl)}">${cover(b)}<div><div class="step">${STEP[b.id]?'الخطوة '+nA(STEP[b.id]):''}${b.q?' · <b style="color:var(--red)">❓ سؤال الدولة</b>':''}${now?' · <b style="color:var(--teal)">تقرؤه الآن</b>':''}</div><button class="linkish t" data-open="${b.id}">${esc(b.ttl)}</button><div class="muted small">${esc(b.by)} · ${nA(pages(b.ttl)[0])} صفحة</div>${ben(b)}</div><div class="d">${r?fS(toD(r.s))+'<br>'+fS(toD(r.e)):''}</div></li>`};
+ let h='',lastStage=-1;
+ years.forEach(Y=>{
+  if(Y.stage!==lastStage){lastStage=Y.stage;const ph=D.phases[Y.stage],ys=years.filter(z=>z.stage===Y.stage);
+   const s0=RANGE[ys[0].books[0].id].s,e0=ys[ys.length-1].books.reduce((x,b)=>RANGE[b.id].e>x?RANGE[b.id].e:x,''),n=ys.reduce((x,z)=>x+z.books.length,0);
+   h+=`<div class="stagehead"><h3>${esc(ph.name)}</h3><div class="muted small">${fS(toD(s0))} ← ${fS(toD(e0))} · ${ys.length===1?'سنة واحدة':ys.length===2?'سنتان':nA(ys.length)+(ys.length<11?' سنوات':' سنة')} · ${nA(n)} كتابًا</div><p class="muted small">${esc(ph.goal)}</p></div>`}
+  const dn=Y.books.filter(b=>done[b.id]).length,open=Y.y===acYear(k0);
+  const w0=Y.order.find(x=>!x.startsWith('after')),yn=w0?YEAR_NAME(w0):'بعد الامتياز: السنة '+nA(afterN(Y.y));
+  h+=`<details class="card phase" style="padding:0" ${open?'open':''}><summary><div><h3>${esc(yn)} <span class="muted small">(${nY(Y.y)}–${nY(Y.y+1)})</span></h3><div class="muted small">${nA(Y.books.length)} كتابًا تبدؤها هذه السنة</div></div><span class="tag" style="color:var(--teal)">${nA(dn)} / ${nA(Y.books.length)}</span></summary><div class="pbody">`;
+  Y.order.forEach(wk=>{const p=PER[wk];
+   h+=`<div class="per"><h4>${p?esc(perShort(wk)):'طوال السنة'} <span class="muted small">${p?'· '+esc(p.when):''}</span></h4><ul class="tl">`+Y.wins[wk].map(li).join('')+'</ul>';
+   (deliv[wk]||[]).forEach(t=>h+=`<p class="small" style="margin:8px 0 0;color:var(--gold)">✍️ مخرَج: ${esc(t)}</p>`);h+='</div>'});
   h+='</div></details>'});
  const ref=BOOKS.filter(b=>!b.core);const byT={};ref.forEach(b=>(byT[b.t]=byT[b.t]||[]).push(b));
  h+=`<h3 class="h2" style="font-size:19px;margin-top:26px">المكتبة المرجعية (${nA(ref.length)} كتابًا)</h3><p class="lead">خارج الجدول. ترجع إليها حين تحتاج موضوعًا، أو بعد إنهاء النواة. ومعها مسار المنطق والكلام الموسّع، وأسس العلوم الإضافية في «المكتبة».</p>`+Object.entries(byT).map(([t,l])=>`<details class="card phase" style="padding:0"><summary><div><h3 style="font-size:16px;color:${col(t)}">${esc(T[t]?T[t].n:t)}</h3></div><span class="tag muted">${nA(l.length)}</span></summary><div class="pbody"><ul class="tl">${l.map(b=>`<li class="${done[b.id]?'done':''}" style="--c:${col(b.t)};grid-template-columns:auto 1fr auto"><input type="checkbox" data-done="${b.id}" ${done[b.id]?'checked':''} aria-label="${esc(b.ttl)}"><div><button class="linkish t" data-open="${b.id}">${esc(b.ttl)}</button><div class="muted small">${esc(b.by)} · ${nA(pages(b.ttl)[0])} صفحة</div></div><div class="d"></div></li>`).join('')}</ul></div></details>`).join('');
@@ -716,7 +736,7 @@ function renderCal(){
 /* ---------- library ---------- */
 let libT=null;
 function allLib(){
- const r=BOOKS.map(b=>({...b,grp:b.t,place:perName(b.period),main:1}));
+ const r=BOOKS.map(b=>({...b,grp:b.t,place:b.core&&RANGE[b.id]?timeLabel(RANGE[b.id].s):'خارج الجدول · '+perName(b.period),main:1}));
  LK.forEach((st,i)=>(st.books||[]).forEach((b,j)=>r.push({id:`lk-${i}-${j}`,ttl:b.title,by:b.author||'',t:'manhaj',grp:'lk',place:st.stage+(b.alt?' (بديل)':'')+(st.ref?' (اختياري)':''),o:'',src:'«السبل المرضية»',note:b.note||'',lkb:b})));
  SCI.forEach((b,i)=>r.push({id:'sci-'+i,ttl:b.title,by:b.author||'',t:'iqtisad',grp:'sci',place:'أسس العلوم · '+(b.field||''),o:'',src:'مؤسسة هنداوي (مجاني)',note:'',scb:b,url:b.url}));
  LIT.forEach((b,i)=>r.push({id:'lit-'+i,ttl:b.title,by:b.author,t:'tasawwur',grp:'lit',place:'الأدب والترويح',o:D.AUTH[b.author]||'',src:'اقتراح مني (Claude)',note:b.note||'',ben:b.benefit}));
