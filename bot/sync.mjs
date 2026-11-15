@@ -11,7 +11,9 @@ import { clock, addDays } from './core.mjs';
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const TOKEN = process.env.TELEGRAM_TOKEN, WORKER = (process.env.WORKER_URL || '').replace(/\/$/, '');
 if (!TOKEN || !WORKER) { console.error('TELEGRAM_TOKEN (secret) and WORKER_URL (variable) are required'); process.exit(1); }
-const INDEX = process.env.INDEX_FILE || path.join(DIR, '..', 'index.html');
+// one page per person on the site; each person's schedule is computed from his own page and settings
+const PEOPLE = [{ key: 'khaled', file: 'khaled/index.html' }, { key: 'mohamed', file: 'mohamed/index.html' }];
+const ROOT = process.env.SITE_DIR || path.join(DIR, '..');
 const LEGACY = process.env.LEGACY_FILE || path.join(DIR, '..', 'state.enc');
 const sha = s => crypto.createHash('sha256').update(s).digest('hex');
 const KEY = crypto.createHmac('sha256', TOKEN).update('manhaj-sync-v1').digest('hex');
@@ -38,16 +40,19 @@ const today = clock(new Date()).date;
   if (!r.ok) throw new Error('/sync/token → ' + r.status + ' ' + (await r.text()).slice(0, 100));
   console.log('token:', (await r.json()).changed ? 'stored' : 'already set');
 }
-let info = await call('/sync/info');
-if (!info.hasOwner) {
-  const L = legacyState();
-  if (L && L.owner) { const r = await call('/sync/legacy', { state: L }); console.log('old GitHub state moved:', r.moved); info = await call('/sync/info'); }
+for (const P of PEOPLE) {
+  const INDEX = path.join(ROOT, P.file), q = '?p=' + P.key;
+  let info = await call('/sync/info' + q);
+  if (P.key === 'khaled' && !info.hasOwner) {
+    const L = legacyState();
+    if (L && L.owner) { const r = await call('/sync/legacy' + q, { state: L }); console.log('old GitHub state moved:', r.moved); info = await call('/sync/info' + q); }
+  }
+  const key = sha('v4' + sha(fs.readFileSync(INDEX, 'utf8')) + info.settingsVer + JSON.stringify(info.settings || {}));
+  if (process.argv.includes('--force') || key !== info.key || !info.cover || info.cover < addDays(today, 30)) {
+    const r = await buildSchedule(INDEX, info.settings || {}, addDays(today, -2), addDays(today, 90));
+    const res = await call('/sync/data' + q, { ...r, key, settingsVer: info.settingsVer });
+    console.log(P.key + ': schedule sent:', res.ok !== false, res.error || '');
+  } else console.log(P.key + ': schedule up to date');
 }
-const key = sha('v3' + sha(fs.readFileSync(INDEX, 'utf8')) + info.settingsVer + JSON.stringify(info.settings || {}));
-if (process.argv.includes('--force') || key !== info.key || !info.cover || info.cover < addDays(today, 30)) {
-  const r = await buildSchedule(INDEX, info.settings || {}, addDays(today, -2), addDays(today, 90));
-  const res = await call('/sync/data', { ...r, key, settingsVer: info.settingsVer });
-  console.log('schedule sent:', res.ok, res.error || '');
-} else console.log('schedule up to date');
 const w = await call('/sync/setup', {});
 console.log('webhook:', w.ok, w.description || '');

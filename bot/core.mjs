@@ -25,15 +25,16 @@ const tasksN = n => n === 1 ? 'مهمة واحدة' : n === 2 ? 'مهمتان' :
 const daysN = n => n === 1 ? 'يوم واحد' : n === 2 ? 'يومان' : n <= 10 ? `${nA(n)} أيام` : `${nA(n)} يومًا`;
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-export function makeBot({ state, token, apiBase = 'https://api.telegram.org', now = new Date() }) {
-const TOKEN = token, BASE = apiBase;
+export function makeBot({ state, token, apiBase = 'https://api.telegram.org', now = new Date(), profile = { key: '', name: '', ns: '', admin: true } }) {
+const TOKEN = token, BASE = apiBase, PNAME = profile.name || '';
+const K = n => 'manhaj-' + (profile.ns ? profile.ns + '-' : '') + n;   // this person's keys in the app's storage
 async function tg(method, body) {
   const r = await fetch(`${BASE}/bot${TOKEN}/${method}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body || {}) });
   const j = await r.json().catch(() => ({ ok: false }));
   if (!j.ok && !/message is not modified|query is too old|query ID is invalid/.test(j.description || '')) console.error(method, j.description || r.status);
   return j.result;
 }
-const MENU_V = 3;
+const MENU_V = 4;
 const COMMANDS = [{ command: 'today', description: 'ورد اليوم' }, { command: 'debt', description: 'الدَّين' }, { command: 'report', description: 'تقريري' }, { command: 'excuse', description: 'عذر (اكتب السبب بعده)' }, { command: 'backup', description: 'نسخة للتطبيق' }, { command: 'channel', description: 'قناة الملخصات' }, { command: 'books', description: 'اختر كتابًا وسجّل ملخصه' }, { command: 'help', description: 'نظام المتابعة' }];
 const MENU_RE = /^(📋|📌|📊|🙏|💾|🎙️|📚)/;
 const MENU = { keyboard: [[{ text: '📋 ورد اليوم' }, { text: '📌 الدَّين' }], [{ text: '📚 اختر كتابًا' }, { text: '🎙️ القناة' }], [{ text: '📊 تقريري' }, { text: '🙏 عذر' }], [{ text: '💾 نسخة للتطبيق' }]], resize_keyboard: true, is_persistent: true };
@@ -196,28 +197,28 @@ async function onDocument(m) {
   const f = await tg('getFile', { file_id: doc.file_id });
   if (!f) return send('تعذّر تنزيل الملف.');
   let o; try { o = await (await fetch(`${BASE}/file/bot${TOKEN}/${f.file_path}`)).json(); } catch (e) { return send('الملف غير صالح.'); }
-  const keep = {}; for (const [k, v] of Object.entries(o)) if (k.startsWith('manhaj') && !['manhaj-notes', 'manhaj-tab2', 'manhaj-theme'].includes(k) && typeof v === 'string') keep[k] = v;
+  const keep = {}; for (const [k, v] of Object.entries(o)) if ((profile.ns ? k.startsWith(K('')) : k.startsWith('manhaj')) && ![K('notes'), K('tab2'), K('theme')].includes(k) && typeof v === 'string') keep[k] = v;
   if (!Object.keys(keep).length) return send('لم أجد في الملف إعدادات للخطة.');
   S.settings = keep;
   // take over what was ticked in the app
-  try { const td = JSON.parse(keep['manhaj-todo'] || '{}'); for (const [k, v] of Object.entries(td)) if (v && v.done) Object.assign(day(k).done, v.done); } catch (e) {}
+  try { const td = JSON.parse(keep[K('todo')] || '{}'); for (const [k, v] of Object.entries(td)) if (v && v.done) Object.assign(day(k).done, v.done); } catch (e) {}
   S.settingsVer = (S.settingsVer || 0) + 1; S.settingsPending = true;
   await send('✅ استلمت إعداداتك. سيُعاد حساب جدولك وفقها خلال ساعة تقريبًا، وأخبرك حين يتم.');
 }
 async function sendBackup() {
   const o = { ...S.settings };
-  const td = (() => { try { return JSON.parse(o['manhaj-todo'] || '{}'); } catch (e) { return {}; } })();
-  const dd = (() => { try { return JSON.parse(o['manhaj-daydone'] || '{}'); } catch (e) { return {}; } })();
+  const td = (() => { try { return JSON.parse(o[K('todo')] || '{}'); } catch (e) { return {}; } })();
+  const dd = (() => { try { return JSON.parse(o[K('daydone')] || '{}'); } catch (e) { return {}; } })();
   for (const [k, d] of Object.entries(S.days)) {
     if (!d.done || !Object.keys(d.done).length) continue;
     td[k] = { custom: (td[k] && td[k].custom) || [], done: { ...((td[k] && td[k].done) || {}), ...d.done } };
     if (d.completeAt) dd[k] = true;
   }
-  o['manhaj-todo'] = JSON.stringify(td); o['manhaj-daydone'] = JSON.stringify(dd);
+  o[K('todo')] = JSON.stringify(td); o[K('daydone')] = JSON.stringify(dd);
   const fd = new FormData();
   fd.append('chat_id', String(S.owner));
   fd.append('caption', 'افتح التطبيق ← الإعدادات ← «استيراد ملف تقدّم» واختر هذا الملف، فتظهر علامات البوت في التطبيق.');
-  fd.append('document', new Blob([JSON.stringify(o)], { type: 'application/json' }), `taqaddum-manhaj-${TODAY}.json`);
+  fd.append('document', new Blob([JSON.stringify(o)], { type: 'application/json' }), `taqaddum-manhaj${profile.key ? '-' + profile.key : ''}-${TODAY}.json`);
   await fetch(`${BASE}/bot${TOKEN}/sendDocument`, { method: 'POST', body: fd }).catch(e => console.error('sendDocument', e.message));
 }
 async function excuse(reason) {
@@ -264,7 +265,7 @@ async function onMessage(m) {
   if (/^\/start/.test(txt)) {
     S.startedOn ||= TODAY; S.menuV = MENU_V;
     await tg('setMyCommands', { commands: COMMANDS });
-    await send(`السلام عليكم 👋\nأنا متابِعك اليومي في «منهج البناء الفكري». سأكون صارمًا معك.\n\n${RULES}`, { reply_markup: MENU });
+    await send(`السلام عليكم${PNAME ? ' يا ' + esc(PNAME) : ''} 👋\nأنا متابِعك اليومي في «منهج البناء الفكري». سأكون صارمًا معك.\n\n${RULES}`, { reply_markup: MENU });
     const k = openDay();
     if (k) await sendCard(k); else { const nx = Object.keys(S.sched).sort().find(x => x > TODAY && tasks(x).length); await send(`اليوم لا ورد عليك (${esc((S.sched[TODAY] || {}).why || '')}).${nx ? `\nأول ورد: ${fL(nx)}.` : ''}`); }
     return;
@@ -361,7 +362,8 @@ async function askBook(pmid, list, title) {
 async function onSummary(m) {
   if (!S.channel) return send('لم تربط قناة الملخصات بعد.\n' + CHANNEL_HOWTO);
   const kind = m.voice ? 'voice' : m.audio ? 'audio' : m.video_note ? 'video_note' : m.video ? 'video' : m.document ? 'document' : 'text';
-  S.pending[m.message_id] = { kind, text: kind === 'text' ? m.text : null, at: Date.now() };
+  const fr = m.from || {};
+  S.pending[m.message_id] = { kind, text: kind === 'text' ? m.text : null, at: Date.now(), who: fr.username ? '@' + fr.username : (fr.first_name || PNAME) };
   if (S.await && S.await.rec) { const bi = S.books.findIndex(b => b.id === S.await.rec); S.await = null; if (bi >= 0) return publish(m.message_id, bi); }
   const cap = (m.caption || '').trim();
   if (cap) {
@@ -376,14 +378,14 @@ async function publish(pmid, bi) {
   const p = S.pending[pmid];
   if (!p) return send('هذا الملخص نُشر أو أُلغي من قبل.');
   const b = S.books[bi], n = (S.sums[b.id] || []).length + 1;
-  const head = `${p.kind === 'text' ? '📝' : '🎙️'} <b>ملخص «${esc(plain(b.t))}»</b>${n > 1 ? ` · الجزء ${nA(n)}` : ''}\n${b.a ? '✍️ ' + esc(b.a) + '\n' : ''}\n${tagOf(b.id)} #${LANE_TAG[b.l] || 'كتب'}`;
+  const head = `${p.kind === 'text' ? '📝' : '🎙️'} <b>ملخص «${esc(plain(b.t))}»</b>${n > 1 ? ` · الجزء ${nA(n)}` : ''}\n${b.a ? '✍️ ' + esc(b.a) + '\n' : ''}${p.who ? '👤 ' + esc(p.who) + '\n' : ''}\n${tagOf(b.id)} #${LANE_TAG[b.l] || 'كتب'}`;
   let msg;
   if (p.kind === 'text') msg = await tg('sendMessage', { chat_id: S.channel.id, text: head + '\n\n' + esc(p.text).slice(0, 3700), parse_mode: 'HTML' });
   else if (p.kind === 'video_note') { msg = await tg('copyMessage', { chat_id: S.channel.id, from_chat_id: S.owner, message_id: +pmid }); if (msg) await tg('sendMessage', { chat_id: S.channel.id, text: head, parse_mode: 'HTML', reply_parameters: { message_id: msg.message_id } }); }
   else msg = await tg('copyMessage', { chat_id: S.channel.id, from_chat_id: S.owner, message_id: +pmid, caption: head, parse_mode: 'HTML' });
   if (!msg) return send('⚠️ تعذّر النشر في القناة. تأكد أن البوت ما زال مشرفًا فيها وله صلاحية «نشر الرسائل».');
   delete S.pending[pmid];
-  (S.sums[b.id] ||= []).push({ m: msg.message_id, at: Date.now(), k: p.kind });
+  (S.sums[b.id] ||= []).push({ m: msg.message_id, at: Date.now(), k: p.kind, by: p.who || '' });
   for (const k of Object.keys(S.sched)) { if (k > TODAY) continue; const t = tasks(k).find(x => x.rec === b.id); if (t && !day(k).done[t.id]) await markDone(k, t.id, true); }
   await updateIndex();
   await send(`✅ نُشر في القناة: <a href="${postLink(msg.message_id)}">${esc(plain(b.t))}</a>\n${tagOf(b.id)}`);
@@ -391,7 +393,7 @@ async function publish(pmid, bi) {
 function indexChunks() {
   const ids = Object.keys(S.sums).filter(id => S.sums[id].length && bookById(id));
   const total = ids.reduce((a, id) => a + S.sums[id].length, 0);
-  const lines = [`📚 <b>فهرس ملخصات البناء الفكري</b>\n${nA(ids.length)} كتاب · ${nA(total)} ملخص\nاضغط الرقم لتفتح الملخص، أو هاشتاج الكتاب في أي منشور لترى كل ملخصاته.`];
+  const lines = [`📚 <b>${PNAME ? 'فهرس ' + esc(PNAME) : 'فهرس ملخصات البناء الفكري'}</b>${PNAME ? ' · ملخصات البناء الفكري' : ''}\n${nA(ids.length)} كتاب · ${nA(total)} ملخص\nاضغط الرقم لتفتح الملخص، أو هاشتاج الكتاب في أي منشور لترى كل ملخصاته.`];
   for (const l of ['A', 'B', 'C', 'L']) {
     const g = ids.map(bookById).filter(b => b.l === l).sort((x, y) => plain(x.t).localeCompare(plain(y.t), 'ar'));
     if (!g.length) continue;
@@ -418,6 +420,7 @@ async function updateIndex() {
   }
 }
 async function linkChannel(c) {
+  if (!profile.admin) return send('قناة الملخصات يربطها خالد، وأنت تنشر فيها ملخصاتك بفهرس خاص بك.');
   const same = S.channel && S.channel.id === c.id;
   S.channel = { id: c.id, title: c.title, username: c.username || null, since: same ? S.channel.since : TODAY };
   if (!same) { S.sums = {}; S.indexMsgs = []; }
@@ -426,7 +429,7 @@ async function linkChannel(c) {
 }
 async function onChatMember(u) {
   const c = u.chat;
-  if (c.type !== 'channel' || !S.owner || u.from.id !== S.owner) return;
+  if (c.type !== 'channel' || !S.owner || u.from.id !== S.owner || !profile.admin) return;
   const st = u.new_chat_member.status;
   if (st === 'administrator') return linkChannel(c);
   if (S.channel && S.channel.id === c.id && ['left', 'kicked', 'member', 'restricted'].includes(st)) { S.channel = null; await send('⚠️ أُزيل البوت من القناة أو سُحب إشرافه، فتوقف نشر الملخصات. أعد إضافته مشرفًا لتعود.'); }
@@ -496,8 +499,12 @@ async function tick() {
   if (S.menuV !== MENU_V) {
     S.menuV = MENU_V;
     await tg('setMyCommands', { commands: COMMANDS });
-    await send('⚡ <b>تحديث:</b> صار البوت يرد فورًا.\nوزر <b>«📚 اختر كتابًا»</b> تختار به الكتاب من قائمة كتب الخطة، ثم ترسل الريكورد فيُنشر في القناة مباشرة.', { reply_markup: MENU });
+    await send(`🆕 <b>تحديث:</b> صار للخطة صفحتان: صفحتك وصفحة ${profile.admin ? 'محمد' : 'خالد'}، ولكل واحد متابعته هنا بتفاصيله هو.
+• فهرسك في القناة اسمه <b>«فهرس ${esc(PNAME || 'ملخصاتك')}»</b>، وكل ملخص مكتوب عليه اسم صاحبه.
+• في صفحتك تقدر تشيل كتابًا أو تنقله أو تضيف كتابًا من عندك، وتعدّل امتحاناتك. وبعد أي تعديل أرسل لي ملف «تصدير التقدّم» ليتطابق الجدول.`, { reply_markup: MENU });
+    if (S.channel && (S.indexMsgs || []).length) await updateIndex();
   }
+  if (S.channel && !(S.indexMsgs || []).length) await updateIndex();
   closeDays();
   await duties();
   for (const [k, p] of Object.entries(S.pending)) if (Date.now() - p.at > 3 * 864e5) delete S.pending[k];
