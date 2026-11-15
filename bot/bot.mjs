@@ -62,23 +62,32 @@ async function tg(method, body) {
   if (!j.ok && !/message is not modified|query is too old|query ID is invalid/.test(j.description || '')) console.error(method, j.description || r.status);
   return j.result;
 }
-const MENU = { keyboard: [[{ text: '📋 ورد اليوم' }, { text: '📌 الدَّين' }], [{ text: '📊 تقريري' }, { text: '🙏 عذر' }], [{ text: '💾 نسخة للتطبيق' }]], resize_keyboard: true, is_persistent: true };
+const MENU_RE = /^(📋|📌|📊|🙏|💾|🎙️)/;
+const MENU = { keyboard: [[{ text: '📋 ورد اليوم' }, { text: '📌 الدَّين' }], [{ text: '📊 تقريري' }, { text: '🙏 عذر' }], [{ text: '💾 نسخة للتطبيق' }, { text: '🎙️ القناة' }]], resize_keyboard: true, is_persistent: true };
 const send = (text, extra = {}) => tg('sendMessage', { chat_id: S.owner, text, parse_mode: 'HTML', disable_web_page_preview: true, ...extra });
 
 /* ---------- state ---------- */
 const N = now(), TODAY = N.date, YDAY = addDays(TODAY, -1);
 let S = load() || {};
 const BEFORE = JSON.stringify(S);
-S = Object.assign({ owner: null, offset: 0, settings: {}, sched: {}, schedKey: '', fin: null, days: {}, debt: [], excuses: {}, await: null, startedOn: null, lastWeekly: '', debtMsg: null }, S);
+S = Object.assign({ owner: null, offset: 0, settings: {}, sched: {}, schedKey: '', fin: null, days: {}, debt: [], excuses: {}, await: null, startedOn: null, lastWeekly: '', debtMsg: null, books: null, channel: null, sums: {}, pending: {}, indexMsgs: [] }, S);
 const day = k => (S.days[k] ||= { done: {}, rem: {} });
-const tasks = k => (S.sched[k] && S.sched[k].tasks) || [];
+const baseTasks = k => (S.sched[k] && S.sched[k].tasks) || [];
+const bookById = id => (S.books || []).find(b => b.id === id);
+// once a channel is linked, finishing a book adds a task: record its summary (it is ticked only by posting one)
+const tasks = k => {
+  const t = baseTasks(k);
+  if (!S.channel || k < S.channel.since) return t;
+  const rec = t.filter(x => x.last && x.bid).map(x => { const b = bookById(x.bid); return { id: 'rec-' + x.bid, rec: x.bid, txt: `🎙️ سجّل ملخصًا صوتيًا لكتاب «${b ? b.t : x.bid}» وانشره في القناة` }; });
+  return rec.length ? t.concat(rec) : t;
+};
 
 async function ensureSchedule(force) {
   const key = sha(sha(fs.readFileSync(INDEX, 'utf8')) + JSON.stringify(S.settings));
-  if (!force && S.schedKey === key && S.sched[addDays(TODAY, 14)]) return;
+  if (!force && S.schedKey === key && S.sched[addDays(TODAY, 14)] && S.books) return;
   const r = await buildSchedule(INDEX, S.settings, addDays(TODAY, -2), addDays(TODAY, 60));
   const past = Object.fromEntries(Object.entries(S.sched).filter(([k]) => k < addDays(TODAY, -2) && k >= addDays(TODAY, -120)));
-  S.sched = { ...past, ...r.days }; S.fin = r.fin; S.schedKey = key;
+  S.sched = { ...past, ...r.days }; S.fin = r.fin; S.schedKey = key; S.books = r.books;
   console.log('schedule rebuilt');
 }
 
@@ -139,6 +148,7 @@ async function sendCard(k, prefix = '') {
   }
 }
 async function refreshCard(k, mid) {
+  if (!(mid || day(k).msg)) return;
   const c = card(k);
   await tg('editMessageText', { chat_id: S.owner, message_id: mid || day(k).msg, text: c.text, parse_mode: 'HTML', reply_markup: c.reply_markup });
 }
@@ -194,15 +204,19 @@ async function askSummary(k) {
 async function onCallback(q) {
   tg('answerCallbackQuery', { callback_query_id: q.id }).catch(() => {});
   const [a, k, i] = (q.data || '').split('|'), mid = q.message && q.message.message_id;
+  if (a === 'b') return publish(k, +i);
+  if (a === 's') { if (!S.pending[k]) return send('هذا الملخص نُشر أو أُلغي من قبل.'); S.await = { search: k }; return send('🔎 اكتب جزءًا من اسم الكتاب أو المؤلف:', { reply_markup: { force_reply: true, input_field_placeholder: 'اسم الكتاب…' } }); }
+  if (a === 'x') { delete S.pending[k]; return tg('editMessageText', { chat_id: S.owner, message_id: mid, text: 'تمام، لن يُنشر.' }); }
   if (!S.sched[k]) return send('هذا اليوم خارج المدى المحفوظ.');
   if (a === 't') {
     const t = tasks(k)[+i]; if (!t) return;
     if (t.id === 'sum' && !day(k).done.sum) return askSummary(k);
+    if (t.rec) { if (day(k).done[t.id]) return send('سُجّل ملخص هذا الكتاب ونُشر ✅'); if (!S.channel) return send(CHANNEL_HOWTO); S.await = { rec: t.rec }; return send(`🎙️ أرسل الآن ريكورد ملخص «${esc(plain((bookById(t.rec) || {}).t || ''))}» (أو اكتبه)، وسأنشره في القناة مباشرة.\nلا تُحسب المهمة إلا بالنشر.`); }
     return markDone(k, t.id, !day(k).done[t.id], mid);
   }
   if (a === 'a') {
     const d = day(k);
-    tasks(k).forEach(t => { if (t.id !== 'sum') d.done[t.id] = true; });
+    tasks(k).forEach(t => { if (t.id !== 'sum' && !t.rec) d.done[t.id] = true; });
     if (tasks(k).some(t => t.id === 'sum') && !d.done.sum) { await refreshCard(k, mid); return askSummary(k); }
     return markDone(k, tasks(k).find(t => t.id !== 'sum').id, true, mid);
   }
@@ -256,35 +270,164 @@ const RULES = `<b>نظام المتابعة</b>
 • لك ${nA(CFG.excusesPerMonth)} عذر فقط في الشهر: يحمي السلسلة، لكن المهام تبقى دَينًا.
 • كل جمعة يصلك تقرير الأسبوع ونسبة التزامك.
 • «💾 نسخة للتطبيق» ترسل لك ملفًّا تستورده في التطبيق فتظهر فيه علاماتك. وإن غيّرت إعداداتك في التطبيق فأرسل لي ملف «تصدير التقدّم» ليتطابق الجدول.
+🎙️ <b>الملخصات:</b> أرسل لي ريكورد أو ملخصًا مكتوبًا، واختر الكتاب، فأنشره في قناة «ملخصات البناء الفكري» بهاشتاج الكتاب وأحدّث الفهرس المثبّت. وكلما أنهيت كتابًا أضفت مهمة «سجّل ملخصه» لا تُحسب إلا بالنشر. (زر «🎙️ القناة»)
 ⏱️ يرد البوت خلال دقائق، لا فورًا.`;
 
 async function onMessage(m) {
   const txt = (m.text || '').trim();
-  if (m.document) return onDocument(m);
+  if (m.forward_origin && m.forward_origin.type === 'channel') {
+    const c = m.forward_origin.chat, me = await tg('getMe'), cm = me && await tg('getChatMember', { chat_id: c.id, user_id: me.id });
+    if (cm && cm.status === 'administrator') return linkChannel(c);
+    return send('لست مشرفًا في هذه القناة بعد.\n' + CHANNEL_HOWTO);
+  }
+  if (m.document && /\.json$/i.test(m.document.file_name || '')) return onDocument(m);
+  if (m.voice || m.audio || m.video_note || m.video || m.document) return onSummary(m);
+  if (S.await && S.await.search && txt && !txt.startsWith('/') && !MENU_RE.test(txt)) {
+    const hits = searchBooks(txt), pmid = S.await.search;
+    if (!hits.length) return send('لم أجد كتابًا بهذا الاسم في الخطة. جرّب كلمة أخرى من العنوان أو اسم المؤلف.', { reply_markup: { force_reply: true } });
+    S.await = null; return askBook(pmid, hits, 'اختر الكتاب:');
+  }
+  if (S.await && S.await.rec && txt && !txt.startsWith('/') && !MENU_RE.test(txt)) return onSummary(m);
   if (/^\/start/.test(txt)) {
     S.startedOn ||= TODAY;
-    await tg('setMyCommands', { commands: [{ command: 'today', description: 'ورد اليوم' }, { command: 'debt', description: 'الدَّين' }, { command: 'report', description: 'تقريري' }, { command: 'excuse', description: 'عذر (اكتب السبب بعده)' }, { command: 'backup', description: 'نسخة للتطبيق' }, { command: 'help', description: 'نظام المتابعة' }] });
+    await tg('setMyCommands', { commands: [{ command: 'today', description: 'ورد اليوم' }, { command: 'debt', description: 'الدَّين' }, { command: 'report', description: 'تقريري' }, { command: 'excuse', description: 'عذر (اكتب السبب بعده)' }, { command: 'backup', description: 'نسخة للتطبيق' }, { command: 'channel', description: 'قناة الملخصات' }, { command: 'help', description: 'نظام المتابعة' }] });
     await send(`السلام عليكم 👋\nأنا متابِعك اليومي في «منهج البناء الفكري». سأكون صارمًا معك.\n\n${RULES}`, { reply_markup: MENU });
     const k = openDay();
     if (k) await sendCard(k); else { const nx = Object.keys(S.sched).sort().find(x => x > TODAY && tasks(x).length); await send(`اليوم لا ورد عليك (${esc((S.sched[TODAY] || {}).why || '')}).${nx ? `\nأول ورد: ${fL(nx)}.` : ''}`); }
     return;
   }
-  if (S.await && S.await.sum && txt && !txt.startsWith('/') && !/^(📋|📌|📊|🙏|💾)/.test(txt)) {
+  if (S.await && S.await.sum && txt && !txt.startsWith('/') && !MENU_RE.test(txt)) {
     const k = S.await.sum, words = txt.split(/\s+/).filter(Boolean).length;
     if (words < CFG.minSummaryWords) return send(`قصيرة جدًّا (${words <= 10 && words > 2 ? nA(words) + ' كلمات' : nA(words) + ' كلمة'}). اكتب ${nA(CFG.minSummaryWords)} كلمات على الأقل: ما الفكرة؟ ولماذا هي مهمة؟`, { reply_markup: { force_reply: true } });
     day(k).summary = txt.slice(0, 1500); S.await = null;
     await send('📝 حُفظت خلاصتك.', { reply_markup: MENU });
     return markDone(k, 'sum', true);
   }
-  if (S.await && S.await.excuse && txt && !txt.startsWith('/') && !/^(📋|📌|📊|🙏|💾)/.test(txt)) { S.await = null; return excuse(txt.slice(0, 200)); }
+  if (S.await && S.await.excuse && txt && !txt.startsWith('/') && !MENU_RE.test(txt)) { S.await = null; return excuse(txt.slice(0, 200)); }
   if (/^\/today|^📋/.test(txt)) { const k = openDay(); if (k) return sendCard(k); const nx = Object.keys(S.sched).sort().find(x => x > TODAY && tasks(x).length); return send(`لا ورد اليوم: ${esc((S.sched[TODAY] || {}).why || 'إجازة')}.${nx ? `\nالورد القادم: ${fL(nx)}.` : ''}${S.debt.length ? `\n📌 لكن عليك دَين ${tasksN(S.debt.length)}، وهذا وقت سداده.` : ''}`); }
   if (/^\/debt|^📌/.test(txt)) return sendDebt();
   if (/^\/report|^📊/.test(txt)) return send(report('تقريرك آخر ٣٠ يومًا', addDays(TODAY, -29), TODAY));
   if (/^\/excuse|^🙏/.test(txt)) { const r = txt.replace(/^\/excuse(@\w+)?|^🙏\s*عذر/, '').trim(); if (r) return excuse(r.slice(0, 200)); S.await = { excuse: true }; return send('ما عذرك اليوم؟ اكتبه في رسالة.', { reply_markup: { force_reply: true } }); }
   if (/^\/backup|^💾/.test(txt)) return sendBackup();
   if (/^\/help/.test(txt)) return send(RULES, { reply_markup: MENU });
+  if (/^\/channel|^🎙️/.test(txt)) return send(S.channel ? `🎙️ القناة المربوطة: «${esc(S.channel.title)}»\nالملخصات المنشورة: ${nA(Object.values(S.sums).reduce((a, x) => a + x.length, 0))}${S.indexMsgs[0] ? `\n<a href="${postLink(S.indexMsgs[0])}">افتح الفهرس</a>` : ''}\n\nأرسل ريكورد أو ملخصًا مكتوبًا لأنشره.` : CHANNEL_HOWTO);
+  if (txt.split(/\s+/).length >= 25 && !txt.startsWith('/')) return onSummary(m);
   return send('استخدم الأزرار بالأسفل 👇', { reply_markup: MENU });
 }
+
+/* ---------- summaries channel ---------- */
+const LANE_TAG = { A: 'الفكر_الإسلامي', B: 'العلوم_والإنسانيات', C: 'التراث_والمنطق_والكلام', L: 'الأدب' };
+const LANE_NAME = { A: '📘 الفكر الإسلامي', B: '🔬 العلوم والإنسانيات', C: '🏛️ التراث والمنطق والكلام', L: '📜 الأدب' };
+const plain = s => String(s).replace(/[ً-ٰٟـ]/g, '');
+const norm = s => plain(s).replace(/[أإآٱ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').toLowerCase();
+let TAGS = null;
+function tagOf(id) {
+  if (!TAGS) {
+    TAGS = {}; const seen = {};
+    const base = b => { const w = plain(b.t).replace(/[«»"']/g, '').split(/[:：(\[—–-]/)[0].replace(/[^\p{L}\p{N}\s]/gu, ' ').trim().split(/\s+/).slice(0, 5); return w.join('_') || 'كتاب'; };
+    (S.books || []).forEach(b => { const t = base(b); seen[t] = (seen[t] || 0) + 1; });
+    (S.books || []).forEach(b => { let t = base(b); if (seen[t] > 1 && b.a) t += '_' + plain(b.a).replace(/[^\p{L}\p{N}\s]/gu, '').trim().split(/\s+/).slice(-1)[0]; TAGS[b.id] = '#' + t; });
+  }
+  return TAGS[id] || '#كتاب';
+}
+const postLink = mid => S.channel.username ? `https://t.me/${S.channel.username}/${mid}` : `https://t.me/c/${String(S.channel.id).replace(/^-100/, '')}/${mid}`;
+const shortT = t => { const s = plain(t); return s.length > 48 ? s.slice(0, 47) + '…' : s; };
+function currentBooks() {
+  const seen = [];
+  for (let i = 0; i <= 14 && seen.length < 6; i++) baseTasks(addDays(TODAY, -i)).forEach(t => { if (t.bid && !seen.includes(t.bid) && bookById(t.bid)) seen.push(t.bid); });
+  return seen;
+}
+function searchBooks(q) {
+  const ws = norm(q).replace(/[^\p{L}\p{N}\s]/gu, ' ').split(/\s+/).filter(w => w.length > 1);
+  if (!ws.length) return [];
+  const out = [];
+  (S.books || []).forEach((b, i) => { const h = norm(b.t + ' ' + b.a); if (ws.every(w => h.includes(w))) out.push(i); });
+  const cur = currentBooks(); // books being read now come first, then shorter titles
+  return out.sort((x, y) => (cur.includes(S.books[y].id) - cur.includes(S.books[x].id)) || S.books[x].t.length - S.books[y].t.length).slice(0, 8);
+}
+async function askBook(pmid, list, title) {
+  const kb = list.map(i => [{ text: shortT(S.books[i].t), callback_data: `b|${pmid}|${i}` }]);
+  kb.push([{ text: '🔎 كتاب آخر', callback_data: `s|${pmid}` }, { text: '❌ ليس ملخصًا', callback_data: `x|${pmid}` }]);
+  await send(`🎙️ ${title}`, { reply_markup: { inline_keyboard: kb }, reply_parameters: { message_id: +pmid, allow_sending_without_reply: true } });
+}
+async function onSummary(m) {
+  if (!S.channel) return send('لم تربط قناة الملخصات بعد.\n' + CHANNEL_HOWTO);
+  const kind = m.voice ? 'voice' : m.audio ? 'audio' : m.video_note ? 'video_note' : m.video ? 'video' : m.document ? 'document' : 'text';
+  S.pending[m.message_id] = { kind, text: kind === 'text' ? m.text : null, at: Date.now() };
+  if (S.await && S.await.rec) { const bi = S.books.findIndex(b => b.id === S.await.rec); S.await = null; if (bi >= 0) return publish(m.message_id, bi); }
+  const cap = (m.caption || '').trim();
+  if (cap) {
+    const hits = searchBooks(cap);
+    if (hits.length === 1) return publish(m.message_id, hits[0]);
+    if (hits.length) return askBook(m.message_id, hits, `أكثر من كتاب يطابق «${esc(cap)}»، فأيّها تقصد؟`);
+  }
+  const cur = currentBooks().map(id => S.books.findIndex(b => b.id === id)).filter(i => i >= 0);
+  return askBook(m.message_id, cur, cur.length ? 'هذا الملخص لأي كتاب؟ (هذه كتبك الحالية)' : 'هذا الملخص لأي كتاب؟ اضغط «🔎 كتاب آخر» واكتب اسمه.');
+}
+async function publish(pmid, bi) {
+  const p = S.pending[pmid];
+  if (!p) return send('هذا الملخص نُشر أو أُلغي من قبل.');
+  const b = S.books[bi], n = (S.sums[b.id] || []).length + 1;
+  const head = `${p.kind === 'text' ? '📝' : '🎙️'} <b>ملخص «${esc(plain(b.t))}»</b>${n > 1 ? ` · الجزء ${nA(n)}` : ''}\n${b.a ? '✍️ ' + esc(b.a) + '\n' : ''}\n${tagOf(b.id)} #${LANE_TAG[b.l] || 'كتب'}`;
+  let msg;
+  if (p.kind === 'text') msg = await tg('sendMessage', { chat_id: S.channel.id, text: head + '\n\n' + esc(p.text).slice(0, 3700), parse_mode: 'HTML' });
+  else if (p.kind === 'video_note') { msg = await tg('copyMessage', { chat_id: S.channel.id, from_chat_id: S.owner, message_id: +pmid }); if (msg) await tg('sendMessage', { chat_id: S.channel.id, text: head, parse_mode: 'HTML', reply_parameters: { message_id: msg.message_id } }); }
+  else msg = await tg('copyMessage', { chat_id: S.channel.id, from_chat_id: S.owner, message_id: +pmid, caption: head, parse_mode: 'HTML' });
+  if (!msg) return send('⚠️ تعذّر النشر في القناة. تأكد أن البوت ما زال مشرفًا فيها وله صلاحية «نشر الرسائل».');
+  delete S.pending[pmid];
+  (S.sums[b.id] ||= []).push({ m: msg.message_id, at: Date.now(), k: p.kind });
+  for (const k of Object.keys(S.sched)) { if (k > TODAY) continue; const t = tasks(k).find(x => x.rec === b.id); if (t && !day(k).done[t.id]) await markDone(k, t.id, true); }
+  await updateIndex();
+  await send(`✅ نُشر في القناة: <a href="${postLink(msg.message_id)}">${esc(plain(b.t))}</a>\n${tagOf(b.id)}`);
+}
+function indexChunks() {
+  const ids = Object.keys(S.sums).filter(id => S.sums[id].length && bookById(id));
+  const total = ids.reduce((a, id) => a + S.sums[id].length, 0);
+  const lines = [`📚 <b>فهرس ملخصات البناء الفكري</b>\n${nA(ids.length)} كتاب · ${nA(total)} ملخص\nاضغط الرقم لتفتح الملخص، أو هاشتاج الكتاب في أي منشور لترى كل ملخصاته.`];
+  for (const l of ['A', 'B', 'C', 'L']) {
+    const g = ids.map(bookById).filter(b => b.l === l).sort((x, y) => plain(x.t).localeCompare(plain(y.t), 'ar'));
+    if (!g.length) continue;
+    lines.push(`\n<b>${LANE_NAME[l]}</b>`);
+    g.forEach(b => lines.push(`• ${esc(plain(b.t))}${b.a ? ' — ' + esc(b.a) : ''}: ${S.sums[b.id].map((x, i) => `<a href="${postLink(x.m)}">${nA(i + 1)}</a>`).join(' · ')}`));
+  }
+  if (!ids.length) lines.push('\nلا ملخصات بعد، وأول ملخص سيظهر هنا.');
+  const out = []; let cur = '';
+  const vis = t => t.replace(/<[^>]+>/g, '').length;
+  for (const ln of lines) { if (cur && vis(cur + '\n' + ln) > 3500) { out.push(cur); cur = ln; } else cur = cur ? cur + '\n' + ln : ln; }
+  if (cur) out.push(cur);
+  return out;
+}
+async function updateIndex() {
+  if (!S.channel) return;
+  const ch = indexChunks();
+  for (let i = 0; i < Math.max(ch.length, S.indexMsgs.length); i++) {
+    const text = ch[i] || '—';
+    if (S.indexMsgs[i]) await tg('editMessageText', { chat_id: S.channel.id, message_id: S.indexMsgs[i], text, parse_mode: 'HTML', disable_web_page_preview: true });
+    else {
+      const m = await tg('sendMessage', { chat_id: S.channel.id, text, parse_mode: 'HTML', disable_web_page_preview: true, disable_notification: true });
+      if (m) { S.indexMsgs.push(m.message_id); await tg('pinChatMessage', { chat_id: S.channel.id, message_id: m.message_id, disable_notification: true }); }
+    }
+  }
+}
+async function linkChannel(c) {
+  const same = S.channel && S.channel.id === c.id;
+  S.channel = { id: c.id, title: c.title, username: c.username || null, since: same ? S.channel.since : TODAY };
+  if (!same) { S.sums = {}; S.indexMsgs = []; }
+  await updateIndex();
+  await send(`✅ ربطت قناة «${esc(c.title)}».\nمن الآن: أرسل لي ريكورد أو ملخصًا مكتوبًا، واختر الكتاب، فأنشره في القناة بهاشتاج الكتاب وأضيفه إلى الفهرس المثبّت.\n💡 لتنشر بلا سؤال، اكتب جزءًا من اسم الكتاب في الكابشن مع الريكورد.\nوكلما أنهيت كتابًا أضفت إلى وردك مهمة «سجّل ملخصه».`);
+}
+async function onChatMember(u) {
+  const c = u.chat;
+  if (c.type !== 'channel' || !S.owner || u.from.id !== S.owner) return;
+  const st = u.new_chat_member.status;
+  if (st === 'administrator') return linkChannel(c);
+  if (S.channel && S.channel.id === c.id && ['left', 'kicked', 'member', 'restricted'].includes(st)) { S.channel = null; await send('⚠️ أُزيل البوت من القناة أو سُحب إشرافه، فتوقف نشر الملخصات. أعد إضافته مشرفًا لتعود.'); }
+}
+const CHANNEL_HOWTO = `<b>ربط قناة الملخصات</b>
+١. في تيليجرام: ✏️ ← <b>New Channel</b>، واسمها «ملخصات البناء الفكري».
+٢. افتح القناة ← اضغط اسمها بالأعلى ← <b>Administrators</b> ← <b>Add Admin</b> ← ابحث عن هذا البوت.
+٣. فعّل: <b>Post Messages</b> و<b>Edit Messages of Others</b> و<b>Pin Messages</b>، ثم <b>Save</b>.
+خلال دقائق يصلك تأكيد الربط. وإن لم يصل، فأعد توجيه (Forward) أي منشور من القناة إلى هنا.`;
 
 /* ---------- scheduled duties ---------- */
 const REM = [
@@ -300,7 +443,7 @@ async function duties() {
     missed.forEach(k => delete S.days[k].justMissed);
     if (day(missed[missed.length - 1]).msg) await refreshCard(missed[missed.length - 1]);
     const exc = missed.every(k => day(k).closed === 'excused');
-    const names = missed.map(k => fL(k).split('،')[0] + (day(k).closed === 'excused' ? ' (بعذر)' : '')).join('، ');
+    const names = missed.length > 3 ? daysN(missed.length) : missed.map(k => fL(k).split('،')[0] + (day(k).closed === 'excused' ? ' (بعذر)' : '')).join('، ');
     await send(exc ? `🙏 أُغلق اليوم بعذر. ما لم يتم صار دَينًا (${tasksN(S.debt.length)}).` : `❌ <b>فاتك ورد: ${names}.</b>\nانكسرت السلسلة، وصار الباقي دَينًا عليك: ${tasksN(S.debt.length)}.\nلا تجعل يومين يفوتانك متتاليين.`);
   }
   // 2) morning card
@@ -329,9 +472,10 @@ async function duties() {
 
 /* ---------- run ---------- */
 await ensureSchedule(false);
-const ups = (await tg('getUpdates', { offset: S.offset, timeout: 0, allowed_updates: ['message', 'callback_query'] })) || [];
+const ups = (await tg('getUpdates', { offset: S.offset, timeout: 0, allowed_updates: ['message', 'callback_query', 'my_chat_member'] })) || [];
 for (const u of ups) {
   S.offset = u.update_id + 1;
+  if (u.my_chat_member) { try { await onChatMember(u.my_chat_member); } catch (e) { console.error('chat member failed', e); } continue; }
   const m = u.message, q = u.callback_query;
   const chat = m ? m.chat.id : q && q.message ? q.message.chat.id : null;
   if (!chat) continue;
@@ -340,6 +484,7 @@ for (const u of ups) {
   try { if (m) await onMessage(m); else await onCallback(q); } catch (e) { console.error('update failed', e); }
 }
 if (S.owner) { closeDays(); await duties(); }
+for (const [k, p] of Object.entries(S.pending)) if (Date.now() - p.at > 3 * 864e5) delete S.pending[k];
 // keep the state small: drop day records older than ~13 months
 for (const k of Object.keys(S.days)) if (k < addDays(TODAY, -400)) delete S.days[k];
 if (JSON.stringify(S) !== BEFORE) { save(S); console.log('state saved'); if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, 'changed=1\n'); }
