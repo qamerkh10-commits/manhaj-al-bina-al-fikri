@@ -1,0 +1,41 @@
+name: manhaj-bot
+# Strict daily follow-up on Telegram. Runs every 10 minutes; the encrypted state lives on the "bot-data" branch.
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: manhaj-bot
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: bot/package-lock.json
+      - run: npm ci --prefix bot --no-audit --no-fund
+      - name: Load state
+        run: |
+          if git fetch --depth=1 origin bot-data 2>/dev/null; then git show FETCH_HEAD:state.enc > state.enc || rm -f state.enc; fi
+      - name: Run bot
+        id: bot
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+        run: node bot/bot.mjs
+      - name: Save state
+        if: steps.bot.outputs.changed == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/bd && cp state.enc /tmp/bd/ && cd /tmp/bd
+          git init -q -b bot-data
+          git add state.enc
+          git -c user.name=manhaj-bot -c user.email=manhaj-bot@users.noreply.github.com commit -qm "bot state"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" bot-data
