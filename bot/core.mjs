@@ -35,7 +35,7 @@ async function tg(method, body) {
   return j.result;
 }
 const MENU_V = 4;
-const COMMANDS = [{ command: 'today', description: 'ورد اليوم' }, { command: 'debt', description: 'الدَّين' }, { command: 'report', description: 'تقريري' }, { command: 'excuse', description: 'عذر (اكتب السبب بعده)' }, { command: 'backup', description: 'نسخة للتطبيق' }, { command: 'channel', description: 'قناة الملخصات' }, { command: 'books', description: 'اختر كتابًا وسجّل ملخصه' }, { command: 'help', description: 'نظام المتابعة' }];
+const COMMANDS = [{ command: 'today', description: 'ورد اليوم' }, { command: 'debt', description: 'الدَّين' }, { command: 'report', description: 'تقريري' }, { command: 'excuse', description: 'عذر (اكتب السبب بعده)' }, { command: 'backup', description: 'نسخة للتطبيق' }, { command: 'channel', description: 'قناة الملخصات' }, { command: 'books', description: 'اختر كتابًا وسجّل ملخصه' }, { command: 'alerts', description: 'مواعيد التنبيه' }, { command: 'help', description: 'نظام المتابعة' }];
 const MENU_RE = /^(📋|📌|📊|🙏|💾|🎙️|📚)/;
 const MENU = { keyboard: [[{ text: '📋 ورد اليوم' }, { text: '📌 الدَّين' }], [{ text: '📚 اختر كتابًا' }, { text: '🎙️ القناة' }], [{ text: '📊 تقريري' }, { text: '🙏 عذر' }], [{ text: '💾 نسخة للتطبيق' }]], resize_keyboard: true, is_persistent: true };
 const send = (text, extra = {}) => tg('sendMessage', { chat_id: S.owner, text, parse_mode: 'HTML', disable_web_page_preview: true, ...extra });
@@ -43,6 +43,18 @@ const send = (text, extra = {}) => tg('sendMessage', { chat_id: S.owner, text, p
 /* ---------- state ---------- */
 const N = clock(now), TODAY = N.date, YDAY = addDays(TODAY, -1);
 let S = Object.assign({ owner: null, offset: 0, settings: {}, sched: {}, schedKey: '', fin: null, days: {}, debt: [], excuses: {}, await: null, startedOn: null, lastWeekly: '', debtMsg: null, books: null, channel: null, sums: {}, pending: {}, indexMsgs: [], settingsVer: 0, settingsPending: false, lastUpdate: 0 }, state || {});
+const C = Object.assign({}, CFG, S.alerts || {});   // this person's alert times, set from his page
+const DAYN = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+const fmtH = h => { const hh = Math.floor(h), mm = Math.round((h - hh) * 60), h12 = ((hh + 11) % 12) + 1; return nA(h12) + (mm ? ':' + (mm < 10 ? '٠' : '') + nA(mm) : '') + (hh < 12 ? ' ص' : ' م'); };
+// "al-0700-1500-2000-2230-2330-02-5-0900": morning, four reminders (x = off), close hour, weekly day, weekly time
+function parseAlerts(x) {
+  const a = x.split('-'); if (a.length !== 8) return null;
+  const t = v => { if (v === 'x') return null; if (!/^\d{4}$/.test(v)) return undefined; const h = +v.slice(0, 2), m = +v.slice(2); return h > 23 || m > 59 ? undefined : h + m / 60; };
+  const mo = t(a[0]), rs = a.slice(1, 5).map(t), cl = +a[5], wd = +a[6], wh = t(a[7]);
+  if (mo == null || rs.includes(undefined) || !(cl >= 0 && cl <= 6) || !(wd >= 0 && wd <= 6) || wh == null) return null;
+  return { morning: mo, reminders: rs.filter(v => v != null && v > mo).sort((u, v) => u - v), close: cl, weeklyDay: wd, weeklyHour: wh };
+}
+const alertsText = title => `${title}\n☀️ ورد الصبح: ${fmtH(C.morning)}\n⏰ التذكيرات: ${C.reminders.length ? C.reminders.map(fmtH).join('، ') : 'بلا تذكيرات'}\n🌙 آخر وقت لإتمام اليوم: ${fmtH(C.close)} بعد منتصف الليل\n📊 التقرير الأسبوعي: ${DAYN[C.weeklyDay]} ${fmtH(C.weeklyHour)}\n\nتغيّرها من صفحتك: الإعدادات ← «مواعيد تنبيهات البوت».`;
 const day = k => (S.days[k] ||= { done: {}, rem: {} });
 const baseTasks = k => (S.sched[k] && S.sched[k].tasks) || [];
 const bookById = id => (S.books || []).find(b => b.id === id);
@@ -55,14 +67,14 @@ const tasks = k => {
 };
 
 /* ---------- day logic ---------- */
-const isOpen = k => tasks(k).length && !day(k).closed && (k === TODAY || (k === YDAY && N.hour < CFG.close));
+const isOpen = k => tasks(k).length && !day(k).closed && (k === TODAY || (k === YDAY && N.hour < C.close));
 const allDone = k => tasks(k).every(t => day(k).done[t.id]);
 const openDay = () => (isOpen(YDAY) && !allDone(YDAY) ? YDAY : null) || (tasks(TODAY).length ? TODAY : null);
 
 function closeDays() {
   if (!S.startedOn) return;
   for (const k of Object.keys(S.sched).sort()) {
-    if (k < S.startedOn || k >= TODAY || (k === YDAY && N.hour < CFG.close)) continue;
+    if (k < S.startedOn || k >= TODAY || (k === YDAY && N.hour < C.close)) continue;
     const d = day(k);
     if (d.closed || !tasks(k).length) continue;
     if (d.completeAt) d.closed = 'done';
@@ -95,7 +107,7 @@ function card(k) {
   if (d.summary) s += `\n\n📝 <i>${esc(d.summary)}</i>`;
   if (d.completeAt) s += `\n\n🔥 تمّ الورد. السلسلة: ${daysN(streak())}`;
   else if (d.closed) s += `\n\n${d.closed === 'excused' ? '🙏 يوم بعذر' : '❌ فات اليوم'}، وما لم يتم صار دَينًا.`;
-  else s += `\n\n⏳ يُغلق اليوم الساعة ${nA(CFG.close)} بعد منتصف الليل.`;
+  else s += `\n\n⏳ يُغلق اليوم الساعة ${fmtH(C.close)} بعد منتصف الليل.`;
   const kb = t.map((x, i) => [{ text: (d.done[x.id] ? '✅ ' : '⬜ ') + short(x.txt), callback_data: `t|${k}|${i}` }]);
   if (dn < t.length && !d.closed) kb.push([{ text: '✅ أتممت الورد كله', callback_data: `a|${k}` }]);
   return { text: s, reply_markup: { inline_keyboard: kb } };
@@ -107,7 +119,7 @@ async function sendCard(k, prefix = '') {
   const d = day(k);
   if (k === TODAY && !d.sent) { // first card of the day: reminders already past are skipped, so a late start sends no burst
     d.sent = true;
-    CFG.reminders.forEach((h, i) => { if (N.hour >= h) d.rem[i] = true; });
+    C.reminders.forEach((h, i) => { if (N.hour >= h) d.rem[i] = true; });
   }
 }
 async function refreshCard(k, mid) {
@@ -120,7 +132,7 @@ function debtView() {
   if (!S.debt.length) return { text: '✅ لا دَين عليك. استمر.', reply_markup: { inline_keyboard: [] } };
   const items = S.debt.slice(0, 25);
   let s = `📌 <b>الدَّين: ${tasksN(S.debt.length)} لم تتم في وقتها</b>\nسدّده قبل أن يتراكم. اضغط المهمة حين تُتمّها.\n`;
-  if (S.debt.length >= CFG.debtAlarm) s += `\n🚨 الدين كبير. خصّص يوم الجمعة لسداده.\n`;
+  if (S.debt.length >= C.debtAlarm) s += `\n🚨 الدين كبير. خصّص يوم الجمعة لسداده.\n`;
   const kb = items.map(x => { const t = tasks(x.k).find(y => y.id === x.id); const i = tasks(x.k).indexOf(t); return [{ text: `⬜ ${fL(x.k).split('،')[0]}: ${short(t.txt)}`, callback_data: `t|${x.k}|${i}` }]; });
   return { text: s, reply_markup: { inline_keyboard: kb } };
 }
@@ -162,7 +174,7 @@ async function markDone(k, id, val, mid) {
 }
 async function askSummary(k) {
   S.await = { sum: k };
-  await send(`✍️ <b>اكتب الآن أهم فكرة قرأتها${k === TODAY ? ' اليوم' : ' في ' + fL(k)}</b>\nسطران على الأقل (${nA(CFG.minSummaryWords)} كلمات فأكثر). لن تُحسب المهمة بدونها.`, { reply_markup: { force_reply: true, input_field_placeholder: 'أهم فكرة…' } });
+  await send(`✍️ <b>اكتب الآن أهم فكرة قرأتها${k === TODAY ? ' اليوم' : ' في ' + fL(k)}</b>\nسطران على الأقل (${nA(C.minSummaryWords)} كلمات فأكثر). لن تُحسب المهمة بدونها.`, { reply_markup: { force_reply: true, input_field_placeholder: 'أهم فكرة…' } });
 }
 async function onCallback(q) {
   tg('answerCallbackQuery', { callback_query_id: q.id }).catch(() => {});
@@ -227,17 +239,18 @@ async function excuse(reason) {
   if (!k || day(k).closed) return send('لا يوجد يوم قراءة مفتوح الآن.');
   if (day(k).completeAt) return send('أتممت ورد هذا اليوم فلا حاجة لعذر.');
   if (day(k).excused) return send('سجّلت عذرًا لهذا اليوم من قبل.');
-  if (used >= CFG.excusesPerMonth) return send(`⛔ استنفدت أعذار هذا الشهر (${nA(CFG.excusesPerMonth)}). العذر لا يكون عادة.\nأتمّ ما تستطيع الآن، ولو صفحات قليلة.`);
+  if (used >= C.excusesPerMonth) return send(`⛔ استنفدت أعذار هذا الشهر (${nA(C.excusesPerMonth)}). العذر لا يكون عادة.\nأتمّ ما تستطيع الآن، ولو صفحات قليلة.`);
   day(k).excused = reason; S.excuses[mo] = used + 1;
-  await send(`🙏 قُبل العذر: «${esc(reason)}».\nلن تنكسر سلسلتك، لكن مهام اليوم تصير دَينًا إن لم تُتمّها.\nبقي لك ${nA(CFG.excusesPerMonth - used - 1)} عذر هذا الشهر.`);
+  await send(`🙏 قُبل العذر: «${esc(reason)}».\nلن تنكسر سلسلتك، لكن مهام اليوم تصير دَينًا إن لم تُتمّها.\nبقي لك ${nA(C.excusesPerMonth - used - 1)} عذر هذا الشهر.`);
 }
 const RULES = `<b>نظام المتابعة</b>
-• ${nA(CFG.morning)} صباحًا يصلك ورد اليوم من الخطة نفسها (الصفحات والمسموع).
+• الساعة ${fmtH(C.morning)} يصلك ورد اليوم من الخطة نفسها (الصفحات والمسموع).
 • اضغط كل مهمة حين تُتمّها. مهمة «أهم فكرة» لا تُحسب إلا إذا كتبت سطرين.
-• إن لم تُتمّ الورد يصلك تذكير الساعة ٣ عصرًا، ثم ٨ مساءً، ثم ١٠:٣٠، ثم إنذار أخير ١١:٣٠.
-• يُغلق اليوم الساعة ${nA(CFG.close)} بعد منتصف الليل: ما لم يتم يصير <b>دَينًا</b> يلاحقك كل صباح، و<b>تنكسر سلسلتك</b>.
-• لك ${nA(CFG.excusesPerMonth)} عذر فقط في الشهر: يحمي السلسلة، لكن المهام تبقى دَينًا.
-• كل جمعة يصلك تقرير الأسبوع ونسبة التزامك.
+• ${C.reminders.length ? 'إن لم تُتمّ الورد يصلك تذكير الساعة ' + C.reminders.map(fmtH).join('، ثم ') + '، والأخير إنذار ومعه الورد.' : 'لا تذكيرات خلال اليوم (أوقفتها من صفحتك).'}
+• يُغلق اليوم الساعة ${fmtH(C.close)} بعد منتصف الليل: ما لم يتم يصير <b>دَينًا</b> يلاحقك كل صباح، و<b>تنكسر سلسلتك</b>.
+• لك ${nA(C.excusesPerMonth)} عذر فقط في الشهر: يحمي السلسلة، لكن المهام تبقى دَينًا.
+• كل ${DAYN[C.weeklyDay]} الساعة ${fmtH(C.weeklyHour)} يصلك تقرير الأسبوع ونسبة التزامك.
+• ⏰ تغيّر كل هذه المواعيد من صفحتك: الإعدادات ← «مواعيد تنبيهات البوت».
 • «💾 نسخة للتطبيق» ترسل لك ملفًّا تستورده في التطبيق فتظهر فيه علاماتك. وإن غيّرت إعداداتك في التطبيق فأرسل لي ملف «تصدير التقدّم» ليتطابق الجدول.
 🎙️ <b>الملخصات:</b> أرسل لي ريكورد أو ملخصًا مكتوبًا، واختر الكتاب، فأنشره في قناة «ملخصات البناء الفكري» بهاشتاج الكتاب وأحدّث الفهرس المثبّت. وكلما أنهيت كتابًا أضفت مهمة «سجّل ملخصه» لا تُحسب إلا بالنشر. (زر «🎙️ القناة»)`;
 
@@ -262,6 +275,15 @@ async function onMessage(m) {
     return send('📚 اختر الكتاب:', { reply_markup: { inline_keyboard: hits.map(i => [{ text: ((S.sums[S.books[i].id] || []).length ? '✅ ' : '') + shortT(S.books[i].t), callback_data: `k|${i}` }]) } });
   }
   if (S.await && S.await.rec && txt && !txt.startsWith('/') && !MENU_RE.test(txt)) return onSummary(m);
+  const al = /^\/start(?:@\w+)?\s+al-([\w-]+)/.exec(txt);
+  if (al) {
+    const a = parseAlerts(al[1]);
+    if (!a) return send('رابط المواعيد غير صالح. افتح صفحتك ← الإعدادات ← «مواعيد تنبيهات البوت»، واضغط «احفظ وأرسل للبوت» مرة أخرى.');
+    S.alerts = a; Object.assign(C, a); S.startedOn ||= TODAY;
+    const d = day(TODAY); if (d.sent) C.reminders.forEach((h, i) => { d.rem[i] = N.hour >= h; });   // no burst of reminders already past
+    return send(alertsText('✅ <b>حُفظت مواعيدك:</b>'), { reply_markup: MENU });
+  }
+  if (/^\/alerts/.test(txt)) return send(alertsText('⏰ <b>مواعيد تنبيهاتك:</b>'));
   if (/^\/start/.test(txt)) {
     S.startedOn ||= TODAY; S.menuV = MENU_V;
     await tg('setMyCommands', { commands: COMMANDS });
@@ -272,7 +294,7 @@ async function onMessage(m) {
   }
   if (S.await && S.await.sum && txt && !txt.startsWith('/') && !MENU_RE.test(txt)) {
     const k = S.await.sum, words = txt.split(/\s+/).filter(Boolean).length;
-    if (words < CFG.minSummaryWords) return send(`قصيرة جدًّا (${words <= 10 && words > 2 ? nA(words) + ' كلمات' : nA(words) + ' كلمة'}). اكتب ${nA(CFG.minSummaryWords)} كلمات على الأقل: ما الفكرة؟ ولماذا هي مهمة؟`, { reply_markup: { force_reply: true } });
+    if (words < C.minSummaryWords) return send(`قصيرة جدًّا (${words <= 10 && words > 2 ? nA(words) + ' كلمات' : nA(words) + ' كلمة'}). اكتب ${nA(C.minSummaryWords)} كلمات على الأقل: ما الفكرة؟ ولماذا هي مهمة؟`, { reply_markup: { force_reply: true } });
     day(k).summary = txt.slice(0, 1500); S.await = null;
     await send('📝 حُفظت خلاصتك.', { reply_markup: MENU });
     return markDone(k, 'sum', true);
@@ -443,8 +465,8 @@ const CHANNEL_HOWTO = `<b>ربط قناة الملخصات</b>
 /* ---------- scheduled duties ---------- */
 const REM = [
   n => `⏰ تذكير: لم تُنهِ ورد اليوم بعد. باقٍ ${tasksN(n)}.`,
-  n => `⚠️ الساعة ٨ مساءً، وورد اليوم لم يتم (باقٍ ${tasksN(n)}). ابدأ الآن ولو بنصفه.`,
-  n => `🚨 الوقت يضيق. إن لم تُتمّ الباقي (${tasksN(n)}) قبل الساعة ${nA(CFG.close)} صار دَينًا وانكسرت سلسلتك (${daysN(streak())}).`,
+  (n, h) => `⚠️ الساعة ${fmtH(h)}، وورد اليوم لم يتم (باقٍ ${tasksN(n)}). ابدأ الآن ولو بنصفه.`,
+  n => `🚨 الوقت يضيق. إن لم تُتمّ الباقي (${tasksN(n)}) قبل الساعة ${fmtH(C.close)} صار دَينًا وانكسرت سلسلتك (${daysN(streak())}).`,
   n => `⛔ <b>إنذار أخير</b>: باقٍ ${tasksN(n)}. هذا وردك:`,
 ];
 async function duties() {
@@ -459,24 +481,24 @@ async function duties() {
   }
   // 2) morning card
   const t = tasks(TODAY), d = day(TODAY);
-  if (t.length && !d.sent && N.hour >= CFG.morning) {
+  if (t.length && !d.sent && N.hour >= C.morning) {
     let pre = `صباح الخير ☀️\n`;
-    if (S.debt.length) pre += `📌 عليك دَين ${tasksN(S.debt.length)} من أيام سابقة: اضغط «📌 الدَّين».\n${S.debt.length >= CFG.debtAlarm ? '🚨 الدين يتراكم، ولن تلحق إن تركته.\n' : ''}`;
+    if (S.debt.length) pre += `📌 عليك دَين ${tasksN(S.debt.length)} من أيام سابقة: اضغط «📌 الدَّين».\n${S.debt.length >= C.debtAlarm ? '🚨 الدين يتراكم، ولن تلحق إن تركته.\n' : ''}`;
     await sendCard(TODAY, pre + '\n');
   }
   // 3) escalating reminders
   if (t.length && d.sent && !d.completeAt && !d.closed) {
-    const due = CFG.reminders.map((h, i) => i).filter(i => N.hour >= CFG.reminders[i] && !d.rem[i]);
+    const due = C.reminders.map((h, i) => i).filter(i => N.hour >= C.reminders[i] && !d.rem[i]);
     if (due.length) {
       due.forEach(i => d.rem[i] = true);
-      const i = due[due.length - 1], left = t.filter(x => !d.done[x.id]).length;
-      if (i === CFG.reminders.length - 1) await sendCard(TODAY, REM[i](left) + '\n\n'); else await send(REM[i](left));
+      const i = due[due.length - 1], left = t.filter(x => !d.done[x.id]).length, ri = i === C.reminders.length - 1 ? 3 : Math.min(i, 2);
+      if (ri === 3) await sendCard(TODAY, REM[3](left) + '\n\n'); else await send(REM[ri](left, C.reminders[i]));
     }
   }
   // 4) weekly report
-  if (dow(TODAY) === CFG.weeklyDay && N.hour >= CFG.weeklyHour && S.lastWeekly !== TODAY) {
+  if (dow(TODAY) === C.weeklyDay && N.hour >= C.weeklyHour && S.lastWeekly !== TODAY) {
     S.lastWeekly = TODAY;
-    await send(report('تقرير الأسبوع', addDays(TODAY, -7), YDAY) + (S.debt.length ? '\n\nاليوم الجمعة إجازة من الجدول، فهو أنسب يوم لسداد الدين 👇' : ''));
+    await send(report('تقرير الأسبوع', addDays(TODAY, -7), YDAY) + (S.debt.length ? (C.weeklyDay === 5 ? '\n\nاليوم الجمعة إجازة من الجدول، فهو أنسب يوم لسداد الدين 👇' : '\n\nوهذا وقت مناسب لسداد الدين 👇') : ''));
     if (S.debt.length) await sendDebt();
   }
 }

@@ -194,6 +194,7 @@ nav.tabs button .ti{margin-inline-end:4px}
 }
 .stagehead{margin:26px 4px 10px;padding-inline-start:12px;border-inline-start:4px solid var(--gold)}.stagehead h3{font-size:20px;color:var(--navy);margin:0 0 2px}.stagehead p{margin:4px 0 0}
 .profbar{margin-top:6px;opacity:.9}.profbar a{color:inherit;text-decoration:underline;text-underline-offset:3px}.editbox{margin-top:16px;padding:12px;border:1px dashed var(--line);border-radius:14px}.editbox h4{font-size:14px;color:var(--navy);margin:0 0 8px}.editbox select,.addrow select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
+#alertCard .settings{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}#alertCard input[type=time]{width:120px;min-width:120px}#alertCard select{max-width:100%}
 footer{color:var(--muted);font-size:13.5px;padding:20px 0 40px;border-top:1px solid var(--line)}
 @media print{nav.tabs,.btn{display:none}section[hidden]{display:block!important}body{background:#fff}}
 
@@ -456,6 +457,7 @@ section[data-tab]>.grid,section[data-tab]>.hero{margin-bottom:22px}
   <div class="settings" id="paceSet"></div>
   <p class="muted small" style="margin-top:8px" id="finishLine"></p>
  </div>
+ <div class="card" style="margin-bottom:14px" id="alertCard" hidden></div>
  <div class="card" style="margin-bottom:14px" id="examCard"></div>
  <div class="card" style="margin-bottom:14px" id="editCard"></div>
  <div class="card" style="margin-bottom:14px"><h3 style="font-size:16px;color:var(--navy);margin-bottom:6px">قواعد المنهج</h3><ul style="margin:0;padding-inline-start:20px;font-size:15px">
@@ -831,7 +833,25 @@ function renderEditCard(){const el=document.getElementById('editCard');if(!el)re
  el.innerHTML=`<h3 style="font-size:16px;color:var(--navy);margin-bottom:6px">أضف كتابًا من عندك</h3><p class="muted small" style="margin:0 0 8px">يدخل الجدول قبل الكتاب الذي تختاره، وفي نفس مساره. ولتشيل كتابًا أو تنقله: افتح الكتاب نفسه من أي مكان.</p><div class="addrow" style="flex-wrap:wrap"><input id="cTtl" placeholder="عنوان الكتاب"><input id="cBy" placeholder="المؤلف"><input id="cPg" type="number" min="1" placeholder="عدد الصفحات" style="max-width:130px"></div><div class="addrow" style="flex-wrap:wrap"><span class="small" style="align-self:center">قبل:</span><select id="cRef" style="flex:1;min-width:0">${bookOptions('')}</select><button class="btn primary" id="cAdd">إضافة</button></div>${nh+na+nm+nc?`<p class="small" style="margin-top:10px">تعديلاتك: ${nA(nc)} كتاب من عندك · ${nA(nh)} مشال · ${nA(na)} مضاف من المكتبة · ${nA(nm)} منقول. <button class="btn" id="cReset">↩️ ارجع للخطة الأصلية</button></p>`:''}`;
  el.querySelector('#cAdd').onclick=()=>{const t=el.querySelector('#cTtl').value.trim(),pg=+el.querySelector('#cPg').value||0,y=BOOKS.find(b=>b.id===el.querySelector('#cRef').value);if(!t||!y){alert('اكتب العنوان واختر مكانه');return}EDIT.custom=(EDIT.custom||[]).concat([{id:'c-'+Date.now().toString(36),ttl:t,by:el.querySelector('#cBy').value.trim(),pages:pg||150,lane:laneOf(y),period:y.period,sub:posOf(y)-0.3}]);saveEdit()};
  const r=el.querySelector('#cReset');if(r)r.onclick=()=>{if(confirm('تمسح كل تعديلاتك على الكتب وترجع للخطة الأصلية؟')){EDIT={hide:{},add:{},move:{},custom:[]};saveEdit()}};}
-function renderAll(){compute();renderExams();renderEditCard();renderStats();renderToday();renderTodo();renderNotes();renderPath();renderCal();renderLib();renderAudio();renderAlam();renderLit();renderSci();renderLK();renderRef()}
+let BOTU='';
+function renderAlertCard(){const el=document.getElementById('alertCard');if(!el||!PROF.key||!D.BOT_URL)return;el.hidden=false;
+ const A=Object.assign({m:'07:00',r:['15:00','20:00','22:30','23:30'],c:2,wd:5,wt:'09:00'},LS.get('manhaj-alerts',{}));
+ const DN=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],RN=['التذكير الأول','التذكير الثاني','التذكير الثالث','الإنذار الأخير (ومعه الورد)'];
+ el.innerHTML=`<h3 style="font-size:16px;color:var(--navy);margin-bottom:6px">⏰ مواعيد تنبيهات البوت</h3><p class="muted small" style="margin:0 0 10px">اختر المواعيد المناسبة لك، ثم اضغط «احفظ وأرسل للبوت»: يفتح تيليجرام على البوت، فاضغط <b>Start</b>. والتذكيرات لا تصلك إلا إن لم تُتمّ ورد اليوم. امسح وقت أي تذكير لتوقفه.</p>
+ <div class="settings"><label>☀️ ورد الصبح<input type="time" id="alM" value="${A.m}" required></label>${A.r.map((t,i)=>`<label>${RN[i]}<input type="time" id="alR${i}" value="${t||''}"></label>`).join('')}
+ <label>🌙 آخر وقت لإتمام اليوم<select id="alC">${[0,1,2,3,4,5,6].map(h=>`<option value="${h}" ${+A.c===h?'selected':''}>${h===0?'١٢ منتصف الليل':nA(h)+' بعد منتصف الليل'}</option>`).join('')}</select></label>
+ <label>📊 التقرير الأسبوعي<select id="alWD">${DN.map((d,i)=>`<option value="${i}" ${+A.wd===i?'selected':''}>${d}</option>`).join('')}</select><input type="time" id="alWT" value="${A.wt}"></label></div>
+ <div style="margin-top:10px"><a class="btn primary" id="alSend" href="#" target="_blank" rel="noopener">احفظ وأرسل للبوت</a> <span class="muted small" id="alNote"></span></div>
+ <p class="muted small" style="margin-top:8px">لازم تكون ربطت البوت بصفحتك أولًا (الرابط تحت عنوان الصفحة).</p>`;
+ const hm=v=>v?v.replace(':',''):'x';
+ const read=()=>({m:el.querySelector('#alM').value||'07:00',r:[0,1,2,3].map(i=>el.querySelector('#alR'+i).value),c:+el.querySelector('#alC').value,wd:+el.querySelector('#alWD').value,wt:el.querySelector('#alWT').value||'09:00'});
+ const link=()=>{const a=read();return BOTU?`https://t.me/${BOTU}?start=al-${hm(a.m)}-${a.r.map(hm).join('-')}-${String(a.c).padStart(2,'0')}-${a.wd}-${hm(a.wt)}`:'#'};
+ const btn=el.querySelector('#alSend'),upd=()=>{btn.href=link()};
+ el.querySelectorAll('input,select').forEach(x=>x.oninput=x.onchange=upd);
+ btn.onclick=e=>{const a=read();if(a.r.some(t=>t&&t<=a.m)){e.preventDefault();alert('اجعل التذكيرات بعد موعد ورد الصبح');return}if(!BOTU){e.preventDefault();alert('لحظة، جارٍ الاتصال بالبوت… جرّب بعد ثانية');return}LS.set('manhaj-alerts',a);el.querySelector('#alNote').textContent='حُفظت هنا ✓ اضغط Start في تيليجرام لتصل للبوت'};
+ if(BOTU)upd();else fetch(D.BOT_URL+'/botname').then(r=>r.json()).then(j=>{BOTU=j.username||'';upd()}).catch(()=>{});
+}
+function renderAll(){compute();renderAlertCard();renderExams();renderEditCard();renderStats();renderToday();renderTodo();renderNotes();renderPath();renderCal();renderLib();renderAudio();renderAlam();renderLit();renderSci();renderLK();renderRef()}
 document.getElementById('tabbar').innerHTML=TABS.map(([k,n,i])=>`<button data-t="${k}"><span class="ti">${i}</span>${n}</button>`).join('');
 document.getElementById('tabbar').onclick=e=>{const b=e.target.closest('button');if(b)show(b.dataset.t)};
 document.addEventListener('click',e=>{const g=e.target.closest('[data-goto]');if(g)show(g.dataset.goto)});
