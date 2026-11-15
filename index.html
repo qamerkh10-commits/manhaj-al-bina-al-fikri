@@ -457,13 +457,22 @@ function renderCal(){
 }
 /* ---------- library ---------- */
 let libT=null;
+function allLib(){
+ const r=BOOKS.map(b=>({...b,grp:b.t,place:perName(b.period),main:1}));
+ LK.forEach((st,i)=>(st.books||[]).forEach((b,j)=>r.push({id:`lk-${i}-${j}`,ttl:b.title,by:b.author||'',t:'manhaj',grp:'lk',place:st.stage+(b.alt?' (بديل)':'')+(st.ref?' (اختياري)':''),o:'',src:'«السبل المرضية»',note:b.note||'',lkb:b})));
+ SCI.forEach((b,i)=>r.push({id:'sci-'+i,ttl:b.title,by:b.author||'',t:'iqtisad',grp:'sci',place:'أسس العلوم · '+(b.field||''),o:'',src:'مؤسسة هنداوي (مجاني)',note:'',scb:b,url:b.url}));
+ LIT.forEach((b,i)=>r.push({id:'lit-'+i,ttl:b.title,by:b.author,t:'tasawwur',grp:'lit',place:'الأدب والترويح',o:D.AUTH[b.author]||'',src:'اقتراح مني (Claude)',note:b.note||'',ben:b.benefit}));
+ return r}
 function renderLib(){
+ const G=[['','الكل'],...Object.entries(T).filter(([k])=>!['audio','acad','shar'].includes(k)).map(([k,v])=>[k,v.n]),['lk','المنطق والكلام'],['sci','أسس العلوم'],['lit','الأدب']];
  const f=document.getElementById('libF');
- f.innerHTML=[['','الكل'],...Object.entries(T).filter(([k])=>k!=='audio'&&k!=='acad'&&k!=='shar').map(([k,v])=>[k,v.n])].map(([k,n])=>`<button class="chip" data-t="${k}" aria-pressed="${(libT||'')===k}">${k?`<span style="color:${col(k)}">●</span> `:''}${esc(n)}</button>`).join('');
+ const A=allLib();const q=document.getElementById('libQ').value.trim();
+ const cnt=k=>k?A.filter(b=>b.grp===k).length:A.length;
+ f.innerHTML=G.map(([k,n])=>`<button class="chip" data-t="${k}" aria-pressed="${(libT||'')===k}">${k&&T[k]?`<span style="color:${col(k)}">●</span> `:''}${esc(n)} <span class="muted small">${nA(cnt(k))}</span></button>`).join('');
  f.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{libT=c.dataset.t||null;renderLib()});
- const q=document.getElementById('libQ').value.trim();
- document.getElementById('libGrid').innerHTML=BOOKS.filter(b=>(!libT||b.t===libT)&&(!q||(b.ttl+b.by+b.o+b.src).includes(q))).map(b=>{const pg=pages(b.ttl),r=RANGE[b.id],pr=D.PAGES[b.ttl]||{};
-  return `<div class="card book ${done[b.id]?'done':''}" style="--c:${col(b.t)}"><div style="display:flex;gap:10px;align-items:flex-start">${cover(b)}<div style="flex:1"><div class="step">${STEP[b.id]?'الخطوة '+nA(STEP[b.id]):''}</div><button class="linkish t" data-open="${b.id}">${esc(b.ttl)}</button></div><input type="checkbox" data-done="${b.id}" ${done[b.id]?'checked':''} aria-label="${esc(b.ttl)}"></div>${ben(b)}<div class="meta"><b>${esc(b.by)}</b>${b.o?' · '+esc(b.o):''}</div><div class="meta"><span class="tag" style="color:${col(b.t)}">${esc(T[b.t].n)}</span> ${esc(perName(b.period))}${r?' · '+fS(toD(r.s)):''}</div><div class="meta">الصفحات: <input class="pgin" type="number" min="1" data-pg="${esc(b.ttl)}" value="${pg[0]}"> ${pg[1]==='none'?'<span style="color:var(--red)">غير معروف</span>':pg[1]==='estimate'?'تقديري':''}${pr.source&&pg[1]!=='user'?` <a href="${esc(pr.source)}" target="_blank" rel="noopener">المصدر</a>`:''}</div>${b.note?`<div class="meta">${esc(b.note)}</div>`:''}<div class="meta">مصدر الترشيح: ${esc(b.src)}</div>${links(b.ttl,b.by,pr.source)}</div>`}).join('');
+ const L=A.filter(b=>(!libT||b.grp===libT)&&(!q||(b.ttl+b.by+(b.o||'')+(b.src||'')).includes(q)));
+ document.getElementById('libGrid').innerHTML=`<p class="muted small" style="grid-column:1/-1;margin:0">${nA(L.length)} كتابًا</p>`+L.map(b=>{const pg=b.lkb?lkPages(b.lkb):b.scb?[sciPages(b.scb),b.scb.pnote?'estimate':'sourced']:pages(b.ttl);const r=RANGE[b.id],pr=D.PAGES[b.ttl]||{};const bn=b.main?ben(b):(b.ben||(b.scb&&b.scb.benefit))?`<div class="ben"><b>الفائدة: </b>${esc(b.ben||b.scb.benefit)}</div>`:'';
+  return `<div class="card book ${done[b.id]?'done':''}" style="--c:${col(b.t)}"><div style="display:flex;gap:10px;align-items:flex-start">${cover(b)}<div style="flex:1"><div class="step">${STEP[b.id]?'الخطوة '+nA(STEP[b.id]):esc(b.place)}</div>${b.main?`<button class="linkish t" data-open="${b.id}">${esc(b.ttl)}</button>`:`<div class="t">${esc(b.ttl)}</div>`}</div><input type="checkbox" data-done="${b.id}" ${done[b.id]?'checked':''} aria-label="${esc(b.ttl)}"></div>${bn}<div class="meta"><b>${esc(b.by)}</b>${b.o?' · '+esc(b.o):''}</div><div class="meta">${b.main?`<span class="tag" style="color:${col(b.t)}">${esc(T[b.t].n)}</span> ${esc(b.place)}`:''}${r?' · '+fS(toD(r.s)):''}</div><div class="meta">الصفحات: <input class="pgin" type="number" min="1" data-pg="${esc(b.ttl)}" value="${pg[0]}"> ${pg[1]==='none'?'<span style="color:var(--red)">غير معروف</span>':pg[1]==='estimate'?'تقديري':''}</div>${b.note?`<div class="meta">${esc(b.note)}</div>`:''}<div class="meta">مصدر الترشيح: ${esc(b.src)}</div>${b.url?`<div class="lnks"><a href="${esc(b.url)}" target="_blank" rel="noopener">صفحة الكتاب (مجاني) ↗</a></div>`:links(b.ttl,b.by,pr.source)}</div>`}).join('');
 }
 /* ---------- audio ---------- */
 function audioRows(list){return list.map(({a,i})=>{const id='a-'+i;const dts=Object.entries(AUD).filter(([,v])=>v.i===i).map(([k])=>k).sort();
