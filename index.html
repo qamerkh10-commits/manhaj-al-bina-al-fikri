@@ -154,13 +154,51 @@ dialog::backdrop{background:rgba(10,16,20,.55)}
 .dlg dt{font-family:"Noto Kufi Arabic";font-size:12px;color:var(--muted);padding-top:3px}
 .dlg dd{margin:0}
 .lnks{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.lnks a{font-family:'Noto Kufi Arabic';font-size:11.5px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:1px 9px;background:var(--soft)}
+.todo{list-style:none;margin:0;padding:0}
+.todo li{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px dashed var(--line)}
+.todo li:first-child{border-top:0}
+.todo li.done span{text-decoration:line-through;opacity:.55}
+.todo .x{margin-inline-start:auto;border:0;background:none;color:var(--muted);cursor:pointer;font-size:16px}
+.addrow{display:flex;gap:6px;margin-top:10px}
+.addrow input{flex:1;font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:var(--soft);color:var(--ink)}
+textarea.note{width:100%;min-height:110px;font:inherit;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--soft);color:var(--ink);resize:vertical}
+.rec{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.rec .dot{width:10px;height:10px;border-radius:50%;background:var(--red);display:inline-block;animation:bl 1s infinite}
+@keyframes bl{50%{opacity:.2}}
+.voice{display:flex;gap:8px;align-items:center;margin-top:8px}
+.voice audio{height:34px;max-width:100%}
+/* UX polish */
+.addrow input{min-width:0}.addrow .btn{flex:none}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.btn{transition:background .15s,transform .05s}.btn:active{transform:scale(.97)}.btn:hover{filter:brightness(1.05)}
+section[data-tab]:not([hidden]){animation:fade .18s ease-out}@keyframes fade{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
+.top .row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.themeBtn{border:1px solid rgba(255,255,255,.25);background:transparent;color:inherit;border-radius:999px;padding:4px 12px;font-size:15px}
+.stats2{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.stat2{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 14px;min-width:120px;box-shadow:var(--sh)}
+.stat2 b{display:block;font-family:"Noto Kufi Arabic";font-size:19px;color:var(--navy)}
+.stat2 span{font-size:12.5px;color:var(--muted)}
+.today .cv.big{width:84px;font-size:10px}
+.today .bk{font-size:clamp(17px,2.4vw,21px)!important}
+.card{transition:box-shadow .2s}
+.todo li{padding:10px 0}.todo input[type=checkbox]{width:20px;height:20px}
+nav.tabs button .ti{margin-inline-end:4px}
+@media (max-width:640px){
+ body{padding-bottom:74px}
+ nav.tabs{position:fixed;top:auto;bottom:0;left:0;right:0;box-shadow:0 -2px 12px rgba(0,0,0,.18)}
+ nav.tabs .wrap{padding-top:6px;padding-bottom:8px;gap:2px}
+ nav.tabs button{display:flex;flex-direction:column;align-items:center;padding:4px 10px;font-size:11px;border-radius:12px;min-width:64px}
+ nav.tabs button .ti{margin:0;font-size:19px;line-height:1.2}
+ .top .wrap{padding-top:14px}
+ .h2{font-size:19px}
+}
 footer{color:var(--muted);font-size:13.5px;padding:20px 0 40px;border-top:1px solid var(--line)}
 @media print{nav.tabs,.btn{display:none}section[hidden]{display:block!important}body{background:#fff}}
 </style>
 </head>
 <body>
 <header class="top"><div class="wrap">
- <h1>منهج البناء الفكري</h1>
+ <div class="row"><h1>منهج البناء الفكري</h1><button class="themeBtn" id="themeBtn" aria-label="تبديل الوضع الليلي">🌓</button></div>
  <div class="sub">المسار الفكري · العلوم الشرعية تُدرس على الشيوخ والمعاهد</div>
 </div></header>
 <nav class="tabs" aria-label="أقسام"><div class="wrap" id="tabbar"></div></nav>
@@ -168,6 +206,12 @@ footer{color:var(--muted);font-size:13.5px;padding:20px 0 40px;border-top:1px so
 <main class="wrap">
 
 <section data-tab="today">
+ <div class="stats2" id="stats2"></div>
+ <div class="grid" style="margin-bottom:16px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+  <div class="card" id="todoCard"></div>
+  <div class="card" id="noteCard"></div>
+ </div>
+ <h3 class="h2" style="margin:4px 0 10px">ما تقرؤه الآن</h3>
  <div class="hero">
   <div class="card today" id="todayCard"></div>
   <div class="card" id="todaySide"></div>
@@ -446,6 +490,54 @@ function openBook(id){const b=BOOKS.find(x=>x.id===id);if(!b)return;const r=RANG
  ${b.dossier&&D.DOSSIER?`<h3 style="font-size:16px;color:var(--navy);margin-top:16px">فصول الملف</h3>`+D.DOSSIER.map((ch,ci)=>`<h4 style="font-size:14px;color:var(--teal);margin:12px 0 4px">${nA(ci+1)}. ${esc(ch.title)}</h4><ul class="list">${(ch.items||[]).map(x=>`<li><div><a class="t" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)} ↗</a><div class="muted small">${esc(x.author||'')}${x.venue?' · '+esc(x.venue):''}${x.year?' · '+esc(String(x.year)):''}${x.orientation?' · '+esc(x.orientation):''}${x.pages?' · نحو '+nA(x.pages)+' صفحات':''}</div>${x.summary?`<div class="small">${esc(x.summary)}</div>`:''}</div></li>`).join('')}</ul>`).join(''):''}<div style="text-align:center;margin-top:12px"><button class="btn primary" onclick="document.getElementById('bookDlg').close()">إغلاق</button></div>`;
  const dl=document.getElementById('bookDlg');if(!dl.open)dl.showModal()}
 document.addEventListener('click',e=>{const o=e.target.closest('[data-open]');if(o)openBook(o.dataset.open)});
+/* ---------- to-do + day notes (text & voice) ---------- */
+let TODO=LS.get('manhaj-todo',{}),NOTES=LS.get('manhaj-notes',{});
+const todoKey=()=>DAYS[TODAY]?TODAY:(nextRead(TODAY)||TODAY);
+function dayTasks(k){const t=[];const dy=DAYS[k];
+ if(dy)dy.segs.forEach((sg,i)=>t.push({id:'s'+i+'-'+sg.id,txt:sg.rv?`${sg.lane==='R'?'📝':'🔁'} ${sg.ttl}${sg.lane==='R'?'':' (مراجعة)'}`:`${LANES[sg.lane].ico} اقرأ «${sg.ttl}» من ص ${nA(sg.a)} إلى ${nA(sg.b)}`}));
+ if(AUD[k])t.push({id:'aud',txt:`🎧 استمع: ${AUD[k].series} (الحلقة ${nA(AUD[k].ep)})`});
+ if(dy&&dy.segs.some(sg=>!sg.rv&&sg.lane!=='L'))t.push({id:'sum',txt:'✍️ اكتب سطرين: ما أهم فكرة قرأتها اليوم؟'});
+ return t}
+function renderTodo(){
+ const k=todoKey(),st=TODO[k]||(TODO[k]={done:{},custom:[]});const tasks=dayTasks(k);
+ const all=tasks.length+st.custom.length,dn=tasks.filter(t=>st.done[t.id]).length+st.custom.filter(c=>c.done).length;
+ let h=`<h3 style="font-size:16px;color:var(--navy);margin-bottom:4px">مهام ${k===TODAY?'اليوم':fL(toD(k))}</h3><div class="muted small" style="margin-bottom:6px">${nA(dn)} من ${nA(all)}</div><div class="bar" style="margin-bottom:8px"><i style="width:${all?dn/all*100:0}%"></i></div><ul class="todo">`;
+ tasks.forEach(t=>{h+=`<li class="${st.done[t.id]?'done':''}"><input type="checkbox" data-todo="${esc(t.id)}" ${st.done[t.id]?'checked':''}><span>${esc(t.txt)}</span></li>`});
+ st.custom.forEach((c,i)=>{h+=`<li class="${c.done?'done':''}"><input type="checkbox" data-ctodo="${i}" ${c.done?'checked':''}><span>${esc(c.t)}</span><button class="x" data-cdel="${i}" aria-label="حذف">×</button></li>`});
+ h+=`</ul><div class="addrow"><input id="todoNew" placeholder="أضف مهمة لهذا اليوم…"><button class="btn primary" id="todoAdd">إضافة</button></div>`;
+ document.getElementById('todoCard').innerHTML=h;
+ const save=()=>{LS.set('manhaj-todo',TODO);setTimeout(renderStats,0);const tt=dayTasks(k),allDone=tt.length&&tt.every(t=>st.done[t.id]);const dd=LS.get('manhaj-daydone',{});if(allDone&&!dd[k]){dd[k]=true;LS.set('manhaj-daydone',dd)}renderTodo();renderToday()};
+ document.querySelectorAll('[data-todo]').forEach(c=>c.onchange=()=>{st.done[c.dataset.todo]=c.checked;save()});
+ document.querySelectorAll('[data-ctodo]').forEach(c=>c.onchange=()=>{st.custom[+c.dataset.ctodo].done=c.checked;save()});
+ document.querySelectorAll('[data-cdel]').forEach(b=>b.onclick=()=>{st.custom.splice(+b.dataset.cdel,1);save()});
+ const add=()=>{const v=document.getElementById('todoNew').value.trim();if(v){st.custom.push({t:v,done:false});save()}};
+ document.getElementById('todoAdd').onclick=add;document.getElementById('todoNew').onkeydown=e=>{if(e.key==='Enter')add()};
+}
+// voice notes live in IndexedDB (too big for localStorage)
+const VDB={db:null,open(){return this.db?Promise.resolve(this.db):new Promise((res,rej)=>{try{const r=indexedDB.open('manhaj-voice',1);r.onupgradeneeded=()=>r.result.createObjectStore('notes',{keyPath:'id',autoIncrement:true}).createIndex('day','day');r.onsuccess=()=>{this.db=r.result;res(this.db)};r.onerror=()=>rej(r.error)}catch(e){rej(e)}})},
+ add(day,blob){return this.open().then(db=>new Promise((res,rej)=>{const tx=db.transaction('notes','readwrite');tx.objectStore('notes').add({day,blob,at:Date.now()});tx.oncomplete=res;tx.onerror=()=>rej(tx.error)}))},
+ list(day){return this.open().then(db=>new Promise(res=>{const out=[];const rq=db.transaction('notes').objectStore('notes').index('day').openCursor(IDBKeyRange.only(day));rq.onsuccess=()=>{const c=rq.result;if(c){out.push(c.value);c.continue()}else res(out)}})).catch(()=>[])},
+ del(id){return this.open().then(db=>new Promise(res=>{const tx=db.transaction('notes','readwrite');tx.objectStore('notes').delete(id);tx.oncomplete=res}))}};
+let REC=null;
+function renderNotes(){
+ const k=todoKey();
+ let h=`<h3 style="font-size:16px;color:var(--navy);margin-bottom:6px">تعليقك على ${k===TODAY?'اليوم':fL(toD(k))}</h3><textarea class="note" id="noteTxt" placeholder="ما فهمته، سؤال عندك، فكرة خطرت لك، أو كيف كان يومك مع الورد…">${esc(NOTES[k]||'')}</textarea><div class="muted small" id="noteSaved"></div>
+ <div class="rec"><button class="btn" id="recBtn">🎙️ تسجيل تعليق صوتي</button><span id="recState" class="small"></span></div><div id="voiceList"></div>`;
+ document.getElementById('noteCard').innerHTML=h;
+ let tmr;document.getElementById('noteTxt').oninput=e=>{clearTimeout(tmr);tmr=setTimeout(()=>{const v=e.target.value;if(v.trim())NOTES[k]=v;else delete NOTES[k];LS.set('manhaj-notes',NOTES);document.getElementById('noteSaved').textContent='حُفظ ✓';renderCal()},500)};
+ const drawVoices=()=>VDB.list(k).then(l=>{const el=document.getElementById('voiceList');if(!el)return;el.innerHTML=l.map(v=>`<div class="voice"><audio controls src="${URL.createObjectURL(v.blob)}"></audio><span class="muted small">${new Date(v.at).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}</span><button class="x btn" data-vdel="${v.id}" aria-label="حذف">×</button></div>`).join('');el.querySelectorAll('[data-vdel]').forEach(b=>b.onclick=()=>{if(confirm('حذف هذا التسجيل؟'))VDB.del(+b.dataset.vdel).then(drawVoices)})});
+ drawVoices();
+ const btn=document.getElementById('recBtn'),stEl=document.getElementById('recState');
+ btn.onclick=async()=>{
+  if(REC&&REC.state==='recording'){REC.stop();return}
+  if(!navigator.mediaDevices||!window.MediaRecorder){stEl.textContent='التسجيل الصوتي غير مدعوم في هذا المتصفح';return}
+  try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});const chunks=[];REC=new MediaRecorder(stream);
+   REC.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+   REC.onstop=()=>{stream.getTracks().forEach(t=>t.stop());const blob=new Blob(chunks,{type:REC.mimeType||'audio/webm'});VDB.add(k,blob).then(()=>{stEl.textContent='حُفظ التسجيل ✓';btn.textContent='🎙️ تسجيل تعليق صوتي';drawVoices();renderCal()}).catch(()=>{stEl.textContent='تعذّر حفظ التسجيل'})};
+   REC.start();btn.textContent='⏹️ إيقاف التسجيل';stEl.innerHTML='<span class="dot"></span> جارٍ التسجيل…'}
+  catch(e){stEl.textContent='لم يُسمح بالميكروفون، فاسمح به من إعدادات المتصفح'}
+ };
+}
 /* ---------- path ---------- */
 function renderPath(){
  let h='';const curPer=(DAYS[TODAY]||DAYS[nextRead(TODAY)]||{}).per||'';
@@ -472,11 +564,11 @@ function renderCal(){
  const wd=['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
  let h=wd.map(x=>`<div class="wd">${x}</div>`).join('');for(let i=0;i<first.getDay();i++)h+='<div class="cell empty"></div>';
  for(let d=1;d<=days;d++){const k=iso(new Date(y,m,d)),st=status(k),dy=DAYS[k];
-  h+=`<div class="cell ${st==='read'?'':st} ${k===TODAY?'today':''} ${k===calSel?'sel':''}" data-k="${k}"><span class="n">${nA(d)}</span>${dy?dy.segs.map(s=>`<span class="bk" style="--c:${col(s.t)}">${s.rv?'🔁':LANES[s.lane].ico} ${esc(s.ttl)}</span>`).join(''):''}${SCID[k]?`<span class="bk" style="--c:var(--c-iqtisad)">🔬 ${esc(SCID[k][0].ttl)}</span>`:''}${LKD[k]?`<span class="bk" style="--c:var(--c-manhaj)">📐 ${esc(LKD[k][0].ttl)}</span>`:''}<span class="dots">${dy?dy.segs.map(s=>`<i style="--c:${col(s.t)}"></i>`).join(''):''}</span></div>`}
+  h+=`<div class="cell ${st==='read'?'':st} ${k===TODAY?'today':''} ${k===calSel?'sel':''}" data-k="${k}"><span class="n">${nA(d)}${NOTES[k]?' 📝':''}${(TODO[k]&&TODO[k].custom&&TODO[k].custom.length)?' ☑️':''}</span>${dy?dy.segs.map(s=>`<span class="bk" style="--c:${col(s.t)}">${s.rv?'🔁':LANES[s.lane].ico} ${esc(s.ttl)}</span>`).join(''):''}${SCID[k]?`<span class="bk" style="--c:var(--c-iqtisad)">🔬 ${esc(SCID[k][0].ttl)}</span>`:''}${LKD[k]?`<span class="bk" style="--c:var(--c-manhaj)">📐 ${esc(LKD[k][0].ttl)}</span>`:''}<span class="dots">${dy?dy.segs.map(s=>`<i style="--c:${col(s.t)}"></i>`).join(''):''}</span></div>`}
  const g=document.getElementById('calGrid');g.innerHTML=h;
  g.querySelectorAll('.cell[data-k]').forEach(c=>c.onclick=()=>{calSel=c.dataset.k;renderCal()});
  const k=calSel,dy=DAYS[k],a=AUD[k],l=LKD[k];
- document.getElementById('calDay').innerHTML=`<h3 style="font-size:16px;color:var(--navy)">${fL(toD(k))}</h3>${dy?dy.segs.map(s=>`<div class="mini"><div class="ico">${LANES[s.lane].ico}</div><div><span class="step">${LANES[s.lane].n}</span><br><b>${esc(s.ttl)}</b><div class="muted small">${s.rv?segTxt(s):'من صفحة '+nA(s.a)+' إلى '+nA(s.b)+' (من '+nA(s.tot)+')'}</div></div></div>`).join(''):`<p class="muted">${esc(reason(k))}</p>`}${a?`<div class="mini"><div class="ico">🎧</div><div><b>${esc(a.series)}</b><div class="muted small">${esc(a.speaker)} · الحلقة ${nA(a.ep)}</div></div></div>`:''}${SCID[k]?SCID[k].map(x=>`<div class="mini"><div class="ico">🔬</div><div><b>${esc(x.ttl)}</b><div class="muted small">أسس العلوم · ص ${nA(x.a)}–${nA(x.b)}</div></div></div>`).join(''):''}${l?l.map(x=>`<div class="mini"><div class="ico">📐</div><div><b>${esc(x.ttl)}</b><div class="muted small">ص ${nA(x.a)}–${nA(x.b)}</div></div></div>`).join(''):''}`;
+ document.getElementById('calDay').innerHTML=`<h3 style="font-size:16px;color:var(--navy)">${fL(toD(k))}</h3>${NOTES[k]?`<div class="ben" style="margin-bottom:8px"><b>تعليقك: </b>${esc(NOTES[k])}</div>`:''}${dy?dy.segs.map(s=>`<div class="mini"><div class="ico">${LANES[s.lane].ico}</div><div><span class="step">${LANES[s.lane].n}</span><br><b>${esc(s.ttl)}</b><div class="muted small">${s.rv?segTxt(s):'من صفحة '+nA(s.a)+' إلى '+nA(s.b)+' (من '+nA(s.tot)+')'}</div></div></div>`).join(''):`<p class="muted">${esc(reason(k))}</p>`}${a?`<div class="mini"><div class="ico">🎧</div><div><b>${esc(a.series)}</b><div class="muted small">${esc(a.speaker)} · الحلقة ${nA(a.ep)}</div></div></div>`:''}${SCID[k]?SCID[k].map(x=>`<div class="mini"><div class="ico">🔬</div><div><b>${esc(x.ttl)}</b><div class="muted small">أسس العلوم · ص ${nA(x.a)}–${nA(x.b)}</div></div></div>`).join(''):''}${l?l.map(x=>`<div class="mini"><div class="ico">📐</div><div><b>${esc(x.ttl)}</b><div class="muted small">ص ${nA(x.a)}–${nA(x.b)}</div></div></div>`).join(''):''}`;
 }
 /* ---------- library ---------- */
 let libT=null;
@@ -541,10 +633,18 @@ function renderRef(){
  document.getElementById('sylGrid').innerHTML=(D.SYL||[]).map(x=>`<div class="card"><div class="muted small">${esc(x.institution)}</div><h3 style="font-size:15px;margin:2px 0"><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.course)} ↗</a></h3><div class="muted small">${esc(x.type)}${x.lectures?' · '+nA(x.lectures)+' محاضرة':''} · ${esc(x.level||'')}</div><p class="small" style="margin:6px 0 0">${esc(x.topic_ar||'')}${x.note_ar?'. '+esc(x.note_ar):''}</p></div>`).join('');
 }
 /* ---------- tabs & events ---------- */
-const TABS=[['today','اليوم'],['path','المسار'],['cal','التقويم'],['lib','المكتبة'],['audio','المسموع'],['alam','الأعلام'],['lit','الأدب'],['sci','أسس العلوم'],['lk','المنطق والكلام'],['ref','مراجع وإعدادات']];
-function show(t){document.querySelectorAll('section[data-tab]').forEach(s=>s.hidden=s.dataset.tab!==t);document.querySelectorAll('#tabbar button').forEach(b=>b.setAttribute('aria-selected',b.dataset.t===t));LS.set('manhaj-tab2',t);window.scrollTo({top:0})}
-function renderAll(){compute();renderToday();renderPath();renderCal();renderLib();renderAudio();renderAlam();renderLit();renderSci();renderLK();renderRef()}
-document.getElementById('tabbar').innerHTML=TABS.map(([k,n])=>`<button data-t="${k}">${n}</button>`).join('');
+const TABS=[['today','اليوم','📅'],['path','المسار','🧭'],['cal','التقويم','🗓️'],['lib','المكتبة','📚'],['audio','المسموع','🎧'],['alam','الأعلام','👤'],['lit','الأدب','📜'],['sci','أسس العلوم','🔬'],['lk','المنطق والكلام','🏛️'],['ref','الإعدادات','⚙️']];
+function show(t){const tb=document.querySelector(`#tabbar button[data-t="${t}"]`);if(tb)tb.scrollIntoView({inline:'center',block:'nearest'});document.querySelectorAll('section[data-tab]').forEach(s=>s.hidden=s.dataset.tab!==t);document.querySelectorAll('#tabbar button').forEach(b=>b.setAttribute('aria-selected',b.dataset.t===t));LS.set('manhaj-tab2',t);window.scrollTo({top:0})}
+function renderStats(){
+ const dd=LS.get('manhaj-daydone',{});let streak=0;const ks=Object.keys(DAYS).filter(k=>k<=TODAY).sort().reverse();for(const k of ks){if(dd[k])streak++;else if(k<TODAY)break}
+ const CB=BOOKS.filter(b=>b.core),dn=CB.filter(b=>done[b.id]).length;const nxt=nextRead(TODAY);
+ document.getElementById('stats2').innerHTML=[[fL(new Date()).split('،')[0]+'، '+new Date().toLocaleDateString('ar-EG',{day:'numeric',month:'long'}),'اليوم'],[nA(streak)+' 🔥','أيام ورد متتالية'],[nA(dn)+' / '+nA(CB.length),'كتب النواة المنجزة'],[FIN?FIN.getFullYear().toLocaleString('ar-EG',{useGrouping:false}):'—','نهاية النواة']].map(([b,s])=>`<div class="stat2"><b>${b}</b><span>${s}</span></div>`).join('');
+}
+function applyTheme(){const t=LS.get('manhaj-theme','');if(t)document.documentElement.setAttribute('data-theme',t);else document.documentElement.removeAttribute('data-theme')}
+applyTheme();
+document.getElementById('themeBtn').onclick=()=>{const cur=document.documentElement.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');LS.set('manhaj-theme',cur==='dark'?'light':'dark');applyTheme()};
+function renderAll(){compute();renderStats();renderToday();renderTodo();renderNotes();renderPath();renderCal();renderLib();renderAudio();renderAlam();renderLit();renderSci();renderLK();renderRef()}
+document.getElementById('tabbar').innerHTML=TABS.map(([k,n,i])=>`<button data-t="${k}"><span class="ti">${i}</span>${n}</button>`).join('');
 document.getElementById('tabbar').onclick=e=>{const b=e.target.closest('button');if(b)show(b.dataset.t)};
 document.addEventListener('click',e=>{const g=e.target.closest('[data-goto]');if(g)show(g.dataset.goto)});
 document.addEventListener('change',e=>{const el=e.target;
@@ -562,7 +662,7 @@ document.getElementById('calPrev').onclick=()=>{calM=calM[1]?[calM[0],calM[1]-1]
 document.getElementById('calNext').onclick=()=>{calM=calM[1]<11?[calM[0],calM[1]+1]:[calM[0]+1,0];renderCal()};
 document.getElementById('expBtn').onclick=()=>{const o={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('manhaj'))o[k]=localStorage.getItem(k)}}catch(e){}const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(o)],{type:'application/json'}));a.download='taqaddum-manhaj-'+TODAY+'.json';a.click()};
 document.getElementById('impFile').onchange=e=>{const fl=e.target.files[0];if(!fl)return;fl.text().then(t=>{try{const o=JSON.parse(t);Object.entries(o).forEach(([k,v])=>{if(k.startsWith('manhaj'))localStorage.setItem(k,v)});alert('تم استيراد التقدّم');location.reload()}catch(err){alert('الملف غير صالح')}})};
-document.getElementById('resetAll').onclick=()=>{if(confirm('مسح كل علامات التقدّم وأعداد الصفحات والإعدادات المحفوظة؟')){['manhaj-bina-fikri-v1','manhaj-pages-v1','manhaj-budget-v1','manhaj-lk-v1','manhaj-sci-v1','manhaj-lanes-v1','manhaj-lit-v1','manhaj-litdays','manhaj-daydone'].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});location.reload()}};
+document.getElementById('resetAll').onclick=()=>{if(confirm('مسح كل علامات التقدّم وأعداد الصفحات والإعدادات المحفوظة؟')){['manhaj-bina-fikri-v1','manhaj-pages-v1','manhaj-budget-v1','manhaj-lk-v1','manhaj-sci-v1','manhaj-lanes-v1','manhaj-lit-v1','manhaj-litdays','manhaj-daydone','manhaj-todo','manhaj-notes'].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});location.reload()}};
 renderAll();show(LS.get('manhaj-tab2','today'));
 </script>
 <script>
