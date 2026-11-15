@@ -325,6 +325,17 @@ footer{border-top:0}
 .todo li.done{border-color:color-mix(in srgb,var(--teal) 25%,transparent)}
 .hero,.grid,.stats2,.week{align-items:stretch}
 .mini{align-items:center}
+
+/* ===== spacing & accent fix 2 ===== */
+main{padding-top:30px}
+nav.tabs{margin-bottom:0}
+.stats2{margin-top:4px;margin-bottom:22px;gap:14px}
+.stat2,.today{box-shadow:var(--sh)!important}
+.stat2{padding:16px 18px;overflow:visible}
+.stat2 span{display:flex;align-items:center;gap:6px}
+.stat2 span::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--acc);flex:none}
+.grid,.hero{gap:18px}
+section[data-tab]>.grid,section[data-tab]>.hero{margin-bottom:22px}
 </style>
 </head>
 <body>
