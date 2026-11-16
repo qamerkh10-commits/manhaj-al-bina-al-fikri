@@ -7,6 +7,7 @@
 // is set in one place only. A token is accepted only if Telegram confirms it belongs to BOT_ID.
 import { DurableObject } from 'cloudflare:workers';
 import { makeBot } from '../../bot/core.mjs';
+import { askAI, AI_DAILY } from './ai.mjs';
 
 // keep in step with the site (bot/profiles in sync.mjs and the pages under /khaled and /mohamed)
 const PROFILES = {
@@ -130,6 +131,27 @@ export class BotState extends DurableObject {
         return Response.json({ ok: true }, { headers: cors });
       });
     }
+    if (path === '/ai') { // the assistant on a person's page; only his private sync key is accepted
+      const cors = { 'access-control-allow-origin': '*' };
+      const pk = body && PROFILES[body.p] ? body.p : null;
+      if (!pk || !body.token || !Array.isArray(body.messages)) return new Response('bad request', { status: 400, headers: cors });
+      if (!this.env.AI) return Response.json({ ok: false, error: 'المساعد غير مفعّل بعد.' }, { headers: cors });
+      const day = new Date(Date.now() + 2 * 3600e3).toISOString().slice(0, 10), cKey = `aiN:${pk}:${day}`;
+      const gate = await this.lock(async () => {
+        await this.load();
+        const P = this.P[pk];
+        if (!P.S.syncToken || body.token !== P.S.syncToken) return 'forbidden';
+        const n = (await this.ctx.storage.get(cKey)) || 0;
+        if (n >= AI_DAILY) return 'limit';
+        await this.ctx.storage.put(cKey, n + 1);
+        return 'ok';
+      });
+      if (gate === 'forbidden') return new Response('forbidden', { status: 403, headers: cors });
+      if (gate === 'limit') return Response.json({ ok: false, error: `انتهت أسئلة اليوم (${AI_DAILY}). يعود المساعد غدًا.` }, { headers: cors });
+      const r = await askAI(this.env, { name: PROFILES[pk].name, messages: body.messages, ctx: body.ctx });
+      if (!r.ok) console.error('ai', r.detail);
+      return Response.json({ ok: r.ok, reply: r.reply, actions: r.actions, error: r.error }, { headers: cors });
+    }
     if (path === '/tg') {
       if (req.headers.get('X-Telegram-Bot-Api-Secret-Token') !== await hookKey(token)) return new Response('forbidden', { status: 403 });
     } else if (path.startsWith('/sync/')) {
@@ -208,7 +230,7 @@ export default {
   async fetch(req, env) {
     const url = new URL(req.url);
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'POST, GET', 'access-control-allow-headers': 'content-type' } });
-    if (url.pathname === '/tg' || url.pathname === '/botname' || url.pathname === '/prefs' || url.pathname.startsWith('/sync/')) {
+    if (url.pathname === '/tg' || url.pathname === '/botname' || url.pathname === '/prefs' || url.pathname === '/ai' || url.pathname.startsWith('/sync/')) {
       const stub = env.BOT.get(env.BOT.idFromName('main'));
       const h = new Headers(req.headers); h.set('X-Origin', url.origin);
       return stub.fetch('https://bot' + url.pathname + url.search, { method: req.method, headers: h, body: req.method === 'POST' ? await req.text() : undefined });

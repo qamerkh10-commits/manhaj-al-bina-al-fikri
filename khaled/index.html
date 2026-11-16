@@ -341,6 +341,25 @@ nav.tabs{margin-bottom:0}
 .stat2 span::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--acc);flex:none}
 .grid,.hero{gap:18px}
 section[data-tab]>.grid,section[data-tab]>.hero{margin-bottom:22px}
+
+#aiFab{position:fixed;inset-inline-end:16px;bottom:18px;z-index:60;width:54px;height:54px;border-radius:50%;border:0;background:var(--navy);color:var(--bg);font-size:24px;box-shadow:var(--sh);cursor:pointer}
+#aiBox{position:fixed;inset-inline-end:16px;bottom:82px;z-index:61;width:min(420px,calc(100vw - 32px));height:min(600px,calc(100vh - 110px));background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
+#aiBox[hidden]{display:none}
+#aiBox header{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700}
+#aiBox header button{margin-inline-start:auto;background:none;border:0;color:var(--muted);font:inherit;cursor:pointer}
+#aiLog{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.aiM{max-width:88%;padding:9px 12px;border-radius:14px;line-height:1.7;font-size:15px;white-space:normal;overflow-wrap:anywhere}
+.aiM.u{align-self:flex-start;background:var(--navy);color:var(--bg)}
+.aiM.a{align-self:flex-end;background:var(--bg);border:1px solid var(--line)}
+.aiM.s{align-self:center;color:var(--muted);font-size:13px;background:none;padding:2px}
+.aiAct{border:1px dashed var(--teal,#2a7);border-radius:12px;padding:8px 10px;margin-top:6px;font-size:14px}
+.aiAct ul{margin:4px 0;padding-inline-start:18px}
+.aiAct button{font:inherit;border-radius:10px;padding:5px 14px;margin-inline-end:6px;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.aiAct button.go{background:var(--navy);color:var(--bg);border-color:var(--navy)}
+#aiForm{display:flex;gap:6px;padding:10px;border-top:1px solid var(--line)}
+#aiIn{flex:1;font:inherit;padding:9px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);resize:none;max-height:120px}
+#aiForm button{font:inherit;border:0;border-radius:12px;padding:0 14px;background:var(--navy);color:var(--bg);cursor:pointer}
+@media print{#aiFab,#aiBox{display:none!important}}
 </style>
 </head>
 <body>
@@ -954,7 +973,7 @@ function renderRef(){
 }
 /* ---------- tabs & events ---------- */
 const TABS=[['today','اليوم','📅'],['path','المسار','🧭'],['cal','التقويم','🗓️'],['lib','المكتبة','📚'],['shar','العلوم الشرعية','📗'],['audio','المسموع','🎧'],['alam','الأعلام','👤'],['lit','الأدب','📜'],['sci','أسس العلوم','🔬'],['lk','المنطق والكلام','🏛️'],['ref','الإعدادات','⚙️']];
-function show(t){const tb=document.querySelector(`#tabbar button[data-t="${t}"]`);if(tb)tb.scrollIntoView({inline:'center',block:'nearest'});document.querySelectorAll('section[data-tab]').forEach(s=>s.hidden=s.dataset.tab!==t);document.querySelectorAll('#tabbar button').forEach(b=>b.setAttribute('aria-selected',b.dataset.t===t));LS.set('manhaj-tab2',t);window.scrollTo({top:0})}
+function show(t){const tb=document.querySelector(`#tabbar button[data-t="${t}"]`);if(tb)tb.scrollIntoView({inline:'center',block:'nearest'});document.querySelectorAll('section[data-tab]').forEach(s=>s.hidden=s.dataset.tab!==t);document.querySelectorAll('#tabbar button').forEach(b=>b.setAttribute('aria-selected',b.dataset.t===t));LS.set('manhaj-tab2',t);window.scrollTo({top:0});paint(t)}
 function renderStats(){
  const dd=LS.get('manhaj-daydone',{});let streak=0;const ks=Object.keys(DAYS).filter(k=>k<=TODAY).sort().reverse();for(const k of ks){if(dd[k])streak++;else if(k<TODAY)break}
  const CB=BOOKS.filter(b=>b.core),dn=CB.filter(b=>done[b.id]).length;const nxt=nextRead(TODAY);
@@ -1004,7 +1023,7 @@ function renderPagesCard(){const el=document.getElementById('pagesCard');if(!el)
  const q=PGF.q,L=ORDER.filter(b=>(!PGF.unk||pages(b.ttl)[1]==='none')&&(!q||b.ttl.includes(q)||b.by.includes(q)));
  el.querySelector('#pgList').innerHTML=`<table class="t"><tr><th>#</th><th>الكتاب</th><th>الصفحات</th></tr>${L.map(b=>{const pg=pages(b.ttl);return `<tr><td>${nA(STEP[b.id])}</td><td><button class="linkish" data-open="${b.id}">${esc(b.ttl)}</button><div class="muted small">${esc(b.by.split('،')[0])}</div></td><td><input class="pgin" type="number" min="1" data-pg="${esc(b.ttl)}" value="${pg[0]}" style="${pg[1]==='none'?'border-color:var(--red);color:var(--red)':''}" aria-label="عدد صفحات ${esc(b.ttl)}">${pg[1]==='user'?' <span class="tag">معدّل</span>':''}</td></tr>`}).join('')||'<tr><td colspan="3" class="muted">لا نتائج</td></tr>'}</table>`;}
 /* ---------- automatic sync with the bot ---------- */
-const SYNC_SKIP=['notes','theme','tab2','mylinks','synctoken','alerts','who'];
+const SYNC_SKIP=['ai','aiopen','notes','theme','tab2','mylinks','synctoken','alerts','who'];
 let pushT=null,lastPush='';
 function collectPrefs(){const o={},pre=NS?'manhaj-'+NS+'-':'manhaj-';try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(!k||!OWN(k))continue;if(SYNC_SKIP.includes(k.startsWith(pre)?k.slice(pre.length):k))continue;o[k]=localStorage.getItem(k)}}catch(e){}return o}
 function syncState(){return LS.get('manhaj-synctoken','')}
@@ -1014,12 +1033,18 @@ window.__onLS=k=>{if(SYNC_SKIP.concat(['lastsync']).some(x=>k==='manhaj-'+x))ret
 function toast(msg){let t=document.getElementById('pgToast');if(!t){t=document.createElement('div');t.id='pgToast';t.className='toast';document.body.appendChild(t)}t.innerHTML=msg;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),6000)}
 (function(){const m=/[#&]sync=([\w-]{16,})/.exec(location.hash);if(!m||!PROF.key)return;LS.set('manhaj-synctoken',m[1]);history.replaceState(null,'',location.pathname+location.search);lastPush='';setTimeout(()=>{toast('✓ رُبطت صفحتك بالبوت: أي تعديل تعمله هنا يصله تلقائيًا.');pushPrefs();const bl=document.getElementById('botLink');if(bl)bl.outerHTML='<span>🔄 متزامنة مع البوت</span>'},900)})();
 addEventListener('online',()=>setTimeout(pushPrefs,1000));
-function renderAll(){compute();renderAlertCard();renderExams();renderEditCard();renderPagesCard();renderStats();renderToday();renderTodo();renderNotes();renderPath();renderCal();renderLib();renderShar();renderNat();renderAudio();renderHsf();renderAlam();renderLit();renderSci();renderLK();renderRef()}
+// each tab and what draws it; a tab is drawn only while on screen, the rest when they are opened
+const TABR={today:[()=>renderStats(),()=>renderToday(),()=>renderTodo(),()=>renderNotes()],path:[()=>renderPath()],cal:[()=>renderCal()],lib:[()=>renderLib()],shar:[()=>renderShar()],sci:[()=>renderNat(),()=>renderSci()],audio:[()=>renderAudio(),()=>renderHsf()],alam:[()=>renderAlam()],lit:[()=>renderLit()],lk:[()=>renderLK()],ref:[()=>renderAlertCard(),()=>renderExams(),()=>renderEditCard(),()=>renderPagesCard(),()=>renderRef()]};
+let DIRTY={};
+function curTab(){const s=document.querySelector('section[data-tab]:not([hidden])');return s?s.dataset.tab:'today'}
+function paint(t){if(!DIRTY[t])return;DIRTY[t]=0;(TABR[t]||[]).forEach(f=>{try{f()}catch(e){console.error(e)}})}
+function repaint(){Object.keys(TABR).forEach(k=>DIRTY[k]=1);paint(curTab())}
+function renderAll(){compute();repaint()}
 document.getElementById('tabbar').innerHTML=TABS.map(([k,n,i])=>`<button data-t="${k}"><span class="ti">${i}</span>${n}</button>`).join('');
 document.getElementById('tabbar').onclick=e=>{const b=e.target.closest('button');if(b)show(b.dataset.t)};
 document.addEventListener('click',e=>{const g=e.target.closest('[data-goto]');if(g)show(g.dataset.goto)});
 document.addEventListener('change',e=>{const el=e.target;
- if(el.dataset.done){const id=el.dataset.done;if(el.checked)done[id]=1;else delete done[id];LS.set('manhaj-bina-fikri-v1',done);renderToday();renderPath();renderLib();renderShar();renderNat();renderAudio();renderHsf();renderAlam();renderLit();renderSci();renderLK();return}
+ if(el.dataset.done){const id=el.dataset.done;if(el.checked)done[id]=1;else delete done[id];LS.set('manhaj-bina-fikri-v1',done);repaint();return}
  if(el.dataset.pg){const v=+el.value;if(v>0)pOver[el.dataset.pg]=v;else delete pOver[el.dataset.pg];LS.set('manhaj-pages-v1',pOver);renderAll();pagesSaved();return}
  if(el.dataset.lane){const [k,i]=el.dataset.lane.split('-');laneBud[k]=laneBud[k].slice();laneBud[k][+i]=Math.max(0,+el.value||0);LS.set('manhaj-lanes-v2',laneBud);renderAll();return}
  if(el.dataset.bud){const v=+el.value;if(v>0)bOver[el.dataset.bud]=v;else delete bOver[el.dataset.bud];LS.set('manhaj-budget-v1',bOver);renderAll();return}
@@ -1036,6 +1061,90 @@ document.getElementById('expBtn').onclick=()=>{const o={};try{for(let i=0;i<loca
 document.getElementById('impFile').onchange=e=>{const fl=e.target.files[0];if(!fl)return;fl.text().then(t=>{try{const o=JSON.parse(t);Object.entries(o).forEach(([k,v])=>{if(k.startsWith('manhaj'))localStorage.setItem(k,v)});alert('تم استيراد التقدّم');location.reload()}catch(err){alert('الملف غير صالح')}})};
 document.getElementById('resetAll').onclick=()=>{if(confirm('مسح كل علامات التقدّم وأعداد الصفحات والإعدادات المحفوظة؟')){['manhaj-bina-fikri-v1','manhaj-pages-v1','manhaj-budget-v1','manhaj-lk-v1','manhaj-sci-v1','manhaj-lanes-v1','manhaj-lit-v1','manhaj-litdays','manhaj-daydone','manhaj-todo','manhaj-notes','manhaj-edit','manhaj-black','manhaj-listen-v1','manhaj-shar-v1','manhaj-nat-v1'].forEach(k=>{try{localStorage.removeItem(KK(k))}catch(e){}});location.reload()}};
 renderAll();show(LS.get('manhaj-tab2','today'));
+/* ---------- the AI assistant: answers anything, and edits this person's plan only after he presses «نفّذ» ---------- */
+(function(){
+ if(!D.BOT_URL||!PROF.key)return;
+ let AIH=LS.get('manhaj-ai',[]);if(!Array.isArray(AIH))AIH=[];
+ const B=id=>BOOKS.find(b=>b.id===id),T=id=>{const b=B(id);return b?b.ttl:id};
+ const norm=s=>String(s||'').replace(/[ً-ْـ]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').toLowerCase();
+ const STOP=new Set(['كتاب','الكتاب','عايز','عاوز','اريد','ممكن','لو','سمحت','ايه','امتي','متي','هل','في','من','علي','الي','الى','عن','مع','بعد','قبل','انا','اللي','الذي','ده','دي','هذا','هذه','اضف','ضيف','شيل','احذف','انقل','خلي','اجعل','كام','عدد','صفحه','صفحات','النهارده','بكره','اليوم','بتاع','بتاعي','قائمتي','الخطه','خطتي']);
+ const info=b=>{const r=RANGE[b.id];const o={id:b.id,t:b.ttl,by:String(b.by||'').split('،')[0],lane:laneOf(b),pages:pages(b.ttl)[0]};
+  if(b.lv!=null)o.level=b.lv;if(b.sci&&D.SCINAMES&&D.SCINAMES[b.sci])o.science=D.SCINAMES[b.sci];o.state=done[b.id]?'قرأه':!b.core?'في المكتبة فقط، ليس في الجدول':r?'في الجدول':'في الجدول (لم يُجدول بعد)';
+  if(r)o.dates=r.s+' → '+r.e;if(b.shar)o.shari=1;if(b.custom)o.added_by_him=1;if(b.course)o.course=1;return o};
+ function ctx(q){
+  const ws=norm(q).split(/[^\p{L}\p{N}]+/u).filter(w=>w.length>2&&!STOP.has(w));
+  const lanes={};BOOKS.filter(b=>b.core&&!done[b.id]&&RANGE[b.id]&&RANGE[b.id].e>=TODAY).sort((a,b)=>RANGE[a.id].s<RANGE[b.id].s?-1:1)
+   .forEach(b=>{const l=laneOf(b);const a=lanes[l]||(lanes[l]=[]);if(a.length<6)a.push(info(b))});
+  const hits=ws.length?BOOKS.map(b=>{const h=norm(b.ttl+' '+(b.by||''));return [ws.filter(w=>h.includes(w)).length,b]}).filter(x=>x[0]).sort((a,b)=>b[0]-a[0]).slice(0,14).map(x=>info(x[1])):[];
+  const days=[];for(let i=-1,d=toD(TODAY);i<8;i++){const x=toD(TODAY);x.setDate(x.getDate()+i);const k=iso(x),st=TODO[k]||{done:{}};const ts=dayTasks(k);
+   days.push({date:k,day:x.toLocaleDateString('ar-EG',{weekday:'long'}),tasks:ts.length?ts.map(t=>({id:t.id,txt:t.txt,done:!!(st.done&&st.done[t.id])})):[],why:ts.length?undefined:reason(k)})}
+  return {person:PROF.name,today:TODAY,plan_ends:FIN?iso(FIN):null,
+   lanes_meaning:{A:'الفكر الإسلامي',B:'العلوم والإنسانيات',C:'المنطق والكلام والتراث',L:'يوم الأدب والتزكية',SH:'العلوم الشرعية (يضيفها بنفسه)'},
+   next_in_each_lane:lanes,books_matching_question:hits,days,
+   his_shari_items:BOOKS.filter(b=>b.shar&&b.custom).map(info),
+   vacations:(S.black||[]).slice(-12).map(v=>({from:v[0],to:v[1],label:v[2]||''})),
+   books_read:Object.keys(done).filter(k=>done[k]).length,tabs:TABS.map(x=>x[0]+'='+x[1]).join('، ')}}
+ // what the assistant may do; each is shown in words first, and runs only when he presses «نفّذ»
+ const OKD=s=>/^\d{4}-\d{2}-\d{2}$/.test(String(s||''));
+ const nextIn=l=>BOOKS.filter(b=>b.core&&!done[b.id]&&RANGE[b.id]&&RANGE[b.id].s>TODAY&&laneOf(b)===l).sort((a,b)=>RANGE[a.id].s<RANGE[b.id].s?-1:1)[0];
+ const ACT={
+  hide:{ok:a=>B(a.id)&&B(a.id).core,say:a=>`أشيل «${T(a.id)}» من الجدول (يبقى في المكتبة)`,run:a=>{const b=B(a.id);if(b.custom)EDIT.custom=EDIT.custom.filter(c=>c.id!==b.id);else{EDIT.hide[b.id]=1;delete EDIT.add[b.id]}return 1}},
+  restore:{ok:a=>B(a.id)&&!B(a.id).core,say:a=>`أرجّع «${T(a.id)}» إلى الجدول`,run:a=>{EDIT.add[a.id]=1;delete EDIT.hide[a.id];return 1}},
+  move_before:{ok:a=>B(a.id)&&B(a.ref)&&a.id!==a.ref,say:a=>`أنقل «${T(a.id)}» ليكون قبل «${T(a.ref)}»`,run:a=>{const y=B(a.ref);EDIT.move[a.id]={p:y.period,s:posOf(y)-0.3,l:laneOf(y),v:y.lv,c:y.sci};EDIT.add[a.id]=1;delete EDIT.hide[a.id];return 1}},
+  add_book:{ok:a=>a.title&&+a.pages>0&&(a.shari||!a.ref||B(a.ref)),say:a=>a.shari?`أضيف ${a.kind==='course'?'دورة':'كتابًا'} شرعيًّا: «${a.title}»${a.author?' لـ'+a.author:''} (${a.pages} ${a.kind==='course'?'درسًا':'صفحة'})`:(()=>{const y=a.ref?B(a.ref):nextIn(a.lane||'A');return `أضيف كتابًا جديدًا: «${a.title}»${a.author?' لـ'+a.author:''} (${a.pages} صفحة)${y?' قبل «'+y.ttl+'»':''}`})(),
+   run:a=>{const id=Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+    if(a.shari){const n=(EDIT.custom||[]).filter(c=>c.shar).length,sc=SHSCI.some(x=>x[0]===a.science)?a.science:SHSCI[0][0];
+     EDIT.custom=(EDIT.custom||[]).concat([{id:'sh-'+id,ttl:a.title,by:a.author||'',pages:+a.pages,kind:a.kind==='course'?'course':'book',url:/^https?:\/\//.test(a.url||'')?a.url:'',lane:'A',period:'p1-0',sub:n,v:Math.max(0,Math.min(4,+a.level||0)),c:sc,t:'shar',shar:1}]);return 1}
+    const y=a.ref?B(a.ref):nextIn(a.lane||'A')||BOOKS.find(b=>b.core&&laneOf(b)===(a.lane||'A'));if(!y)return 0;
+    EDIT.custom=(EDIT.custom||[]).concat([{id:'c-'+id,ttl:a.title,by:a.author||'',pages:+a.pages,lane:laneOf(y),period:y.period,sub:posOf(y)-0.3,v:y.lv,c:y.sci}]);return 1}},
+  set_pages:{ok:a=>B(a.id)&&+a.pages>0,say:a=>`أجعل عدد صفحات «${T(a.id)}» ${a.pages}`,run:a=>{pOver[T(a.id)]=+a.pages;LS.set('manhaj-pages-v1',pOver);return 0}},
+  mark_read:{ok:a=>B(a.id),say:a=>a.undo?`ألغي علامة «قرأته» عن «${T(a.id)}»`:`أعلّم «${T(a.id)}» أنه قُرئ كله`,run:a=>{if(a.undo)delete done[a.id];else done[a.id]=1;LS.set('manhaj-bina-fikri-v1',done);return 0}},
+  tick:{ok:a=>{const k=a.date||TODAY;return OKD(k)&&dayTasks(k).some(t=>t.id===a.task)},say:a=>{const k=a.date||TODAY,x=dayTasks(k).find(t=>t.id===a.task);return `${a.undo?'ألغي إتمام':'أعلّم إتمام'} مهمة «${x.txt}» (${k})`},
+   run:a=>{const k=a.date||TODAY,st=TODO[k]||(TODO[k]={done:{},custom:[]});st.done=st.done||{};if(a.undo)delete st.done[a.task];else st.done[a.task]=true;LS.set('manhaj-todo',TODO);
+    const tt=dayTasks(k),dd=LS.get('manhaj-daydone',{});if(tt.length&&tt.every(x=>st.done[x.id])&&!dd[k]){dd[k]=true;LS.set('manhaj-daydone',dd)}return 0}},
+  vacation:{ok:a=>OKD(a.from)&&OKD(a.to||a.from),say:a=>`أضيف إجازة (لا قراءة) من ${a.from} إلى ${a.to||a.from}${a.label?' — '+a.label:''}`,run:a=>{const f=a.from,e=a.to||a.from;S.black.push([f<e?f:e,f<e?e:f,a.label||'إجازة']);LS.set('manhaj-black',S.black);return 0}},
+  remove_vacation:{ok:a=>(S.black||[]).some(v=>v[0]===a.from),say:a=>`أحذف الإجازة التي تبدأ ${a.from}`,run:a=>{S.black=S.black.filter(v=>v[0]!==a.from);LS.set('manhaj-black',S.black);return 0}},
+  note:{ok:a=>a.text&&OKD(a.date||TODAY),say:a=>`أكتب ملاحظة ليوم ${a.date||TODAY}: «${a.text}»`,run:a=>{const k=a.date||TODAY;NOTES[k]=(NOTES[k]?NOTES[k]+'\n':'')+a.text;LS.set('manhaj-notes',NOTES);return 0}},
+  open_tab:{ok:a=>TABS.some(x=>x[0]===a.tab),say:a=>`أفتح تبويب «${(TABS.find(x=>x[0]===a.tab)||[])[1]}»`,run:a=>{show(a.tab);return 0}},
+ };
+ window.__aiCtx=ctx;window.__aiPrep=l=>prep(l);
+ const md=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
+ document.body.insertAdjacentHTML('beforeend',`<button id="aiFab" title="المساعد" aria-label="المساعد">🤖</button>
+ <div id="aiBox" hidden role="dialog" aria-label="المساعد"><header>🤖 رفيقك في الطلب<button id="aiClr" title="مسح المحادثة">مسح</button><button id="aiX" aria-label="إغلاق">✕</button></header>
+ <div id="aiLog"></div><form id="aiForm"><textarea id="aiIn" rows="1" placeholder="اسأل، أو اطلب تعديلًا…"></textarea><button>إرسال</button></form></div>`);
+ const box=document.getElementById('aiBox'),log=document.getElementById('aiLog'),inp=document.getElementById('aiIn');
+ const save=()=>{AIH=AIH.slice(-40);LS.set('manhaj-ai',AIH)};
+ function draw(){
+  if(!AIH.length){log.innerHTML=`<div class="aiM a">أهلًا ${esc(PROF.name)} 👋<br>اسألني عن خطتك («ورد بكرة إيه؟»، «امتى أخلص الكتاب اللي بقرأه؟») أو عن أي شيء، أو اطلب تعديلًا: «شيل كتاب كذا»، «ضيف كتاب كذا ٢٠٠ صفحة قبل كذا»، «إجازة من ٢٠ لـ ٢٥ ديسمبر».<br>أو دردش معايا في أي حاجة 🙂<br>ولا أغيّر شيئًا في خطتك إلا بعد ما تضغط «نفّذ».</div>`;return}
+  log.innerHTML=AIH.map((m,i)=>{if(m.role==='sys')return `<div class="aiM s">${esc(m.content)}</div>`;let h=`<div class="aiM ${m.role==='user'?'u':'a'}">${md(m.content)}`;
+   if(m.acts&&m.acts.length){h+=`<div class="aiAct">${m.st==='done'?'✓ نُفّذ:':m.st==='no'?'أُلغي:':'أنفّذ هذا؟'}<ul>${m.acts.map(a=>`<li>${esc(a.say)}</li>`).join('')}</ul>${m.st?'':`<button class="go" data-ai-go="${i}">نفّذ</button><button data-ai-no="${i}">لا</button>`}</div>`}
+   return h+'</div>'}).join('');log.scrollTop=log.scrollHeight}
+ function prep(list){return (Array.isArray(list)?list:[]).map(a=>{const f=a&&ACT[a.type];if(!f)return null;try{return f.ok(a)?{...a,say:f.say(a)}:null}catch(e){return null}}).filter(Boolean).slice(0,10)}
+ async function ask(q){
+  const tok=syncState();
+  if(!tok){AIH.push({role:'sys',content:'المساعد يعمل بعد ربط صفحتك بالبوت: من الإعدادات ← «اربط البوت بصفحتك»، ثم افتح رابط المزامنة الذي يرسله.'});save();draw();return}
+  AIH.push({role:'user',content:q});save();draw();
+  const wait=document.createElement('div');wait.className='aiM s';wait.textContent='… يفكّر';log.appendChild(wait);log.scrollTop=log.scrollHeight;
+  try{const hist=AIH.filter(m=>m.role==='user'||m.role==='assistant').slice(-10).map(m=>({role:m.role,content:m.content+(m.acts&&m.acts.length?'\n[اقترحتُ: '+m.acts.map(a=>a.say).join('؛ ')+(m.st==='done'?' — ونُفّذ':m.st==='no'?' — ورفضه':' — ولم يردّ بعد')+']':'')}));
+   const r=await fetch(D.BOT_URL+'/ai',{method:'POST',headers:{'content-type':'text/plain'},body:JSON.stringify({p:PROF.key,token:tok,messages:hist,ctx:ctx(q)})});
+   const j=await r.json().catch(()=>({}));
+   if(r.status===403)AIH.push({role:'sys',content:'رابط المزامنة لم يعد صالحًا. اكتب /sync للبوت وافتح الرابط الجديد.'});
+   else if(!r.ok||!j.ok)AIH.push({role:'sys',content:j.error||'تعذّر الوصول للمساعد الآن، جرّب بعد قليل.'});
+   else{const acts=prep(j.actions);AIH.push({role:'assistant',content:String(j.reply||'').trim()||(acts.length?'هذا ما سأفعله:':'…'),acts})}
+  }catch(e){AIH.push({role:'sys',content:'لا يوجد اتصال بالإنترنت.'})}
+  save();draw()}
+ function run(i){const m=AIH[i];if(!m||m.st)return;let edit=0;
+  m.acts.forEach(a=>{try{edit|=ACT[a.type].run(a)}catch(e){}});m.st='done';save();
+  if(edit){LS.set('manhaj-edit',EDIT);LS.set('manhaj-aiopen',1);location.reload()}else{renderAll();draw();if(!m.acts.every(a=>a.type==='open_tab'))toast('✓ نُفّذ')}}
+ document.getElementById('aiFab').onclick=()=>{box.hidden=!box.hidden;if(!box.hidden){draw();inp.focus()}};
+ document.getElementById('aiX').onclick=()=>{box.hidden=true};
+ document.getElementById('aiClr').onclick=()=>{if(confirm('مسح المحادثة؟')){AIH=[];save();draw()}};
+ document.getElementById('aiForm').onsubmit=e=>{e.preventDefault();const q=inp.value.trim();if(!q)return;inp.value='';ask(q)};
+ inp.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();document.getElementById('aiForm').requestSubmit()}};
+ log.onclick=e=>{const g=e.target.closest('[data-ai-go]'),n=e.target.closest('[data-ai-no]');if(g)run(+g.dataset.aiGo);if(n){const m=AIH[+n.dataset.aiNo];if(m){m.st='no';save();draw()}}};
+ if(LS.get('manhaj-aiopen',0)){LS.set('manhaj-aiopen',0);box.hidden=false;draw()}
+})();
+
 </script>
 <script>
 if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;let rl=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl){rl=true;location.reload()}});addEventListener('load',()=>navigator.serviceWorker.register('sw.js').then(r=>r.update()).catch(()=>{}))}

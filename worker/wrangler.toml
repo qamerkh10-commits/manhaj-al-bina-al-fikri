@@ -22,3 +22,7 @@ TG_API = "https://api.telegram.org"
 BOT_ID = "9188968782"
 # each person's page (the bot sends a private sync link to it)
 SITE_URL = "https://qamerkh10-commits.github.io/manhaj-al-bina-al-fikri/"
+
+# the assistant on each person's page (Workers AI, within the free daily allowance)
+[ai]
+binding = "AI"
