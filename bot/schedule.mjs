@@ -19,7 +19,7 @@ export async function buildSchedule(indexPath, settings, from, to) {
   });
   const js = `(()=>{const o={};const e=toD(${JSON.stringify(to)});
     for(let d=toD(${JSON.stringify(from)});d<=e;d.setDate(d.getDate()+1)){const k=iso(d);const segs=DAYS[k]?DAYS[k].segs:[];
-      const tasks=dayTasks(k).map(x=>{const m=/^s(\\d+)-/.exec(x.id);const g=m?segs[+m[1]]:null;const t={id:x.id,txt:x.txt,pg:g&&!g.rv?(g.b-g.a+1):0};
+      const tasks=dayTasks(k).map(x=>{if(x.fz){const f={id:x.id,txt:x.txt,pg:x.pg||0};if(x.bid)f.bid=x.bid;return f}const m=/^s(\\d+)-/.exec(x.id);const g=m?segs[+m[1]]:null;const t={id:x.id,txt:x.txt,pg:g&&!g.rv?(g.b-g.a+1):0};
         if(g&&g.lane!=='R'){t.bid=g.id;if(g.rv?g.a===g.b:(g.lane==='L'&&g.b===g.tot))t.last=1}return t});
       o[k]={tasks,why:tasks.length?'':reason(k)}}
     // every book in the app, for hashtags and the summaries index
