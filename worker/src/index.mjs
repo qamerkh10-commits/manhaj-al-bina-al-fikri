@@ -131,6 +131,21 @@ export class BotState extends DurableObject {
         return Response.json({ ok: true }, { headers: cors });
       });
     }
+    if (path === '/ainote') { // the assistant changed this person's plan (he pressed «نفّذ»): tell him on the bot
+      const cors = { 'access-control-allow-origin': '*' };
+      const pk = body && PROFILES[body.p] ? body.p : null;
+      const items = body && Array.isArray(body.items) ? body.items.map(x => String(x).slice(0, 300)).filter(Boolean).slice(0, 10) : [];
+      if (!pk || !body.token || !items.length) return new Response('bad request', { status: 400, headers: cors });
+      return this.lock(async () => {
+        await this.load();
+        const P = this.P[pk];
+        if (!P.S.syncToken || body.token !== P.S.syncToken) return new Response('forbidden', { status: 403, headers: cors });
+        if (!P.S.owner) return Response.json({ ok: true, sent: false }, { headers: cors });
+        const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const r = await this.tg(token, 'sendMessage', { chat_id: P.S.owner, text: `🤖 <b>عدّل المساعد خطتك بأمرك:</b>\n${items.map(x => '• ' + esc(x)).join('\n')}\n\n<i>يظهر التعديل في جدول البوت خلال ربع ساعة تقريبًا.</i>`, parse_mode: 'HTML', disable_web_page_preview: true });
+        return Response.json({ ok: true, sent: !!(r && r.ok) }, { headers: cors });
+      });
+    }
     if (path === '/ai') { // the assistant on a person's page; only his private sync key is accepted
       const cors = { 'access-control-allow-origin': '*' };
       const pk = body && PROFILES[body.p] ? body.p : null;
@@ -230,7 +245,7 @@ export default {
   async fetch(req, env) {
     const url = new URL(req.url);
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'POST, GET', 'access-control-allow-headers': 'content-type' } });
-    if (url.pathname === '/tg' || url.pathname === '/botname' || url.pathname === '/prefs' || url.pathname === '/ai' || url.pathname.startsWith('/sync/')) {
+    if (url.pathname === '/tg' || url.pathname === '/botname' || url.pathname === '/prefs' || url.pathname === '/ai' || url.pathname === '/ainote' || url.pathname.startsWith('/sync/')) {
       const stub = env.BOT.get(env.BOT.idFromName('main'));
       const h = new Headers(req.headers); h.set('X-Origin', url.origin);
       return stub.fetch('https://bot' + url.pathname + url.search, { method: req.method, headers: h, body: req.method === 'POST' ? await req.text() : undefined });

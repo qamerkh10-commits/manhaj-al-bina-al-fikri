@@ -1064,7 +1064,7 @@ renderAll();show(LS.get('manhaj-tab2','today'));
 /* ---------- the AI assistant: answers anything, and edits this person's plan only after he presses «نفّذ» ---------- */
 (function(){
  if(!D.BOT_URL||!PROF.key)return;
- let AIH=LS.get('manhaj-ai',[]);if(!Array.isArray(AIH))AIH=[];
+ let AIH=LS.get('manhaj-ai',[]);if(!Array.isArray(AIH))AIH=[];AIH=AIH.filter(m=>!(m.role==='sys'&&/بعد ربط صفحتك/.test(m.content)));
  const B=id=>BOOKS.find(b=>b.id===id),T=id=>{const b=B(id);return b?b.ttl:id};
  const norm=s=>String(s||'').replace(/[ً-ْـ]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').toLowerCase();
  const STOP=new Set(['كتاب','الكتاب','عايز','عاوز','اريد','ممكن','لو','سمحت','ايه','امتي','متي','هل','في','من','علي','الي','الى','عن','مع','بعد','قبل','انا','اللي','الذي','ده','دي','هذا','هذه','اضف','ضيف','شيل','احذف','انقل','خلي','اجعل','كام','عدد','صفحه','صفحات','النهارده','بكره','اليوم','بتاع','بتاعي','قائمتي','الخطه','خطتي']);
@@ -1114,7 +1114,11 @@ renderAll();show(LS.get('manhaj-tab2','today'));
  <div id="aiLog"></div><form id="aiForm"><textarea id="aiIn" rows="1" placeholder="اسأل، أو اطلب تعديلًا…"></textarea><button>إرسال</button></form></div>`);
  const box=document.getElementById('aiBox'),log=document.getElementById('aiLog'),inp=document.getElementById('aiIn');
  const save=()=>{AIH=AIH.slice(-40);LS.set('manhaj-ai',AIH)};
+ const linkCard=()=>`<div class="aiAct">🔗 <b>اربط صفحتك بالبوت أولًا (مرة واحدة على هذا الجهاز):</b><ol style="margin:6px 0;padding-inline-start:20px"><li>افتح البوت <a class="aiBot" href="https://t.me/" target="_blank" rel="noopener">من هنا</a> واكتب له <b>/sync</b></li><li>افتح الرابط الذي يرسله <b>على هذا الجهاز نفسه</b>، أو انسخه والصقه هنا:</li></ol><input id="aiPaste" placeholder="الصق رابط المزامنة" style="width:100%;box-sizing:border-box;font:inherit;padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)"><div style="margin-top:6px"><button class="go" id="aiLinkGo">اربط</button></div></div>`;
  function draw(){
+  if(!syncState()){log.innerHTML=`<div class="aiM a">أهلًا ${esc(PROF.name)} 👋 عشان أقدر أساعدك لازم صفحتك على الجهاز ده تكون مربوطة بالبوت.${linkCard()}</div>`;
+   fetch(D.BOT_URL+'/botname').then(r=>r.json()).then(j=>{if(j.username)log.querySelectorAll('.aiBot').forEach(a=>a.href='https://t.me/'+j.username)}).catch(()=>{});
+   document.getElementById('aiLinkGo').onclick=()=>{const m=/sync=([\w-]{16,})/.exec(document.getElementById('aiPaste').value);if(!m){alert('الصق الرابط كما أرسله البوت');return}LS.set('manhaj-synctoken',m[1]);lastPush='';pushPrefs();toast('✓ رُبطت صفحتك بالبوت');draw();inp.focus()};return}
   if(!AIH.length){log.innerHTML=`<div class="aiM a">أهلًا ${esc(PROF.name)} 👋<br>اسألني عن خطتك («ورد بكرة إيه؟»، «امتى أخلص الكتاب اللي بقرأه؟») أو عن أي شيء، أو اطلب تعديلًا: «شيل كتاب كذا»، «ضيف كتاب كذا ٢٠٠ صفحة قبل كذا»، «إجازة من ٢٠ لـ ٢٥ ديسمبر».<br>أو دردش معايا في أي حاجة 🙂<br>ولا أغيّر شيئًا في خطتك إلا بعد ما تضغط «نفّذ».</div>`;return}
   log.innerHTML=AIH.map((m,i)=>{if(m.role==='sys')return `<div class="aiM s">${esc(m.content)}</div>`;let h=`<div class="aiM ${m.role==='user'?'u':'a'}">${md(m.content)}`;
    if(m.acts&&m.acts.length){h+=`<div class="aiAct">${m.st==='done'?'✓ نُفّذ:':m.st==='no'?'أُلغي:':'أنفّذ هذا؟'}<ul>${m.acts.map(a=>`<li>${esc(a.say)}</li>`).join('')}</ul>${m.st?'':`<button class="go" data-ai-go="${i}">نفّذ</button><button data-ai-no="${i}">لا</button>`}</div>`}
@@ -1122,20 +1126,21 @@ renderAll();show(LS.get('manhaj-tab2','today'));
  function prep(list){return (Array.isArray(list)?list:[]).map(a=>{const f=a&&ACT[a.type];if(!f)return null;try{return f.ok(a)?{...a,say:f.say(a)}:null}catch(e){return null}}).filter(Boolean).slice(0,10)}
  async function ask(q){
   const tok=syncState();
-  if(!tok){AIH.push({role:'sys',content:'المساعد يعمل بعد ربط صفحتك بالبوت: من الإعدادات ← «اربط البوت بصفحتك»، ثم افتح رابط المزامنة الذي يرسله.'});save();draw();return}
+  if(!tok){inp.value=q;draw();return}
   AIH.push({role:'user',content:q});save();draw();
   const wait=document.createElement('div');wait.className='aiM s';wait.textContent='… يفكّر';log.appendChild(wait);log.scrollTop=log.scrollHeight;
   try{const hist=AIH.filter(m=>m.role==='user'||m.role==='assistant').slice(-10).map(m=>({role:m.role,content:m.content+(m.acts&&m.acts.length?'\n[اقترحتُ: '+m.acts.map(a=>a.say).join('؛ ')+(m.st==='done'?' — ونُفّذ':m.st==='no'?' — ورفضه':' — ولم يردّ بعد')+']':'')}));
    const r=await fetch(D.BOT_URL+'/ai',{method:'POST',headers:{'content-type':'text/plain'},body:JSON.stringify({p:PROF.key,token:tok,messages:hist,ctx:ctx(q)})});
    const j=await r.json().catch(()=>({}));
-   if(r.status===403)AIH.push({role:'sys',content:'رابط المزامنة لم يعد صالحًا. اكتب /sync للبوت وافتح الرابط الجديد.'});
+   if(r.status===403){AIH.pop();LS.set('manhaj-synctoken','');inp.value=q;AIH.push({role:'sys',content:'رابط المزامنة على هذا الجهاز قديم؛ اربطه من جديد.'})}
    else if(!r.ok||!j.ok)AIH.push({role:'sys',content:j.error||'تعذّر الوصول للمساعد الآن، جرّب بعد قليل.'});
    else{const acts=prep(j.actions);AIH.push({role:'assistant',content:String(j.reply||'').trim()||(acts.length?'هذا ما سأفعله:':'…'),acts})}
   }catch(e){AIH.push({role:'sys',content:'لا يوجد اتصال بالإنترنت.'})}
   save();draw()}
  function run(i){const m=AIH[i];if(!m||m.st)return;let edit=0;
-  m.acts.forEach(a=>{try{edit|=ACT[a.type].run(a)}catch(e){}});m.st='done';save();
-  if(edit){LS.set('manhaj-edit',EDIT);LS.set('manhaj-aiopen',1);location.reload()}else{renderAll();draw();if(!m.acts.every(a=>a.type==='open_tab'))toast('✓ نُفّذ')}}
+  const did=[];m.acts.forEach(a=>{try{edit|=ACT[a.type].run(a);if(a.type!=='open_tab')did.push(a.say)}catch(e){}});m.st='done';save();
+  if(did.length)try{fetch(D.BOT_URL+'/ainote',{method:'POST',keepalive:true,headers:{'content-type':'text/plain'},body:JSON.stringify({p:PROF.key,token:syncState(),items:did})}).catch(()=>{})}catch(e){}
+  if(edit){LS.set('manhaj-edit',EDIT);LS.set('manhaj-aiopen',1);setTimeout(()=>location.reload(),300)}else{renderAll();draw();if(!m.acts.every(a=>a.type==='open_tab'))toast('✓ نُفّذ')}}
  document.getElementById('aiFab').onclick=()=>{box.hidden=!box.hidden;if(!box.hidden){draw();inp.focus()}};
  document.getElementById('aiX').onclick=()=>{box.hidden=true};
  document.getElementById('aiClr').onclick=()=>{if(confirm('مسح المحادثة؟')){AIH=[];save();draw()}};
