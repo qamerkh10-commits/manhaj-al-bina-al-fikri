@@ -54,5 +54,13 @@ for (const P of PEOPLE) {
     console.log(P.key + ': schedule sent:', res.ok !== false, res.error || '');
   } else console.log(P.key + ': schedule up to date');
 }
+// a one-time announcement to everyone linked to the bot (bot/announce.json: {id, text}); the Worker sends each id once
+{
+  const f = path.join(DIR, 'announce.json');
+  if (fs.existsSync(f)) {
+    const a = JSON.parse(fs.readFileSync(f, 'utf8'));
+    for (const P of PEOPLE) { const r = await call('/sync/announce?p=' + P.key, a); console.log(P.key + ': announcement', a.id, r.sent ? 'sent' : 'not sent (already sent, or no linked account)'); }
+  }
+}
 const w = await call('/sync/setup', {});
 console.log('webhook:', w.ok, w.description || '');

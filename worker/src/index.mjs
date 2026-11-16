@@ -166,6 +166,13 @@ export class BotState extends DurableObject {
           P.S = L; this.chats[L.owner] = 'khaled'; if (L.channel && !this.shared.channel) this.shared.channel = L.channel;
           out = { ok: true, moved: true };
         } else out = { ok: true, moved: false };
+      } else if (path === '/sync/announce') {
+        // a one-time message to this person (bot/announce.json); the id makes sure it is sent once only
+        if (body && body.id && body.text && P.S.owner && P.S.lastAnnounce !== body.id) {
+          const r = await this.tg(token, 'sendMessage', { chat_id: P.S.owner, text: String(body.text).slice(0, 4000), parse_mode: 'HTML', disable_web_page_preview: true });
+          if (r && r.ok) P.S.lastAnnounce = body.id;
+          out = { ok: !!(r && r.ok), sent: !!(r && r.ok) };
+        } else out = { ok: true, sent: false };
       } else out = { ok: false, error: 'unknown path' };
       await this.save();
       return Response.json(out);
