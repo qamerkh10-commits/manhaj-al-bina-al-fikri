@@ -1,5 +1,7 @@
 // Bot logic, independent of where it runs: Cloudflare Worker in production, Node in tests.
 // makeBot() wraps one stored state; the host saves bot.state() afterwards.
+import VERSES from './verses.mjs';   // motivating verses from qafiyah.com, one is added to each main message
+import WISDOM from './wisdom.mjs';   // scholars' words on time and knowledge, one sent each morning
 const TZ = 'Africa/Cairo';
 export const CFG = {
   morning: 7,                 // the day's card is sent at 7:00
@@ -56,6 +58,21 @@ function parseAlerts(x) {
 }
 const alertsText = title => `${title}\n☀️ ورد الصبح: ${fmtH(C.morning)}\n⏰ التذكيرات: ${C.reminders.length ? C.reminders.map(fmtH).join('، ') : 'بلا تذكيرات'}\n🌙 آخر وقت لإتمام اليوم: ${fmtH(C.close)} بعد منتصف الليل\n📊 التقرير الأسبوعي: ${DAYN[C.weeklyDay]} ${fmtH(C.weeklyHour)}\n\nتغيّرها من صفحتك: الإعدادات ← «مواعيد تنبيهات البوت».`;
 const day = k => (S.days[k] ||= { done: {}, rem: {} });
+/* ---------- verses: each person walks his own shuffled order of the list, so none repeats until all are seen ---------- */
+const order = (n, salt) => { const a = [...Array(n).keys()]; let h = 2166136261; for (const c of (profile.key || 'x') + salt) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0;
+  for (let i = a.length - 1; i > 0; i--) { h = (Math.imul(h, 1103515245) + 12345) >>> 0; const j = h % (i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const VORDER = order(VERSES.length, 'v'), WORDER = order(WISDOM.length, 'w');
+const nextVerse = () => { if (!VERSES.length) return -1; const n = S.vn || 0; S.vn = n + 1; return VORDER[n % VORDER.length]; };
+const verseHTML = i => { const v = VERSES[i]; if (!v) return ''; return `\n\n┈┈┈┈┈┈┈┈\n<i>${esc(v.text).replace(/ … /g, '\n       ')}</i>\n— <a href="${v.url}">${esc(v.poet)}</a>`; };
+const withVerse = (text, i = nextVerse()) => { const v = verseHTML(i); return v && (text + v).length < 4000 ? text + v : text; };
+const sendV = (text, extra = {}) => send(withVerse(text), extra);
+const wisdomHTML = () => { if (!WISDOM.length) return ''; const n = S.wn || 0; S.wn = n + 1; const w = WISDOM[WORDER[n % WORDER.length]];
+  const src = `«${esc(w.book)}»${w.ref ? '، ' + esc(w.ref) : ''}`;
+  return `📜 <b>${w.theme === 'الوقت' ? 'في قيمة الوقت' : 'في طلب العلم'}</b>
+
+${esc(w.text)}
+
+— ${esc(w.who)} · ${w.url ? `<a href="${w.url}">${src}</a>` : src}`; };
 const baseTasks = k => (S.sched[k] && S.sched[k].tasks) || [];
 const bookById = id => (S.books || []).find(b => b.id === id);
 // once a channel is linked, finishing a book adds a task: record its summary (it is ticked only by posting one)
@@ -110,7 +127,8 @@ function card(k) {
   else s += `\n\n⏳ يُغلق اليوم الساعة ${fmtH(C.close)} بعد منتصف الليل.`;
   const kb = t.map((x, i) => [{ text: (d.done[x.id] ? '✅ ' : '⬜ ') + short(x.txt), callback_data: `t|${k}|${i}` }]);
   if (dn < t.length && !d.closed) kb.push([{ text: '✅ أتممت الورد كله', callback_data: `a|${k}` }]);
-  return { text: s, reply_markup: { inline_keyboard: kb } };
+  if (d.vi == null) d.vi = nextVerse();   // the day's verse stays the same when the card is edited
+  return { text: withVerse(s, d.vi), reply_markup: { inline_keyboard: kb } };
 }
 async function sendCard(k, prefix = '') {
   const c = card(k);
@@ -166,7 +184,7 @@ async function markDone(k, id, val, mid) {
   if (!d.closed && !d.completeAt && allDone(k)) {
     d.completeAt = Date.now();
     await refreshCard(k, mid);
-    await send(`🔥 أحسنت! أتممت ورد ${k === TODAY ? 'اليوم' : fL(k)}.\nالسلسلة: <b>${daysN(streak())}</b> بلا انقطاع${S.debt.length ? `\n📌 وما زال عليك دَين ${tasksN(S.debt.length)}` : ''}`);
+    await sendV(`🔥 أحسنت! أتممت ورد ${k === TODAY ? 'اليوم' : fL(k)}.\nالسلسلة: <b>${daysN(streak())}</b> بلا انقطاع${S.debt.length ? `\n📌 وما زال عليك دَين ${tasksN(S.debt.length)}` : ''}`);
     return;
   }
   if (mid && mid === S.debtMsg) { const v = debtView(); await tg('editMessageText', { chat_id: S.owner, message_id: mid, text: v.text, parse_mode: 'HTML', reply_markup: v.reply_markup }); }
@@ -220,7 +238,7 @@ async function setSettings(o, how) {
   try {
     const td = JSON.parse(keep[K('todo')] || '{}');
     for (const [k, v] of Object.entries(td)) if (v && v.done && S.sched[k]) Object.assign(day(k).done, v.done);
-    for (const k of [YDAY, TODAY]) { const d = day(k); if (isOpen(k) && !d.completeAt && tasks(k).length && allDone(k)) { d.completeAt = Date.now(); await refreshCard(k); await send(`🔥 أحسنت! أتممت ورد ${k === TODAY ? 'اليوم' : fL(k)} (من التطبيق).\nالسلسلة: <b>${daysN(streak())}</b> بلا انقطاع`); } }
+    for (const k of [YDAY, TODAY]) { const d = day(k); if (isOpen(k) && !d.completeAt && tasks(k).length && allDone(k)) { d.completeAt = Date.now(); await refreshCard(k); await sendV(`🔥 أحسنت! أتممت ورد ${k === TODAY ? 'اليوم' : fL(k)} (من التطبيق).\nالسلسلة: <b>${daysN(streak())}</b> بلا انقطاع`); } }
   } catch (e) {}
   if (same && how !== 'file') return;
   S.settingsVer = (S.settingsVer || 0) + 1; S.settingsPending = how;
@@ -318,7 +336,7 @@ async function onMessage(m) {
   if (S.await && S.await.excuse && txt && !txt.startsWith('/') && !MENU_RE.test(txt)) { S.await = null; return excuse(txt.slice(0, 200)); }
   if (/^\/today|^📋/.test(txt)) { const k = openDay(); if (k) return sendCard(k); const nx = Object.keys(S.sched).sort().find(x => x > TODAY && tasks(x).length); return send(`لا ورد اليوم: ${esc((S.sched[TODAY] || {}).why || 'إجازة')}.${nx ? `\nالورد القادم: ${fL(nx)}.` : ''}${S.debt.length ? `\n📌 لكن عليك دَين ${tasksN(S.debt.length)}، وهذا وقت سداده.` : ''}`); }
   if (/^\/debt|^📌/.test(txt)) return sendDebt();
-  if (/^\/report|^📊/.test(txt)) return send(report('تقريرك آخر ٣٠ يومًا', addDays(TODAY, -29), TODAY));
+  if (/^\/report|^📊/.test(txt)) return sendV(report('تقريرك آخر ٣٠ يومًا', addDays(TODAY, -29), TODAY));
   if (/^\/excuse|^🙏/.test(txt)) { const r = txt.replace(/^\/excuse(@\w+)?|^🙏\s*عذر/, '').trim(); if (r) return excuse(r.slice(0, 200)); S.await = { excuse: true }; return send('ما عذرك اليوم؟ اكتبه في رسالة.', { reply_markup: { force_reply: true } }); }
   if (/^\/backup|^💾/.test(txt)) return sendBackup();
   if (/^\/help/.test(txt)) return send(RULES, { reply_markup: MENU });
@@ -493,7 +511,7 @@ async function duties() {
     if (day(missed[missed.length - 1]).msg) await refreshCard(missed[missed.length - 1]);
     const exc = missed.every(k => day(k).closed === 'excused');
     const names = missed.length > 3 ? daysN(missed.length) : missed.map(k => fL(k).split('،')[0] + (day(k).closed === 'excused' ? ' (بعذر)' : '')).join('، ');
-    await send(exc ? `🙏 أُغلق اليوم بعذر. ما لم يتم صار دَينًا (${tasksN(S.debt.length)}).` : `❌ <b>فاتك ورد: ${names}.</b>\nانكسرت السلسلة، وصار الباقي دَينًا عليك: ${tasksN(S.debt.length)}.\nلا تجعل يومين يفوتانك متتاليين.`);
+    await sendV(exc ? `🙏 أُغلق اليوم بعذر. ما لم يتم صار دَينًا (${tasksN(S.debt.length)}).` : `❌ <b>فاتك ورد: ${names}.</b>\nانكسرت السلسلة، وصار الباقي دَينًا عليك: ${tasksN(S.debt.length)}.\nلا تجعل يومين يفوتانك متتاليين.`);
   }
   // 2) morning card
   const t = tasks(TODAY), d = day(TODAY);
@@ -502,19 +520,21 @@ async function duties() {
     if (S.debt.length) pre += `📌 عليك دَين ${tasksN(S.debt.length)} من أيام سابقة: اضغط «📌 الدَّين».\n${S.debt.length >= C.debtAlarm ? '🚨 الدين يتراكم، ولن تلحق إن تركته.\n' : ''}`;
     await sendCard(TODAY, pre + '\n');
   }
+  // 2b) the day's word from the scholars (every day, reading day or not)
+  if (N.hour >= C.morning && S.lastWisdom !== TODAY && WISDOM.length) { S.lastWisdom = TODAY; const w = wisdomHTML(); if (w) await send(w); }
   // 3) escalating reminders
   if (t.length && d.sent && !d.completeAt && !d.closed) {
     const due = C.reminders.map((h, i) => i).filter(i => N.hour >= C.reminders[i] && !d.rem[i]);
     if (due.length) {
       due.forEach(i => d.rem[i] = true);
       const i = due[due.length - 1], left = t.filter(x => !d.done[x.id]).length, ri = i === C.reminders.length - 1 ? 3 : Math.min(i, 2);
-      if (ri === 3) await sendCard(TODAY, REM[3](left) + '\n\n'); else await send(REM[ri](left, C.reminders[i]));
+      if (ri === 3) await sendCard(TODAY, REM[3](left) + '\n\n'); else await sendV(REM[ri](left, C.reminders[i]));
     }
   }
   // 4) weekly report
   if (dow(TODAY) === C.weeklyDay && N.hour >= C.weeklyHour && S.lastWeekly !== TODAY) {
     S.lastWeekly = TODAY;
-    await send(report('تقرير الأسبوع', addDays(TODAY, -7), YDAY) + (S.debt.length ? (C.weeklyDay === 5 ? '\n\nاليوم الجمعة إجازة من الجدول، فهو أنسب يوم لسداد الدين 👇' : '\n\nوهذا وقت مناسب لسداد الدين 👇') : ''));
+    await sendV(report('تقرير الأسبوع', addDays(TODAY, -7), YDAY) + (S.debt.length ? (C.weeklyDay === 5 ? '\n\nاليوم الجمعة إجازة من الجدول، فهو أنسب يوم لسداد الدين 👇' : '\n\nوهذا وقت مناسب لسداد الدين 👇') : ''));
     if (S.debt.length) await sendDebt();
   }
 }
