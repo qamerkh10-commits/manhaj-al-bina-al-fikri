@@ -168,9 +168,12 @@ export class BotState extends DurableObject {
         } else out = { ok: true, moved: false };
       } else if (path === '/sync/announce') {
         // a one-time message to this person (bot/announce.json); the id makes sure it is sent once only
-        if (body && body.id && body.text && P.S.owner && P.S.lastAnnounce !== body.id) {
+        // the sent mark lives in its own storage key (written before anything else), so it can never be lost
+        const annKey = `ann:${pk}:${body && body.id}`;
+        if (body && body.id && body.text && P.S.owner && !(await this.ctx.storage.get(annKey))) {
+          await this.ctx.storage.put(annKey, Date.now());
           const r = await this.tg(token, 'sendMessage', { chat_id: P.S.owner, text: String(body.text).slice(0, 4000), parse_mode: 'HTML', disable_web_page_preview: true });
-          if (r && r.ok) P.S.lastAnnounce = body.id;
+          if (!(r && r.ok)) await this.ctx.storage.delete(annKey);
           out = { ok: !!(r && r.ok), sent: !!(r && r.ok) };
         } else out = { ok: true, sent: false };
       } else out = { ok: false, error: 'unknown path' };
