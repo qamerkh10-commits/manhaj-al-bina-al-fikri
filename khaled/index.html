@@ -613,14 +613,14 @@ function shLayout(){SHD={};const q=BOOKS.filter(b=>b.shar&&b.core).sort((x,y)=>(
   d.setDate(d.getDate()+1)}}
 const shTxt=s=>s.course?`🎓 «${s.ttl}»: الدرس ${nA(s.a)}${s.b>s.a?' إلى '+nA(s.b):''} (من ${nA(s.tot)})`:`📗 «${s.ttl}» من ص ${nA(s.a)} إلى ${nA(s.b)} (من ${nA(s.tot)})`;
 let NATD={};let natCfg=Object.assign({term:5,break:10,summer:15,half:8,group:8},LS.get('manhaj-nat-v1',{}));
-function natLayout(){NATD={};const q=SCI.map((b,i)=>({b,i})).filter(x=>x.b.nat).sort((x,y)=>x.b.natord-y.b.natord).map(({b,i})=>({id:'sci-'+i,ttl:b.title,left:sciPages(b),pos:0}));
+function natLayout(){NATD={};const q=SCI.map((b,i)=>({b,i})).filter(x=>x.b.nat).sort((x,y)=>x.b.natord-y.b.natord).map(({b,i})=>({id:'sci-'+i,ttl:b.title,left:sciPages(b),pos:0}));const natFirst=q[0]&&q[0].id;
  let d=toD(PSTART),g=0;
  while(q.length&&g++<40000){const k=iso(d),pid=periodAt(k);
-  if(pid&&!isOff(d)&&!isBlack(k)){const typ=pid==='after'?'group':(PER[pid]?PER[pid].k:'group');let cap=Math.max(1,+natCfg[typ]||5);const segs=[];
+  if(pid&&!isOff(d)&&!isBlack(k)&&(!HOLD||k>=HOLD||q[0].id===natFirst)){const typ=pid==='after'?'group':(PER[pid]?PER[pid].k:'group');let cap=Math.max(1,+natCfg[typ]||5);const segs=[];
    while(q.length&&cap>0){const x=q[0],r=RANGE[x.id]||(RANGE[x.id]={s:k});r.e=k;const take=Math.min(cap,x.left);segs.push({id:x.id,ttl:x.ttl,a:x.pos+1,b:x.pos+take,tot:x.pos+x.left});x.pos+=take;x.left-=take;cap-=take;if(x.left<=0)q.shift();else break}
    if(segs.length)NATD[k]=segs}
   d.setDate(d.getDate()+1)}}
-let DAYS={},RANGE={},AUD={},LKD={},LKR={},SCID={},SCIR={},FIN=null,LKFIN=null,SCIFIN=null,LANEFIN={};
+let HOLD=null,DAYS={},RANGE={},AUD={},LKD={},LKR={},SCID={},SCIR={},FIN=null,LKFIN=null,SCIFIN=null,LANEFIN={};
 const HSD=D.HASEEF||null;
 const HC=id=>(HSD.courses.find(c=>c.id===id)||{}),HP=id=>(HSD.pods.find(p=>p.id===id)||{});
 const ytu=(v,a)=>'https://www.youtube.com/watch?v='+v+(a?'&t='+Math.round(a)+'s':'');
@@ -634,7 +634,7 @@ const partN=n=>n===1?'الأول':n===2?'الثاني':nA(n);
 // lays the listening days on the calendar from the start date: weekdays take the next listening day, Fridays the next review
 function hsfLayout(){HSF={};if(!HSD)return;
  const nowN=D.AUDIO.filter(a=>a.now).reduce((s,a)=>s+(a.episodes||5),0),rd=Object.keys(DAYS).sort().filter(k=>k>=PSTART&&!DAYS[k].segs.some(s=>s.lane==='L')),nowEnd=nowN?rd[nowN-1]:null;
- let hst=hsfCfg.start;if(nowEnd&&nowEnd>=hst){const x=toD(nowEnd);x.setDate(x.getDate()+1);hst=iso(x)}
+ let hst=hsfCfg.start;if(nowEnd&&nowEnd>=hst){const x=toD(nowEnd);x.setDate(x.getDate()+1);hst=iso(x)}if(HOLD&&HOLD>hst)hst=HOLD;
  let d=toD(hst),ui=0,ri=0,g=0,wk=[];
  while(ui<HSD.u.length&&g++<3000){const k=iso(d);
   if(hsfCfg.pause&&isBlack(k))HSF[k]={pause:1};
@@ -675,6 +675,11 @@ function compute(){
   for(let i=o.length-1;i>0;i--){const x=o[i];if(!x.rv&&x.lv===m&&x.pos===0){o.splice(i,1);x.lane=L;q.unshift(x);return}}};
  const qL=LIT.map((b,i)=>({id:'lit-'+i,ttl:b.title,t:'tasawwur',lane:'L',left:pages(b.title)[0],pos:0}));
  const lastPer={};
+ const startedIds=new Set(BOOKS.filter(b=>b.core&&b.lv!=null&&b.lv<0).map(b=>b.id));
+ const rday=x=>{const k=iso(x),p=periodAt(k);return p&&!isOff(x)&&!isBlack(k)?p:null};
+ let natEnd='',audEnd='';{const n0=SCI.map((b,i)=>({b,i})).filter(x=>x.b.nat).sort((x,y)=>x.b.natord-y.b.natord)[0];let left=n0?sciPages(n0.b):0,nA=D.AUDIO.filter(a=>a.now).reduce((s,a)=>s+(a.episodes||5),0);const x=toD(PSTART);let g2=0;
+  while((left>0||nA>0)&&g2++<4000){const p=rday(x);if(p){const k=iso(x),typ=p==='after'?'group':(PER[p]?PER[p].k:'group');if(left>0){left-=Math.max(1,+natCfg[typ]||5);natEnd=k}if(nA>0){nA--;audEnd=k}}x.setDate(x.getDate()+1)}}
+ let holdDone=false;HOLD=null;
  let d=toD(PSTART),g=0;
  lastPer.done={};
  while((qA.length||qB.length||qC.length)&&g++<40000){
@@ -683,13 +688,14 @@ function compute(){
    const typ=pid==='after'?'group':(PER[pid]?PER[pid].k:'group');const bud=laneBud[typ]||LANEDEF.group;const segs=[];
    const started=['A','B','C'].filter(L=>!(L==='C'&&k<=lkCfg.start)),active=started.filter(L=>Q[L].length);
    const tot=started.reduce((a,L)=>a+(+bud['ABC'.indexOf(L)]||0),0),act=active.reduce((a,L)=>a+(+bud['ABC'.indexOf(L)]||0),0);
-   const isLit=qL.length&&(litDays[k]===true||(litDays[k]!==false&&d.getDay()===+litCfg.wd));
+   const hold=!holdDone&&(k<=natEnd||k<=audEnd||['A','B','C'].some(L=>Q[L][0]&&startedIds.has(Q[L][0].id)));if(!hold&&!holdDone){holdDone=true;HOLD=k}
+   const isLit=!hold&&qL.length&&(litDays[k]===true||(litDays[k]!==false&&d.getDay()===+litCfg.wd));
    // period review: the first 2 reading days of a new period review the previous one and write its outcome
    if(lastPer.cur&&lastPer.cur!==pid&&lastPer.cur!=='after'&&!lastPer.done[lastPer.cur]){lastPer.rev={p:lastPer.cur,i:0,n:(PER[pid]&&PER[pid].k==='summer')?3:2};lastPer.done[lastPer.cur]=1}
    lastPer.cur=pid;
-   if(lastPer.rev){const pr=lastPer.rev;pr.i++;const yr=pr.n===3&&pr.i===3;segs.push({id:yr?'yrev-'+k.slice(0,4):'rev-'+pr.p,ttl:yr?'المراجعة السنوية للخطة: ما أنجزت؟ ماذا أحذف أو أؤخر أو أضيف؟ وأرسل ملاحظاتك لتعديل الخطة':'مراجعة '+(PER[pr.p]?PER[pr.p].name:'الفترة')+' وكتابة مخرَجها',t:'acad',lane:'R',rv:1,a:pr.i,b:pr.n});if(pr.i>=pr.n)lastPer.rev=null}
+   if(lastPer.rev&&!hold){const pr=lastPer.rev;pr.i++;const yr=pr.n===3&&pr.i===3;segs.push({id:yr?'yrev-'+k.slice(0,4):'rev-'+pr.p,ttl:yr?'المراجعة السنوية للخطة: ما أنجزت؟ ماذا أحذف أو أؤخر أو أضيف؟ وأرسل ملاحظاتك لتعديل الخطة':'مراجعة '+(PER[pr.p]?PER[pr.p].name:'الفترة')+' وكتابة مخرَجها',t:'acad',lane:'R',rv:1,a:pr.i,b:pr.n});if(pr.i>=pr.n)lastPer.rev=null}
    else if(isLit){let cap=tot;while(cap>0&&qL.length){const x=qL[0],take=Math.min(cap,x.left);segs.push({id:x.id,ttl:x.ttl,t:'tasawwur',lane:'L',a:x.pos+1,b:x.pos+take,tot:x.pos+x.left});const r=RANGE[x.id]||(RANGE[x.id]={s:k});r.e=k;x.pos+=take;x.left-=take;cap-=take;if(x.left<=0)qL.shift()}}
-   else ['A','B','C'].forEach((L,li)=>{if(!active.includes(L))return;if(L!=='A'&&D.FROZEN&&D.FROZEN[k]&&D.FROZEN[k][PROF.key||'khaled'])return;let cap=act?Math.round((+bud[li]||0)*tot/act):0;const q=Q[L];
+   else ['A','B','C'].forEach((L,li)=>{if(!active.includes(L))return;if(hold&&!(Q[L][0]&&startedIds.has(Q[L][0].id)))return;if(L!=='A'&&D.FROZEN&&D.FROZEN[k]&&D.FROZEN[k][PROF.key||'khaled'])return;let cap=act?Math.round((+bud[li]||0)*tot/act):0;const q=Q[L];
     if(q.length&&q[0].rv){const x=q[0];x.i++;segs.push({id:x.id,ttl:x.ttl,t:x.t,lane:L,rv:1,a:x.i,b:x.n});if(x.i>=x.n)q.shift();LANEFIN[L]=new Date(d);return}
     steal(L);while(cap>0.5&&q.length&&!q[0].rv){const x=q[0],take=Math.min(Math.max(1,Math.floor(cap/(x.w||1))),x.left);segs.push({id:x.id,ttl:x.ttl,t:x.t,lane:L,a:x.pos+1,b:x.pos+take,tot:x.pos+x.left});
      const r=RANGE[x.id]||(RANGE[x.id]={s:k});r.e=k;x.pos+=take;x.left-=take;cap-=take*(x.w||1);if(x.left<=0){q.shift();const tp=x.pos;q.unshift({rv:1,id:x.id,ttl:x.ttl,t:x.t,i:0,n:revDays(tp)});break}}
@@ -698,14 +704,14 @@ function compute(){
   }
   d.setDate(d.getDate()+1);
  }
- shLayout();natLayout();LKR=RANGE;SCIR=RANGE;LKFIN=LANEFIN.C||null;SCIFIN=LANEFIN.B||null;
+ if(!HOLD)HOLD=iso(d);shLayout();natLayout();LKR=RANGE;SCIR=RANGE;LKFIN=LANEFIN.C||null;SCIFIN=LANEFIN.B||null;
  ORDER=BOOKS.filter(b=>RANGE[b.id]).sort((x,y)=>RANGE[x.id].s<RANGE[y.id].s?-1:RANGE[x.id].s>RANGE[y.id].s?1:ord(x)-ord(y));STEP={};ORDER.forEach((b,i)=>STEP[b.id]=i+1);
  // audio: one episode per reading day, from each series' start period
  const LKALL=LKB(),LOG=LKALL.filter(b=>b.sec==='الدراسة المنطقية'),KAL=LKALL.filter(b=>b.sec!=='الدراسة المنطقية');
  const withOf=a=>{if(!a.with)return null;const w=a.with==='مدخل المنطق'?LOG[0]:a.with==='مدخل الكلام'?KAL[0]:(LKALL.find(b=>{const x=b.title||'';return x.startsWith(a.with)||x.includes('('+a.with)||(x.length>5&&a.with.startsWith(x.split(' (')[0]))})||BOOKS.find(b=>b.core&&(b.ttl.startsWith(a.with)||(b.ttl.length>5&&a.with.startsWith(b.ttl.split(':')[0])))));return w&&RANGE[w.id]?RANGE[w.id].s:null};
  const LVS={};BOOKS.forEach(b=>{if(b.core&&!b.shar&&b.lv!=null&&RANGE[b.id]){const s=RANGE[b.id].s;if(!LVS[b.lv]||s<LVS[b.lv])LVS[b.lv]=s}});
  const alv=a=>a.lv!=null?a.lv:({'مبتدئ':1,'متوسط':2,'متقدم':3}[a.level]||2);
- const aq=D.AUDIO.map((a,i)=>{const dt=S.dates[a.start]||['2027-07-01'];const ws=a.first&&LOG[0]&&RANGE[LOG[0].id]?RANGE[LOG[0].id].s:withOf(a);return {a,i,st:ws||(a.now?PSTART:a.with?'9999-12-31':(LVS[alv(a)]||(dt[0]==='chain'?'2031-10-01':dt[0]))),lv:alv(a),w:(ws||a.now)?1:0,n:a.episodes||8,est:!a.episodes,ep:0}}).filter(x=>!x.a.hsf).sort((x,y)=>x.st<y.st?-1:x.st>y.st?1:x.i-y.i);
+ const aq=D.AUDIO.map((a,i)=>{const dt=S.dates[a.start]||['2027-07-01'];const ws=a.first&&LOG[0]&&RANGE[LOG[0].id]?RANGE[LOG[0].id].s:withOf(a);return {a,i,st:ws||(a.now?PSTART:a.with?'9999-12-31':(LVS[alv(a)]||(dt[0]==='chain'?'2031-10-01':dt[0]))),lv:alv(a),w:(ws||a.now)?1:0,n:a.episodes||8,est:!a.episodes,ep:0}}).filter(x=>!x.a.hsf).map(x=>{if(!x.a.now&&HOLD&&x.st<HOLD)x.st=HOLD;return x}).sort((x,y)=>x.st<y.st?-1:x.st>y.st?1:x.i-y.i);
  hsfLayout();const hEnd=Object.keys(HSF).sort().pop()||'';
  Object.keys(DAYS).sort().forEach(k=>{const isL=DAYS[k].segs.some(s=>s.lane==='L'),ok=x=>x.st<=k&&x.ep<x.n;const c=(hEnd&&k<=hEnd)?(isL?null:aq.find(x=>x.w&&ok(x))):isL?(aq.find(x=>x.a.tz&&ok(x))||aq.find(x=>x.w&&ok(x))||aq.find(x=>!x.a.tz&&ok(x))):(aq.find(x=>x.w&&ok(x))||aq.find(x=>!x.a.tz&&ok(x)));if(c){c.ep++;AUD[k]={...c.a,ep:c.ep,n:c.n,est:c.est,i:c.i}}});
 }
