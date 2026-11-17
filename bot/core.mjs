@@ -133,7 +133,7 @@ function card(k) {
 async function sendCard(k, prefix = '') {
   const c = card(k);
   const m = await send(prefix + c.text, { reply_markup: c.reply_markup });
-  if (m) day(k).msg = m.message_id;
+  if (m) { day(k).msg = m.message_id; day(k).sig = JSON.stringify(tasks(k).map(t => t.id)); }
   const d = day(k);
   if (k === TODAY && !d.sent) { // first card of the day: reminders already past are skipped, so a late start sends no burst
     d.sent = true;
@@ -504,6 +504,12 @@ const REM = [
   n => `⛔ <b>إنذار أخير</b>: باقٍ ${tasksN(n)}. هذا وردك:`,
 ];
 async function duties() {
+  // 0) today's tasks changed after the card was sent (a plan change): delete the outdated card and send the current one
+  { const d = day(TODAY);
+    if (d.sent && d.msg && !d.completeAt && !d.closed && tasks(TODAY).length && d.sig !== JSON.stringify(tasks(TODAY).map(t => t.id))) {
+      await tg('deleteMessage', { chat_id: S.owner, message_id: d.msg }); d.msg = null;
+      await sendCard(TODAY, '🔄 تعدّل ورد اليوم، وهذه بطاقته الجديدة:\n\n');
+    } }
   // 1) days that just closed unfinished
   const missed = Object.keys(S.days).filter(k => S.days[k].justMissed).sort();
   if (missed.length) {
