@@ -560,6 +560,8 @@ async function handleUpdate(u) {
 }
 async function tick() {
   if (!S.owner) return;
+  // Khaled's new plan starts from its beginning (23 Nov 2026): what was missed before stays in the record, no debt
+  if (profile.key === 'khaled' && !S.kcoreReset) { S.kcoreReset = TODAY; S.debt = []; S.debtMsg = null; }
   if (S.menuV !== MENU_V) {
     S.menuV = MENU_V;
     await tg('setMyCommands', { commands: COMMANDS });
