@@ -569,8 +569,8 @@ let STEP={},ORDER=[];
 let EDIT=Object.assign({hide:{},add:{},move:{},custom:[]},LS.get('manhaj-edit',{}));
 const posOf=b=>b.sub!=null?b.sub:+String(b.id).split('-').pop();
 /* ---------- Khaled's chosen core (D.KCORE): which books are in the plan, their order, lanes and levels ---------- */
-let TZD={},KX={},KMAP={},KUNITS=[],KSTATS='',KCAP={};const KLVN=['التأسيس الإسلامي','تأسيس','متوسط','متقدم'];
-(function kInit(){const K=D.KCORE;if(!K)return;KCAP=Object.assign({},K.cfg,LS.get('manhaj-kcap-v1',{}));
+let TZD={},KX={},KMAP={},KUNITS=[],KSTATS='',KCAP={},KDAY={},KREV={};const KLVN=['التأسيس الإسلامي','تأسيس','متوسط','متقدم'];
+(function kInit(){const K=D.KCORE;if(!K)return;KCAP=Object.assign({},K.cfg,LS.get('manhaj-kcap-v1',{}));KDAY=K.cfg.week||{};
  Object.entries(K.newSci||{}).forEach(([k,v])=>{D.SCI.push({title:v.title,author:v.author,pages:v.pages,core:1,nat:1,lv:1,natord:99});KSTATS='sci-'+(D.SCI.length-1)});
  Object.entries(K.new||{}).forEach(([id,v])=>{if(BOOKS.some(b=>b.id===id))return;BOOKS.push({id,phase:'p1',period:'p1-0',t:'gharb',ttl:v.ttl,by:v.by,note:'أُضيف في النواة المختارة',link:'',o:'',srcKey:'user',src:'النواة المختارة',core:1,w:1,lane:'A',sub:0});D.PAGES[v.ttl]={pages:v.pages,confidence:v.conf}});
  const set={};const walk=(units,lane)=>units.forEach(u=>{const ids=[];u.items.forEach(it=>{const o=typeof it==='string'?{id:it}:it;ids.push(o.id);set[o.id]={lane,lv:u.lv,w:o.w,ex:o.ex};KMAP[o.id]=u.f==='بدأت فيه'?'':u.lv===0?u.f:(u.f+' · '+KLVN[u.lv])});if(lane==='A')KUNITS.push({f:u.f,lv:u.lv,ids})});
@@ -592,13 +592,13 @@ function kNatQ(){const K=D.KCORE;let n=0;return K.nat.map(x=>{if(typeof x==='obj
 // after the main schedule: the tazkiya hour, the weekly recall and argument notebook, the unit essays
 function kAfter(){const K=D.KCORE;TZD={};KX={};const H=HOLD||PSTART;
  const q=[];K.taz.forEach(x=>{if(x==='LIT')LIT.forEach((b,i)=>q.push({id:'lit-'+i,ttl:b.title,left:pages(b.title)[0],pos:0}));else{const b=BOOKS.find(y=>y.id===x);if(b)q.push({id:b.id,ttl:b.ttl,left:pages(b.ttl)[0],pos:0})}});
- const d=toD(H);let g=0;while(q.length&&g++<20000){const k=iso(d),p=periodAt(k);if(p&&!isOff(d)&&!isBlack(k)){let cap=+KCAP.taz||25;const segs=[];
+ const d=toD(H);let g=0;while(q.length&&g++<20000){const k=iso(d),p=periodAt(k);if(p&&!isBlack(k)&&(KDAY['1']?d.getDay()===5:!isOff(d))){let cap=+KCAP.taz||25;const segs=[];
    while(q.length&&cap>0){const x=q[0],r=RANGE[x.id]||(RANGE[x.id]={s:k});r.e=k;const take=Math.min(cap,x.left);segs.push({id:x.id,ttl:x.ttl,a:x.pos+1,b:x.pos+take,tot:x.pos+x.left});x.pos+=take;x.left-=take;cap-=take;if(x.left<=0)q.shift();else break}
    if(segs.length)TZD[k]=segs}d.setDate(d.getDate()+1)}
  const ks=Object.keys(DAYS).sort().filter(k=>k>=H),add=(k,x)=>(KX[k]||(KX[k]=[])).push(x);
  ks.forEach(k=>{const w=toD(k).getDay();
   if(w===6)add(k,{id:'rcl',txt:'🧠 استدعاء (٢٠ دقيقة): على ورقة بيضاء، اكتب من ذاكرتك أهم ما قرأته هذا الأسبوع، ثم راجعه على الكتب'});
-  if(w===2)add(k,{id:'arg',txt:'📓 دفتر الحجة: حجة واحدة مما قرأت: الدعوى، المقدمات، هل تلزم النتيجة فعلًا، أقوى اعتراض، واعرض قول صاحبها عرضًا يقبله'})});
+  if(w===3)add(k,{id:'arg',txt:'📓 دفتر الحجة: حجة واحدة مما قرأت: الدعوى، المقدمات، هل تلزم النتيجة فعلًا، أقوى اعتراض، واعرض قول صاحبها عرضًا يقبله'})});
  KUNITS.forEach((u,ui)=>{if(u.f==='بدأت فيه')return;const last=u.ids.filter(id=>RANGE[id]).sort((a,b)=>RANGE[a].e<RANGE[b].e?-1:1).pop();if(!last)return;const e=RANGE[last].e,k=ks.find(x=>x>e);
   if(k)add(k,{id:'ess-'+ui,txt:`✍️ مقالة وحدة «${u.lv===0?u.f:u.f+' — '+KLVN[u.lv]}» (٥٠٠–٨٠٠ كلمة): اعرض حجة المخالف عرضًا يقبله صاحبها ثم ناقشها، واعرضها على قارئ`})});
 }
@@ -650,8 +650,8 @@ let NATD={};let natCfg=Object.assign({term:5,break:10,summer:15,half:8,group:8},
 function natLayout(){NATD={};const q=D.KCORE?kNatQ():SCI.map((b,i)=>({b,i})).filter(x=>x.b.nat).sort((x,y)=>x.b.natord-y.b.natord).map(({b,i})=>({id:'sci-'+i,ttl:b.title,left:sciPages(b),pos:0}));const natFirst=q[0]&&q[0].id;
  let d=toD(D.KCORE?KCAP.start:PSTART),g=0;
  while(q.length&&g++<40000){const k=iso(d),pid=periodAt(k);
-  if(pid&&!isOff(d)&&!isBlack(k)&&(!HOLD||k>=HOLD||q[0].id===natFirst)){const typ=pid==='after'?'group':(PER[pid]?PER[pid].k:'group');let cap=Math.max(1,+natCfg[typ]||5);const segs=[];
-   if(q.length&&q[0].q&&!q[0].ex&&d.getDay()===4&&HOLD&&k>=HOLD){segs.push({id:'natq-'+q[0].id,ttl:q[0].ttl,ex:2})}else while(q.length&&cap>0){const x=q[0],r=RANGE[x.id]||(RANGE[x.id]={s:k});r.e=k;const take=x.ex?1:Math.min(cap,x.left);segs.push({id:x.id,ttl:x.ttl,a:x.pos+1,b:x.pos+take,tot:x.pos+x.left,ex:x.ex});x.pos+=take;x.left-=take;cap-=x.ex?cap:take;if(x.left<=0)q.shift();else break}
+  if(pid&&!isOff(d)&&!isBlack(k)&&(!HOLD||k>=HOLD||q[0].id===natFirst)&&(!D.KCORE||!KDAY['1']||KDAY[d.getDay()]==='N')){const typ=pid==='after'?'group':(PER[pid]?PER[pid].k:'group');let cap=D.KCORE&&KCAP.sci?+KCAP.sci:Math.max(1,+natCfg[typ]||5);const segs=[];
+   while(q.length&&cap>0){const x=q[0],r=RANGE[x.id]||(RANGE[x.id]={s:k});r.e=k;const take=x.ex?1:Math.min(cap,x.left);segs.push({id:x.id,ttl:x.ttl,a:x.pos+1,b:x.pos+take,tot:x.pos+x.left,ex:x.ex,q:x.q});x.pos+=take;x.left-=take;cap-=x.ex?cap:take;if(x.left<=0)q.shift();else break}
    if(segs.length)NATD[k]=segs}
   d.setDate(d.getDate()+1)}}
 let HOLD=null,DAYS={},RANGE={},AUD={},LKD={},LKR={},SCID={},SCIR={},FIN=null,LKFIN=null,SCIFIN=null,LANEFIN={};
@@ -666,14 +666,14 @@ const hid=(k,h)=>h.it?'h:'+h.it[0].v+'@'+h.it[0].a:h.fin?'hf:'+h.fin:h.rev?'hr:'
 const hShort=h=>h.it?HC(h.c).title:h.fin?'ختام جزء من السماع':h.rev?'مراجعة السماع'+(h.pod?' وبودكاست':''):'';
 const partN=n=>n===1?'الأول':n===2?'الثاني':nA(n);
 // lays the listening days on the calendar from the start date: weekdays take the next listening day, Fridays the next review
-function hsfLayout(){HSF={};if(!HSD)return;
+function hsfLayout(){HSF={};if(!HSD)return;let KHP=null;
  const nowN=D.KCORE?0:D.AUDIO.filter(a=>a.now).reduce((s,a)=>s+(a.episodes||5),0),rd=Object.keys(DAYS).sort().filter(k=>k>=PSTART&&!DAYS[k].segs.some(s=>s.lane==='L')),nowEnd=nowN?rd[nowN-1]:null;
  let hst=hsfCfg.start;if(nowEnd&&nowEnd>=hst){const x=toD(nowEnd);x.setDate(x.getDate()+1);hst=iso(x)}if(HOLD&&HOLD>hst)hst=HOLD;
  let d=toD(hst),ui=0,ri=0,g=0,wk=[];
  while(ui<HSD.u.length&&g++<3000){const k=iso(d);
   if(hsfCfg.pause&&isBlack(k))HSF[k]={pause:1};
-  else if(d.getDay()===5&&!(ui===HSD.u.length-1&&HSD.u[ui].fin)){HSF[k]={rev:1,pod:ri<HSD.r.length?HSD.r[ri]:null,recap:[...new Set(wk)]};ri++;wk=[]}
-  else{const u=HSD.u[ui++];HSF[k]=Object.assign({},u);if(u.c)wk.push(u.c)}
+  else if(d.getDay()===5&&!(ui===HSD.u.length-1&&HSD.u[ui].fin)){const fr={rev:1,pod:ri<HSD.r.length?HSD.r[ri]:null,recap:[...new Set(wk)]};if(D.KCORE&&KDAY['1'])KHP=fr;else HSF[k]=fr;ri++;wk=[]}
+  else{const u=HSD.u[ui++];HSF[k]=Object.assign({},u);if(u.c)wk.push(u.c);if(KHP&&d.getDay()!==6){Object.assign(HSF[k],KHP);KHP=null}}
   d.setDate(d.getDate()+1)}}
 function hsfTasks(k){const h=HSF[k],t=[];if(!h||h.pause)return t;
  if(h.it)t.push({id:'hsf',txt:`🎧 اسمع من «${HC(h.c).title}»: ${h.it.map(hItem).join('، ')}`});
@@ -727,12 +727,12 @@ function compute(){
    // period review: the first 2 reading days of a new period review the previous one and write its outcome
    if(lastPer.cur&&lastPer.cur!==pid&&lastPer.cur!=='after'&&!lastPer.done[lastPer.cur]){lastPer.rev={p:lastPer.cur,i:0,n:(PER[pid]&&PER[pid].k==='summer')?3:2};lastPer.done[lastPer.cur]=1}
    lastPer.cur=pid;
-   if(lastPer.rev&&!hold){const pr=lastPer.rev;pr.i++;const yr=pr.n===3&&pr.i===3;segs.push({id:yr?'yrev-'+k.slice(0,4):'rev-'+pr.p,ttl:yr?'المراجعة السنوية للخطة: ما أنجزت؟ ماذا أحذف أو أؤخر أو أضيف؟ وأرسل ملاحظاتك لتعديل الخطة':'مراجعة '+(PER[pr.p]?PER[pr.p].name:'الفترة')+' وكتابة مخرَجها',t:'acad',lane:'R',rv:1,a:pr.i,b:pr.n});if(pr.i>=pr.n)lastPer.rev=null}
+   if(lastPer.rev&&!hold&&!D.KCORE){const pr=lastPer.rev;pr.i++;const yr=pr.n===3&&pr.i===3;segs.push({id:yr?'yrev-'+k.slice(0,4):'rev-'+pr.p,ttl:yr?'المراجعة السنوية للخطة: ما أنجزت؟ ماذا أحذف أو أؤخر أو أضيف؟ وأرسل ملاحظاتك لتعديل الخطة':'مراجعة '+(PER[pr.p]?PER[pr.p].name:'الفترة')+' وكتابة مخرَجها',t:'acad',lane:'R',rv:1,a:pr.i,b:pr.n});if(pr.i>=pr.n)lastPer.rev=null}
    else if(isLit){let cap=tot;while(cap>0&&qL.length){const x=qL[0],take=Math.min(cap,x.left);segs.push({id:x.id,ttl:x.ttl,t:'tasawwur',lane:'L',a:x.pos+1,b:x.pos+take,tot:x.pos+x.left});const r=RANGE[x.id]||(RANGE[x.id]={s:k});r.e=k;x.pos+=take;x.left-=take;cap-=take;if(x.left<=0)qL.shift()}}
-   else ['A','B','C'].forEach((L,li)=>{if(!active.includes(L))return;if(hold&&!(Q[L][0]&&startedIds.has(Q[L][0].id)))return;if(L!=='A'&&D.FROZEN&&D.FROZEN[k]&&D.FROZEN[k][PROF.key||'khaled'])return;if(D.KCORE&&L==='C'&&Q.B.length)return;let cap=D.KCORE&&!hold?(L==='A'?+KCAP.rot:+KCAP.method):(act?Math.round((+bud[li]||0)*tot/act):0);const q=Q[L];
+   else ['A','B','C'].forEach((L,li)=>{if(!active.includes(L))return;if(hold&&!(Q[L][0]&&startedIds.has(Q[L][0].id)))return;if(D.KCORE&&KDAY['1']){const want=KDAY[d.getDay()];if(want!=='B'&&want!==L)return;if(want==='B'&&L==='A')return}if(L!=='A'&&D.FROZEN&&D.FROZEN[k]&&D.FROZEN[k][PROF.key||'khaled'])return;if(D.KCORE&&L==='C'&&Q.B.length)return;let cap=D.KCORE&&!hold?(L==='A'?+KCAP.rot:+KCAP.method):(act?Math.round((+bud[li]||0)*tot/act):0);const q=Q[L];
     if(q.length&&q[0].rv){const x=q[0];x.i++;segs.push({id:x.id,ttl:x.ttl,t:x.t,lane:L,rv:1,a:x.i,b:x.n});if(x.i>=x.n)q.shift();LANEFIN[L]=new Date(d);return}
-    steal(L);while(cap>0.5&&q.length&&!q[0].rv){const x=q[0],take=Math.min(Math.max(1,Math.floor(cap/(x.w||1))),x.left);segs.push({id:x.id,ttl:x.ttl,t:x.t,lane:L,a:x.pos+1,b:x.pos+take,tot:x.pos+x.left});
-     const r=RANGE[x.id]||(RANGE[x.id]={s:k});r.e=k;x.pos+=take;x.left-=take;cap-=take*(x.w||1);if(x.left<=0){q.shift();const tp=x.pos;q.unshift({rv:1,id:x.id,ttl:x.ttl,t:x.t,i:0,n:revDays(tp)});break}}
+    steal(L);if(D.KCORE&&KREV[L]&&q.length){segs.push({id:'krev-'+L,ttl:'راجع «'+KREV[L]+'» ١٥ دقيقة قبل القراءة',t:'acad',lane:L,rv:1,a:1,b:1});KREV[L]=null}while(cap>0.5&&q.length&&!q[0].rv){const x=q[0],take=Math.min(Math.max(1,Math.floor(cap/(x.w||1))),x.left);segs.push({id:x.id,ttl:x.ttl,t:x.t,lane:L,a:x.pos+1,b:x.pos+take,tot:x.pos+x.left});
+     const r=RANGE[x.id]||(RANGE[x.id]={s:k});r.e=k;x.pos+=take;x.left-=take;cap-=take*(x.w||1);if(x.left<=0){q.shift();if(D.KCORE){KREV[L]=x.ttl}else{const tp=x.pos;q.unshift({rv:1,id:x.id,ttl:x.ttl,t:x.t,i:0,n:revDays(tp)});break}}}
     if(segs.some(s=>s.lane===L))LANEFIN[L]=new Date(d)});
    if(segs.length){DAYS[k]={segs,per:pid==='after'?'':pid};FIN=new Date(d)}
   }
@@ -750,7 +750,7 @@ function compute(){
  Object.keys(DAYS).sort().forEach(k=>{const isL=DAYS[k].segs.some(s=>s.lane==='L'),ok=x=>x.st<=k&&x.ep<x.n;const c=(hEnd&&k<=hEnd)?(isL?null:aq.find(x=>x.w&&ok(x))):isL?(aq.find(x=>x.a.tz&&ok(x))||aq.find(x=>x.w&&ok(x))||aq.find(x=>!x.a.tz&&ok(x))):(aq.find(x=>x.w&&ok(x))||aq.find(x=>!x.a.tz&&ok(x)));if(c){c.ep++;AUD[k]={...c.a,ep:c.ep,n:c.n,est:c.est,i:c.i}}});
 }
 
-function status(k){const d=toD(k);if(DAYS[k]||LKD[k]||SCID[k])return 'read';if(D.KCORE&&D.FROZEN&&D.FROZEN[k]&&D.FROZEN[k][PROF.key])return 'read';if(k<PSTART)return 'off';if(isOff(d))return 'off';if(isBlack(k))return 'ex';return FIN&&k>iso(FIN)?'off':'ex'}
+function status(k){const d=toD(k);if(DAYS[k]||LKD[k]||SCID[k])return 'read';if(D.KCORE&&D.FROZEN&&D.FROZEN[k]&&D.FROZEN[k][PROF.key])return 'read';if(D.KCORE&&(NATD[k]||TZD[k]))return 'read';if(k<PSTART)return 'off';if(isOff(d))return 'off';if(isBlack(k))return 'ex';return FIN&&k>iso(FIN)?'off':'ex'}
 function reason(k){const s=status(k),d=toD(k);if(s==='read')return '';if(k<PSTART)return 'قبل بداية الجدول، ويبدأ الاثنين ١٦ نوفمبر ٢٠٢٦';if(isOff(d))return 'الجمعة: إجازة من الجدول';if(isBlack(k))return 'امتحان أو استعداد له';return FIN&&k>iso(FIN)?'لا قراءة مجدولة':'امتحانات أو فترة انتقال (تقديري)'}
 /* ---------- render: today ---------- */
 const TODAY=iso(new Date());
@@ -807,7 +807,7 @@ function dayTasks(k){const fz=D.FROZEN&&D.FROZEN[k]&&D.FROZEN[k][PROF.key||'khal
  if(dy)dy.segs.forEach((sg,i)=>t.push({id:'s'+i+'-'+sg.id,txt:sg.rv?`${sg.lane==='R'?'📝':'🔁'} ${sg.ttl}${sg.lane==='R'?'':' (مراجعة)'}`:`${LANES[sg.lane].ico} اقرأ «${sg.ttl}» من ص ${nA(sg.a)} إلى ${nA(sg.b)}${D.KCORE&&KMAP[sg.id]?' — '+KMAP[sg.id]:''}`}));
  if(HSD)hsfTasks(k).forEach(x=>t.push(x));
  if(AUD[k])t.push({id:'aud',txt:`🎧 استمع: ${AUD[k].series} (الحلقة ${nA(AUD[k].ep)})`});
- (NATD[k]||[]).forEach((s,i)=>t.push({id:'nat'+i+'-'+s.id,txt:s.ex===2?`🧮 يوم تمارين: حل مسائل الفصل الذي قرأته من «${s.ttl}»`:s.ex?`🧮 أسبوع حل مسائل: ${s.ttl} (اليوم ${nA(s.a)} من ${nA(s.tot)})`:`🧪 اقرأ «${s.ttl}» من ص ${nA(s.a)} إلى ${nA(s.b)}`}));
+ (NATD[k]||[]).forEach((s,i)=>t.push({id:'nat'+i+'-'+s.id,txt:s.ex===2?`🧮 يوم تمارين: حل مسائل الفصل الذي قرأته من «${s.ttl}»`:s.ex?`🧮 أسبوع حل مسائل: ${s.ttl} (اليوم ${nA(s.a)} من ${nA(s.tot)})`:`🧪 اقرأ «${s.ttl}» من ص ${nA(s.a)} إلى ${nA(s.b)}${s.q?' + ١٥ دقيقة تمارين الفصل':''}`}));
  (TZD[k]||[]).forEach((s,i)=>t.push({id:'tz'+i+'-'+s.id,txt:`🌿 اقرأ «${s.ttl}» من ص ${nA(s.a)} إلى ${nA(s.b)}`}));
  (KX[k]||[]).forEach(x=>t.push({...x}));
  (SHD[k]||[]).forEach((s,i)=>t.push({id:'sh'+i+'-'+s.id,txt:(s.course?'🎓 احضر ':'📗 اقرأ ')+shTxt(s).replace(/^[📗🎓] /u,'')}));
