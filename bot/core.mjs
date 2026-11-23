@@ -562,6 +562,8 @@ async function tick() {
   if (!S.owner) return;
   // Khaled's new plan starts from its beginning (23 Nov 2026): what was missed before stays in the record, no debt
   if (profile.key === 'khaled' && !S.kcoreReset) { S.kcoreReset = TODAY; S.debt = []; S.debtMsg = null; }
+  // and the old week (before 23 Nov 2026) is not kept: no record, no report, no debt from it
+  if (profile.key === 'khaled' && !S.kcoreReset2) { const K0 = '2026-11-23'; S.kcoreReset2 = TODAY; for (const k of Object.keys(S.sched)) if (k < K0) delete S.sched[k]; for (const k of Object.keys(S.days)) if (k < K0) delete S.days[k]; if (!S.startedOn || S.startedOn < K0) S.startedOn = K0; S.debt = S.debt.filter(x => x.k >= K0); }
   if (S.menuV !== MENU_V) {
     S.menuV = MENU_V;
     await tg('setMyCommands', { commands: COMMANDS });
