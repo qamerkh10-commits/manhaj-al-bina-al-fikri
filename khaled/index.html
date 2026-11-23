@@ -1710,6 +1710,27 @@ renderAll();show(LS.get('manhaj-tab2','today'));
  const _rlk=renderLK;renderLK=function(){_rlk();const a=(D.AUDIO||[]).find(x=>x.first);const ul=document.querySelector('#lkBody .tl');if(!a||!ul)return;
   const r=RANGE['lkc-turk'],id='lkc-turk';
   ul.insertAdjacentHTML('afterbegin',`<li class="${done[id]?'done':''}" style="--c:var(--c-manhaj);grid-template-columns:auto 1fr auto"><input type="checkbox" data-done="${id}" ${done[id]?'checked':''} aria-label="${esc(a.series)}"><div><div class="t">🎓 ${esc(a.series)} <span class="tag" style="color:var(--teal)">يبدأ به المنطق</span></div><div class="muted small">${esc(a.speaker)} · ${nA(a.episodes||8)} دروس على ${esc(a.platform||'يوتيوب')} · درسان في كل يوم منهج</div><div class="lnks"><a class="free" href="${esc(a.url)}" target="_blank" rel="noopener">▶ قائمة الدروس ↗</a></div></div><div class="d">${r?fS(toD(r.s))+'<br>'+fS(toD(r.e)):''}</div></li>`)};
+ // ===== «حدّث البوت الآن»: send the plan as the page shows it, so the bot's ward follows at once =====
+ function botData(){const o={};const e=toD(TODAY);e.setDate(e.getDate()+90);const d=toD(TODAY);d.setDate(d.getDate()-2);
+  for(;d<=e;d.setDate(d.getDate()+1)){const k=iso(d);const segs=DAYS[k]?DAYS[k].segs:[];
+   const tasks=dayTasks(k).map(x=>{if(x.fz){const f={id:x.id,txt:x.txt,pg:x.pg||0};if(x.bid)f.bid=x.bid;return f}const m=/^s(\d+)-/.exec(x.id);const g=m?segs[+m[1]]:null;const t={id:x.id,txt:x.txt,pg:g&&!g.rv?(g.b-g.a+1):0};
+    if(g&&g.lane!=='R'){t.bid=g.id;if(g.rv?g.a===g.b:(g.lane==='L'&&g.b===g.tot))t.last=1}return t});
+   o[k]={tasks,why:tasks.length?'':reason(k)}}
+  const books=[];const add=(id,t,a,l)=>{const b={id,t,a:String(a||'').split('،')[0].trim(),l};if(RANGE[id])b.s=RANGE[id].s;books.push(b)};
+  BOOKS.forEach(b=>add(b.id,b.ttl,b.by,laneOf(b)));(D.SCI||[]).forEach((b,i)=>add('sci-'+i,b.title,b.author,'B'));(D.LK||[]).forEach((st,i)=>(st.books||[]).forEach((b,j)=>add('lk-'+i+'-'+j,b.title,b.author,'C')));(D.LIT||[]).forEach((b,i)=>add('lit-'+i,b.title,b.author,'L'));
+  return {days:o,fin:FIN?iso(FIN):null,books}}
+ window.botData=botData;
+ window.pushBot=function(btn){const t=syncState();if(!t||!D.BOT_URL){toast('اربط صفحتك بالبوت أولًا: اكتب له /sync وافتح الرابط على هذا الجهاز.');return}
+  if(btn){btn.disabled=true;btn.dataset.l=btn.textContent;btn.textContent='… يحدّث البوت'}
+  fetch(D.BOT_URL+'/push',{method:'POST',headers:{'content-type':'text/plain'},body:JSON.stringify({p:PROF.key,token:t,settings:collectPrefs(),data:botData()})})
+   .then(r=>{if(r.status===403)throw 'auth';if(!r.ok)throw 'err';return r.json()}).then(()=>{lastPush=JSON.stringify(collectPrefs());LS.set('manhaj-lastsync',Date.now());toast('✓ تحدّث البوت بخطتك وورد اليوم الآن.')})
+   .catch(e=>toast(e==='auth'?'رابط المزامنة على هذا الجهاز قديم: اكتب للبوت /sync وافتح الرابط الجديد.':'تعذّر الوصول للبوت الآن، جرّب بعد قليل.'))
+   .finally(()=>{if(btn){btn.disabled=false;btn.textContent=btn.dataset.l}})};
+ const pbx=document.createElement('div');pbx.className='card';pbx.style.marginBottom='14px';
+ pbx.innerHTML=`<h3 style="font-size:16px;margin-bottom:6px">تحديث البوت</h3><p class="muted small" style="margin:0 0 10px">بعد أي تعديل في خطتك (كتب، مواعيد، صفحات، مواد شرعية) اضغط هنا، فيأخذ البوت الخطة والورد كما في صفحتك فورًا بدل انتظار التحديث التلقائي.</p><button class="btn primary" id="pushBtn">🔄 حدّث البوت الآن</button>`;
+ pbx.querySelector('#pushBtn').onclick=e=>pushBot(e.currentTarget);
+ if(ref)ref.insertAdjacentElement('afterend',pbx);
+ const pbar=document.getElementById('profBar');if(pbar&&D.BOT_URL){const b=document.createElement('button');b.className='btn';b.style.cssText='min-height:30px;padding:0 10px;font-size:12px;margin-inline-start:6px';b.textContent='🔄 حدّث البوت';b.onclick=()=>pushBot(b);pbar.appendChild(b)}
  // the page drew itself before this script: draw the open tab again with the new pieces
  if(typeof repaint==='function')repaint();
  navSync(LS.get('manhaj-tab2','today'));

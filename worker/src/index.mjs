@@ -118,6 +118,23 @@ export class BotState extends DurableObject {
       if (!this.uname) { const me = await fetch(`${this.env.TG_API}/bot${token}/getMe`).then(r => r.json()).catch(() => ({})); this.uname = me.ok ? me.result.username : ''; }
       return Response.json({ username: this.uname }, { headers: { 'access-control-allow-origin': '*' } });
     }
+    if (path === '/push') { // «حدّث البوت الآن»: the page sends its settings and the schedule it computed itself; only his sync key
+      const cors = { 'access-control-allow-origin': '*' };
+      const pk = body && PROFILES[body.p] ? body.p : null;
+      const dd = body && body.data;
+      const ok = pk && body.token && typeof body.settings === 'object' && dd && typeof dd.days === 'object' && Array.isArray(dd.books)
+        && Object.keys(dd.days).length <= 120 && Object.keys(dd.days).every(k => /^\d{4}-\d{2}-\d{2}$/.test(k) && Array.isArray(dd.days[k].tasks) && dd.days[k].tasks.length <= 40);
+      if (!ok || raw.length > 900000) return new Response('bad request', { status: 400, headers: cors });
+      return this.lock(async () => {
+        await this.load();
+        const P = this.P[pk];
+        if (!P.S.syncToken || body.token !== P.S.syncToken) return new Response('forbidden', { status: 403, headers: cors });
+        await this.run(pk, token, bot => bot.prefs(body.settings));
+        const r = await this.run(pk, token, bot => bot.applyData({ days: dd.days, fin: dd.fin || null, books: dd.books, key: 'site-' + Date.now(), settingsVer: P.S.settingsVer }));
+        await this.save();
+        return Response.json({ ok: true, applied: !(r && r.ok === false) }, { headers: cors });
+      });
+    }
     if (path === '/prefs') { // a person's page sends its settings; only his private sync key is accepted
       const cors = { 'access-control-allow-origin': '*' };
       const pk = body && PROFILES[body.p] ? body.p : null;
@@ -245,7 +262,7 @@ export default {
   async fetch(req, env) {
     const url = new URL(req.url);
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'POST, GET', 'access-control-allow-headers': 'content-type' } });
-    if (url.pathname === '/tg' || url.pathname === '/botname' || url.pathname === '/prefs' || url.pathname === '/ai' || url.pathname === '/ainote' || url.pathname.startsWith('/sync/')) {
+    if (url.pathname === '/tg' || url.pathname === '/botname' || url.pathname === '/prefs' || url.pathname === '/push' || url.pathname === '/ai' || url.pathname === '/ainote' || url.pathname.startsWith('/sync/')) {
       const stub = env.BOT.get(env.BOT.idFromName('main'));
       const h = new Headers(req.headers); h.set('X-Origin', url.origin);
       return stub.fetch('https://bot' + url.pathname + url.search, { method: req.method, headers: h, body: req.method === 'POST' ? await req.text() : undefined });
