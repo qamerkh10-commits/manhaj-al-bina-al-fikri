@@ -62,11 +62,14 @@ const day = k => (S.days[k] ||= { done: {}, rem: {} });
 const order = (n, salt) => { const a = [...Array(n).keys()]; let h = 2166136261; for (const c of (profile.key || 'x') + salt) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0;
   for (let i = a.length - 1; i > 0; i--) { h = (Math.imul(h, 1103515245) + 12345) >>> 0; const j = h % (i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const VORDER = order(VERSES.length, 'v'), WORDER = order(WISDOM.length, 'w');
+// Khaled (24 Nov 2026): his day's verse and word are picked by date, so his page's «رسالة اليوم» shows the same ones
+const dayPick = (O, k) => { const [y, m, d] = k.split('-').map(Number); return O[Math.round(Date.UTC(y, m - 1, d) / 864e5) % O.length]; };
+const BY_DATE = profile.key === 'khaled';
 const nextVerse = () => { if (!VERSES.length) return -1; const n = S.vn || 0; S.vn = n + 1; return VORDER[n % VORDER.length]; };
 const verseHTML = i => { const v = VERSES[i]; if (!v) return ''; return `\n\n┈┈┈┈┈┈┈┈\n<i>${esc(v.text).replace(/ … /g, '\n       ')}</i>\n— <a href="${v.url}">${esc(v.poet)}</a>`; };
 const withVerse = (text, i = nextVerse()) => { const v = verseHTML(i); return v && (text + v).length < 4000 ? text + v : text; };
 const sendV = (text, extra = {}) => send(withVerse(text), extra);
-const wisdomHTML = () => { if (!WISDOM.length) return ''; const n = S.wn || 0; S.wn = n + 1; const w = WISDOM[WORDER[n % WORDER.length]];
+const wisdomHTML = () => { if (!WISDOM.length) return ''; const n = S.wn || 0; S.wn = n + 1; const w = WISDOM[BY_DATE ? dayPick(WORDER, TODAY) : WORDER[n % WORDER.length]];
   const src = `«${esc(w.book)}»${w.ref ? '، ' + esc(w.ref) : ''}`;
   return `📜 <b>${w.theme === 'الوقت' ? 'في قيمة الوقت' : 'في طلب العلم'}</b>
 
@@ -127,7 +130,7 @@ function card(k) {
   else s += `\n\n⏳ يُغلق اليوم الساعة ${fmtH(C.close)} بعد منتصف الليل.`;
   const kb = t.map((x, i) => [{ text: (d.done[x.id] ? '✅ ' : '⬜ ') + short(x.txt), callback_data: `t|${k}|${i}` }]);
   if (dn < t.length && !d.closed) kb.push([{ text: '✅ أتممت الورد كله', callback_data: `a|${k}` }]);
-  if (d.vi == null) d.vi = nextVerse();   // the day's verse stays the same when the card is edited
+  if (d.vi == null) d.vi = BY_DATE && VERSES.length ? dayPick(VORDER, k) : nextVerse();   // the day's verse stays the same when the card is edited
   return { text: withVerse(s, d.vi), reply_markup: { inline_keyboard: kb } };
 }
 async function sendCard(k, prefix = '') {
