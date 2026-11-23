@@ -653,6 +653,14 @@ mark{background:color-mix(in srgb,var(--gold) 35%,transparent);color:inherit;bor
 .acard .tp{font-size:13px;color:var(--muted);line-height:1.7;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .acard .af{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;font-size:12px;color:var(--muted)}
 .acard .af .btn{min-height:38px;padding:4px 14px;text-decoration:none}
+/* ===== Shari items: edit and reorder ===== */
+#sharList .list li{flex-wrap:wrap}
+#sharList .acts2{display:flex;gap:6px;flex-wrap:wrap;margin-inline-start:auto}
+#sharList .acts2 .btn{min-height:38px;padding:4px 12px}
+.shedit{flex-basis:100%;margin-top:8px;padding:12px;border:1px dashed var(--teal);border-radius:14px;background:var(--bg)}
+.shedit .settings{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.shedit .settings label{display:flex;flex-direction:column;gap:4px}
+.shedit .settings input,.shedit .settings select{width:100%;margin:0}
 /* accessibility */
 button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -864,7 +872,7 @@ const posOf=b=>b.sub!=null?b.sub:+String(b.id).split('-').pop();
 let TZD={},KX={},KMAP={},KUNITS=[],KSTATS='',KCAP={},KDAY={},KREV={};
 // each track's own start (Khaled can change them on his page); the plan's first day is the earliest of them
 const kTurk=()=>{const a=(D.AUDIO||[]).find(x=>x.first);return a?[{id:'lkc-turk',ttl:a.series+' — '+a.speaker,t:'manhaj',lane:'C',w:+KCAP.method/2||10,left:a.episodes||8,pos:0,crs:1,url:a.url}]:[]},
-      kS=L=>KCAP['start'+L]||KCAP.start,kShLayout=()=>{SHD={};const W=id=>!!((EDIT.custom||[]).find(c=>c.id===id)||{}).with;const q=BOOKS.filter(b=>b.shar&&b.core).sort((x,y)=>((x.lv??2)-(y.lv??2))||(posOf(x)-posOf(y))).map(b=>({id:b.id,ttl:b.ttl,course:b.course,url:b.url,left:b.course?Math.max(1,b.lessons||1):pages(b.ttl)[0],pos:0,w:W(b.id)}));const G=[];q.forEach(x=>{if(x.w&&G.length)G[G.length-1].push(x);else G.push([x])});let d=toD(kS('S')),g=0;while(G.length&&g++<40000){const k=iso(d),pid=periodAt(k);if(pid){const typ=pid==='after'?'group':(PER[pid]?PER[pid].k:'group');const segs=[];G[0].forEach(x=>{if(x.left<=0)return;const r=RANGE[x.id]||(RANGE[x.id]={s:k});r.e=k;const take=x.course?Math.min(Math.max(1,+shCfg.les||1),x.left):Math.min(Math.max(1,+shCfg[typ]||8),x.left);segs.push({id:x.id,ttl:x.ttl,course:x.course?1:0,url:x.url,a:x.pos+1,b:x.pos+take,tot:x.pos+x.left});x.pos+=take;x.left-=take});if(segs.length)SHD[k]=segs;if(G[0].every(x=>x.left<=0))G.shift()}d.setDate(d.getDate()+1)}},kStart=()=>[kS('A'),kS('B'),kS('N'),kS('T')].sort()[0];const KLVN=['التأسيس الإسلامي','تأسيس','متوسط','متقدم'];
+      kS=L=>KCAP['start'+L]||KCAP.start,kShLayout=()=>{SHD={};const W=id=>!!((EDIT.custom||[]).find(c=>c.id===id)||{}).with,SD0=id=>((EDIT.custom||[]).find(c=>c.id===id)||{}).start||'';const q=BOOKS.filter(b=>b.shar&&b.core).sort((x,y)=>((x.lv??2)-(y.lv??2))||(posOf(x)-posOf(y))).map(b=>({id:b.id,ttl:b.ttl,course:b.course,url:b.url,left:b.course?Math.max(1,b.lessons||1):pages(b.ttl)[0],pos:0,w:W(b.id),st:SD0(b.id)}));const G=[];q.forEach(x=>{if(x.w&&G.length)G[G.length-1].push(x);else G.push([x])});let d=toD([kS('S')].concat(q.map(x=>x.st).filter(Boolean)).sort()[0]),g=0;while(G.length&&g++<40000){const k=iso(d),pid=periodAt(k);if(pid){const typ=pid==='after'?'group':(PER[pid]?PER[pid].k:'group');const segs=[];G[0].forEach(x=>{if(x.left<=0||(x.st&&k<x.st))return;const r=RANGE[x.id]||(RANGE[x.id]={s:k});r.e=k;const take=x.course?Math.min(Math.max(1,+shCfg.les||1),x.left):Math.min(Math.max(1,+shCfg[typ]||8),x.left);segs.push({id:x.id,ttl:x.ttl,course:x.course?1:0,url:x.url,a:x.pos+1,b:x.pos+take,tot:x.pos+x.left});x.pos+=take;x.left-=take});if(segs.length)SHD[k]=segs;if(G[0].every(x=>x.left<=0))G.shift()}d.setDate(d.getDate()+1)}},kStart=()=>[kS('A'),kS('B'),kS('N'),kS('T')].sort()[0];const KLVN=['التأسيس الإسلامي','تأسيس','متوسط','متقدم'];
 (function kInit(){const K=D.KCORE;if(!K)return;KCAP=Object.assign({},K.cfg,LS.get('manhaj-kcap-v1',{}));KDAY=K.cfg.week||{};
  Object.entries(K.newSci||{}).forEach(([k,v])=>{D.SCI.push({title:v.title,author:v.author,pages:v.pages,core:1,nat:1,lv:1,natord:99});KSTATS='sci-'+(D.SCI.length-1)});
  Object.entries(K.new||{}).forEach(([id,v])=>{if(BOOKS.some(b=>b.id===id))return;BOOKS.push({id,phase:'p1',period:'p1-0',t:'gharb',ttl:v.ttl,by:v.by,note:'أُضيف في النواة المختارة',link:'',o:'',srcKey:'user',src:'النواة المختارة',core:1,w:1,lane:'A',sub:0});D.PAGES[v.ttl]={pages:v.pages,confidence:v.conf}});
@@ -1666,6 +1674,38 @@ renderAll();show(LS.get('manhaj-tab2','today'));
   g.querySelectorAll('[data-ag]').forEach(b=>b.onclick=()=>{audG=b.dataset.ag;LS.set('manhaj-audgrp',audG);renderAudio()});
   const q=document.getElementById('audQ');if(q){q.oninput=()=>{const v=q.value.trim();g.querySelectorAll('.acard').forEach(c=>c.hidden=!!v&&!c.dataset.q.includes(v))};if(q.value)q.oninput()}
   audShow()};
+ // ===== Shari items he added: edit any field, and move up / down; saved in the same place (manhaj-edit) =====
+ const _rs=renderShar;renderShar=function(){_rs();const l=document.getElementById('sharList');if(!l)return;
+  const C=id=>(EDIT.custom||[]).find(c=>c.id===id);
+  const order=()=>BOOKS.filter(b=>b.shar&&b.custom).sort((x,y)=>((x.lv??2)-(y.lv??2))||(posOf(x)-posOf(y)));
+  l.querySelectorAll('[data-shdel]').forEach(del=>{const id=del.dataset.shdel,c=C(id);if(!c)return;
+   const box=document.createElement('div');box.className='acts2';
+   box.innerHTML=`<button class="btn" data-shup="${id}" aria-label="قدّمه">↑</button><button class="btn" data-shdn="${id}" aria-label="أخّره">↓</button><button class="btn" data-shed="${id}">عدّل</button>`;
+   del.replaceWith(box);box.appendChild(del);if(c.start){const m=del.closest('li').querySelector('.muted.small');if(m)m.insertAdjacentHTML('beforeend',' · <b style="color:var(--teal)">يبدأ '+esc(fS(toD(c.start)))+'</b>')}});
+  const lvSel=document.getElementById('shLv');if(lvSel&&!document.getElementById('shStart')){lvSel.closest('label').insertAdjacentHTML('afterend','<label>يبدأ في (اختياري): <input type="date" id="shStart" style="font:inherit"></label>')}
+  const addB=document.getElementById('shAdd');if(addB)addB.onclick=()=>{const v=id=>(document.getElementById(id)||{}).value||'';const ttl=v('shTtl').trim(),pg=+v('shPg'),er=document.getElementById('shErr'),isC=v('shKind')==='course';if(!ttl){er.textContent='اكتب العنوان أولًا';return}if(!(pg>0)){er.textContent=isC?'اكتب عدد الدروس':'اكتب عدد الصفحات';return}const u=v('shUrl').trim();if(u&&!/^https?:\/\//.test(u)){er.textContent='الرابط لازم يبدأ بـ http';return}const n=(EDIT.custom||[]).filter(c=>c.shar).length,o={id:'sh-'+Date.now().toString(36),ttl,by:v('shBy').trim(),pages:pg,kind:isC?'course':'book',url:u,lane:'A',period:'p1-0',sub:n,v:+v('shLv'),c:v('shSci'),t:'shar',shar:1,with:(document.getElementById('shWith')||{}).checked?1:0};if(v('shStart'))o.start=v('shStart');EDIT.custom=(EDIT.custom||[]).concat([o]);saveEdit()};
+  l.querySelectorAll('[data-shed]').forEach(b=>b.onclick=()=>{const li=b.closest('li'),c=C(b.dataset.shed);if(!c||li.querySelector('.shedit'))return;const isC=c.kind==='course';
+   const f=document.createElement('div');f.className='shedit';
+   f.innerHTML=`<div class="settings"><label>النوع<select data-f="kind"><option value="book" ${isC?'':'selected'}>كتاب</option><option value="course" ${isC?'selected':''}>دورة</option></select></label>
+    <label>العنوان<input data-f="ttl" value="${esc(c.ttl)}"></label><label>المؤلف أو الشيخ<input data-f="by" value="${esc(c.by||'')}"></label>
+    <label><span data-pl>${isC?'عدد الدروس':'الصفحات'}</span><input data-f="pages" type="number" min="1" value="${esc(c.pages||'')}"></label>
+    <label>الرابط<input data-f="url" type="url" value="${esc(c.url||'')}"></label>
+    <label>العلم<select data-f="c">${SHSCI.map(([k,n])=>`<option value="${k}" ${c.c===k?'selected':''}>${n}</option>`).join('')}</select></label>
+    <label>المستوى<select data-f="v">${LVN.map((n,i)=>`<option value="${i}" ${+c.v===i?'selected':''}>${n}</option>`).join('')}</select></label><label>يبدأ في (اختياري)<input data-f="start" type="date" value="${esc(c.start||'')}"></label></div>
+    <label class="small" style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" data-f="with" ${c.with?'checked':''}> تُقرأ مع المادة التي قبلها في الأيام نفسها</label>
+    <div style="display:flex;gap:8px"><button class="btn primary" data-sv>احفظ</button><button class="btn" data-cx>إلغاء</button></div><p class="small" data-er style="color:var(--red);margin:6px 0 0"></p>`;
+   li.appendChild(f);const g=k=>f.querySelector(`[data-f="${k}"]`);g('kind').onchange=()=>{f.querySelector('[data-pl]').textContent=g('kind').value==='course'?'عدد الدروس':'الصفحات'};
+   f.querySelector('[data-cx]').onclick=()=>f.remove();
+   f.querySelector('[data-sv]').onclick=()=>{const ttl=g('ttl').value.trim(),pg=+g('pages').value,u=g('url').value.trim();
+    if(!ttl){f.querySelector('[data-er]').textContent='اكتب العنوان';return}if(!(pg>0)){f.querySelector('[data-er]').textContent='اكتب عددًا صحيحًا';return}
+    if(u&&!/^https?:\/\//.test(u)){f.querySelector('[data-er]').textContent='الرابط لازم يبدأ بـ http';return}
+    if(c.ttl!==ttl&&pOver[c.ttl]){delete pOver[c.ttl];LS.set('manhaj-pages-v1',pOver)}
+    Object.assign(c,{kind:g('kind').value,ttl,by:g('by').value.trim(),pages:pg,url:u,c:g('c').value,v:+g('v').value,with:g('with').checked?1:0});if(g('start').value)c.start=g('start').value;else delete c.start;saveEdit()};
+   g('ttl').focus()});
+  const swap=(id,dir)=>{const o=order(),i=o.findIndex(b=>b.id===id),j=i+dir;if(i<0||j<0||j>=o.length)return;const a=C(o[i].id),b=C(o[j].id);if(!a||!b)return;
+   if(+a.v!==+b.v){a.v=b.v}const sa=posOf(o[i]),sb=posOf(o[j]);a.sub=sb;b.sub=sa===sb?sa+(dir>0?-0.5:0.5):sa;saveEdit()};
+  l.querySelectorAll('[data-shup]').forEach(b=>b.onclick=()=>swap(b.dataset.shup,-1));
+  l.querySelectorAll('[data-shdn]').forEach(b=>b.onclick=()=>swap(b.dataset.shdn,1))};
  // the page drew itself before this script: draw the open tab again with the new pieces
  if(typeof repaint==='function')repaint();
  navSync(LS.get('manhaj-tab2','today'));
