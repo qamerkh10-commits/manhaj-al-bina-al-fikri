@@ -86,6 +86,8 @@ const tasks = k => {
   return rec.length ? t.concat(rec) : t;
 };
 
+// review 24 Nov 2026: a button carries the task's id («~id»), so it still points to the same task after the plan changes
+const tcb = (k, x, i) => { const c = `t|${k}|~${x.id}`; return new TextEncoder().encode(c).length <= 64 ? c : `t|${k}|${i}`; };
 /* ---------- day logic ---------- */
 const isOpen = k => tasks(k).length && !day(k).closed && (k === TODAY || (k === YDAY && N.hour < C.close));
 const allDone = k => tasks(k).every(t => day(k).done[t.id]);
@@ -128,7 +130,7 @@ function card(k) {
   if (d.completeAt) s += `\n\n🔥 تمّ الورد. السلسلة: ${daysN(streak())}`;
   else if (d.closed) s += `\n\n${d.closed === 'excused' ? '🙏 يوم بعذر' : '❌ فات اليوم'}، وما لم يتم صار دَينًا.`;
   else s += `\n\n⏳ يُغلق اليوم الساعة ${fmtH(C.close)} بعد منتصف الليل.`;
-  const kb = t.map((x, i) => [{ text: (d.done[x.id] ? '✅ ' : '⬜ ') + short(x.txt), callback_data: `t|${k}|${i}` }]);
+  const kb = t.map((x, i) => [{ text: (d.done[x.id] ? '✅ ' : '⬜ ') + short(x.txt), callback_data: tcb(k, x, i) }]);
   if (dn < t.length && !d.closed) kb.push([{ text: '✅ أتممت الورد كله', callback_data: `a|${k}` }]);
   if (d.vi == null) d.vi = BY_DATE && VERSES.length ? dayPick(VORDER, k) : nextVerse();   // the day's verse stays the same when the card is edited
   return { text: withVerse(s, d.vi), reply_markup: { inline_keyboard: kb } };
@@ -138,7 +140,7 @@ async function sendCard(k, prefix = '') {
   const m = await send(prefix + c.text, { reply_markup: c.reply_markup });
   if (m) { day(k).msg = m.message_id; day(k).sig = JSON.stringify(tasks(k).map(t => t.id)); }
   const d = day(k);
-  if (k === TODAY && !d.sent) { // first card of the day: reminders already past are skipped, so a late start sends no burst
+  if (k === TODAY && !d.sent && m) { // first card of the day (only once Telegram has it; a failed send is retried next tick): reminders already past are skipped, so a late start sends no burst
     d.sent = true;
     C.reminders.forEach((h, i) => { if (N.hour >= h) d.rem[i] = true; });
   }
@@ -154,7 +156,7 @@ function debtView() {
   const items = S.debt.slice(0, 25);
   let s = `📌 <b>الدَّين: ${tasksN(S.debt.length)} لم تتم في وقتها</b>\nسدّده قبل أن يتراكم. اضغط المهمة حين تُتمّها.\n`;
   if (S.debt.length >= C.debtAlarm) s += `\n🚨 الدين كبير. خصّص يوم الجمعة لسداده.\n`;
-  const kb = items.map(x => { const t = tasks(x.k).find(y => y.id === x.id); const i = tasks(x.k).indexOf(t); return [{ text: `⬜ ${fL(x.k).split('،')[0]}: ${short(t.txt)}`, callback_data: `t|${x.k}|${i}` }]; });
+  const kb = items.map(x => { const t = tasks(x.k).find(y => y.id === x.id); const i = tasks(x.k).indexOf(t); return [{ text: `⬜ ${fL(x.k).split('،')[0]}: ${short(t.txt)}`, callback_data: tcb(x.k, t, i) }]; });
   return { text: s, reply_markup: { inline_keyboard: kb } };
 }
 async function sendDebt() { const v = debtView(); const m = await send(v.text, { reply_markup: v.reply_markup }); if (m) S.debtMsg = m.message_id; }
@@ -212,7 +214,7 @@ async function onCallback(q) {
   if (a === 'x') { delete S.pending[k]; return tg('editMessageText', { chat_id: S.owner, message_id: mid, text: 'تمام، لن يُنشر.' }); }
   if (!S.sched[k]) return send('هذا اليوم خارج المدى المحفوظ.');
   if (a === 't') {
-    const t = tasks(k)[+i]; if (!t) return;
+    const t = String(i).startsWith('~') ? tasks(k).find(x => x.id === String(i).slice(1)) : tasks(k)[+i]; if (!t) return send('تغيّرت مهام هذا اليوم؛ افتح «📋 ورد اليوم» من جديد.');
     if (t.id === 'sum' && !day(k).done.sum) return askSummary(k);
     if (t.rec) { if (day(k).done[t.id]) return send('سُجّل ملخص هذا الكتاب ونُشر ✅'); if (!S.channel) return send(CHANNEL_HOWTO); S.await = { rec: t.rec }; return send(`🎙️ أرسل الآن ريكورد ملخص «${esc(plain((bookById(t.rec) || {}).t || ''))}» (أو اكتبه)، وسأنشره في القناة مباشرة.\nلا تُحسب المهمة إلا بالنشر.`); }
     return markDone(k, t.id, !day(k).done[t.id], mid);

@@ -274,9 +274,12 @@ export default {
     const url = new URL(req.url);
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'POST, GET', 'access-control-allow-headers': 'content-type' } });
     if (url.pathname === '/tg' || url.pathname === '/botname' || url.pathname === '/prefs' || url.pathname === '/push' || url.pathname === '/ai' || url.pathname === '/ainote' || url.pathname.startsWith('/sync/')) {
+      // review 24 Nov 2026: oversized bodies are refused before they reach the shared bot object
+      const raw = req.method === 'POST' ? await req.text() : undefined;
+      if (raw && raw.length > 1000000) return new Response('too large', { status: 413, headers: { 'access-control-allow-origin': '*' } });
       const stub = env.BOT.get(env.BOT.idFromName('main'));
       const h = new Headers(req.headers); h.set('X-Origin', url.origin);
-      return stub.fetch('https://bot' + url.pathname + url.search, { method: req.method, headers: h, body: req.method === 'POST' ? await req.text() : undefined });
+      return stub.fetch('https://bot' + url.pathname + url.search, { method: req.method, headers: h, body: raw });
     }
     return new Response('منهج البناء الفكري: البوت يعمل ✓', { headers: { 'content-type': 'text/plain; charset=utf-8' } });
   },

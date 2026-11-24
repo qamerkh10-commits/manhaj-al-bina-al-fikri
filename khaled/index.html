@@ -1250,7 +1250,7 @@ function compute(){
   const k=iso(d),pid=periodAt(k);
   if(pid&&!isOff(d)&&!isBlack(k)){
    const typ=pid==='after'?'group':(PER[pid]?PER[pid].k:'group');const bud=laneBud[typ]||LANEDEF.group;const segs=[];
-   const started=['A','B','C'].filter(L=>!(L==='C'&&k<=lkCfg.start)),active=started.filter(L=>Q[L].length);
+   const started=['A','B','C'].filter(L=>!(L==='C'&&(D.KCORE?k<lkCfg.start:k<=lkCfg.start))),active=started.filter(L=>Q[L].length);
    const tot=started.reduce((a,L)=>a+(+bud['ABC'.indexOf(L)]||0),0),act=active.reduce((a,L)=>a+(+bud['ABC'.indexOf(L)]||0),0);
    const hold=!holdDone&&(k<=natEnd||k<=audEnd||['A','B','C'].some(L=>Q[L][0]&&startedIds.has(Q[L][0].id)));if(!hold&&!holdDone){holdDone=true;HOLD=k}
    const isLit=!D.KCORE&&!hold&&qL.length&&(litDays[k]===true||(litDays[k]!==false&&d.getDay()===+litCfg.wd));
@@ -1261,14 +1261,14 @@ function compute(){
    else if(isLit){let cap=tot;while(cap>0&&qL.length){const x=qL[0],take=Math.min(cap,x.left);segs.push({id:x.id,ttl:x.ttl,t:'tasawwur',lane:'L',a:x.pos+1,b:x.pos+take,tot:x.pos+x.left});const r=RANGE[x.id]||(RANGE[x.id]={s:k});r.e=k;x.pos+=take;x.left-=take;cap-=take;if(x.left<=0)qL.shift()}}
    else ['A','B','C'].forEach((L,li)=>{if(!active.includes(L))return;if(hold&&!(Q[L][0]&&startedIds.has(Q[L][0].id)))return;if(D.KCORE&&k<kS(L==='A'?'A':'B'))return;if(D.KCORE&&KDAY['1']){const want=KDAY[d.getDay()];if(want!=='B'&&want!==L)return;if(want==='B'&&L==='A')return}if(L!=='A'&&D.FROZEN&&D.FROZEN[k]&&D.FROZEN[k][PROF.key||'khaled'])return;if(D.KCORE&&L==='C'&&Q.B.length)return;let cap=D.KCORE&&!hold?(L==='A'?+KCAP.rot:+KCAP.method):(act?Math.round((+bud[li]||0)*tot/act):0);const q=Q[L];
     if(q.length&&q[0].rv){const x=q[0];x.i++;segs.push({id:x.id,ttl:x.ttl,t:x.t,lane:L,rv:1,a:x.i,b:x.n});if(x.i>=x.n)q.shift();LANEFIN[L]=new Date(d);return}
-    steal(L);if(D.KCORE&&KREV[L]&&q.length){segs.push({id:'krev-'+L,ttl:'راجع «'+KREV[L]+'» ١٥ دقيقة قبل القراءة',t:'acad',lane:L,rv:1,a:1,b:1});KREV[L]=null}while(cap>0.5&&q.length&&!q[0].rv){const x=q[0],take=Math.min(Math.max(1,Math.floor(cap/(x.w||1))),x.left);segs.push({id:x.id,ttl:x.ttl,t:x.t,lane:L,a:x.pos+1,b:x.pos+take,tot:x.pos+x.left});
+    steal(L);if(D.KCORE&&KREV[L]&&q.length){segs.push({id:'krev-'+L,ttl:'راجع «'+KREV[L]+'» ١٥ دقيقة قبل القراءة',t:'acad',lane:L,rv:1,a:1,b:1});KREV[L]=null}while(cap>0.5&&q.length&&!q[0].rv){const x=q[0],kn=Math.floor(cap/(x.w||1)+1e-9);if(D.KCORE&&kn<1)break;const take=Math.min(Math.max(1,kn),x.left);segs.push({id:x.id,ttl:x.ttl,t:x.t,lane:L,a:x.pos+1,b:x.pos+take,tot:x.pos+x.left});
      const r=RANGE[x.id]||(RANGE[x.id]={s:k});r.e=k;x.pos+=take;x.left-=take;cap-=take*(x.w||1);if(x.left<=0){q.shift();if(D.KCORE){KREV[L]=x.ttl}else{const tp=x.pos;q.unshift({rv:1,id:x.id,ttl:x.ttl,t:x.t,i:0,n:revDays(tp)});break}}}
     if(segs.some(s=>s.lane===L))LANEFIN[L]=new Date(d)});
    if(segs.length){DAYS[k]={segs,per:pid==='after'?'':pid};FIN=new Date(d)}
   }
   d.setDate(d.getDate()+1);
  }
- if(!HOLD)HOLD=iso(d);shLayout();natLayout();if(D.KCORE)kAfter();kRestore();LKR=RANGE;SCIR=RANGE;LKFIN=LANEFIN.C||null;SCIFIN=LANEFIN.B||null;
+ if(!HOLD)HOLD=iso(d);shLayout();natLayout();if(D.KCORE)kAfter();kRestore();if(D.KCORE){const kl=[DAYS,NATD,TZD,SHD].map(o=>Object.keys(o||{}).sort().pop()||'').sort().pop();if(kl)FIN=toD(kl)}LKR=RANGE;SCIR=RANGE;LKFIN=LANEFIN.C||null;SCIFIN=LANEFIN.B||null;
  ORDER=BOOKS.filter(b=>RANGE[b.id]).sort((x,y)=>RANGE[x.id].s<RANGE[y.id].s?-1:RANGE[x.id].s>RANGE[y.id].s?1:ord(x)-ord(y));STEP={};ORDER.forEach((b,i)=>STEP[b.id]=i+1);
  // audio: one episode per reading day, from each series' start period
  const LKALL=LKB(),LOG=LKALL.filter(b=>b.sec==='الدراسة المنطقية'),KAL=LKALL.filter(b=>b.sec!=='الدراسة المنطقية');
@@ -1280,7 +1280,7 @@ function compute(){
  Object.keys(DAYS).sort().forEach(k=>{const isL=DAYS[k].segs.some(s=>s.lane==='L'),ok=x=>x.st<=k&&x.ep<x.n;const c=(hEnd&&k<=hEnd)?(isL?null:aq.find(x=>x.w&&ok(x))):isL?(aq.find(x=>x.a.tz&&ok(x))||aq.find(x=>x.w&&ok(x))||aq.find(x=>!x.a.tz&&ok(x))):(aq.find(x=>x.w&&ok(x))||aq.find(x=>!x.a.tz&&ok(x)));if(c){c.ep++;AUD[k]={...c.a,ep:c.ep,n:c.n,est:c.est,i:c.i}}});
 }
 
-function status(k){const d=toD(k);if(DAYS[k]||LKD[k]||SCID[k])return 'read';if(D.KCORE&&D.FROZEN&&D.FROZEN[k]&&D.FROZEN[k][PROF.key])return 'read';if(D.KCORE&&(NATD[k]||TZD[k]))return 'read';if(k<((D.KCORE&&kStart())||PSTART))return 'off';if(isOff(d))return 'off';if(isBlack(k))return 'ex';return FIN&&k>iso(FIN)?'off':'ex'}
+function status(k){const d=toD(k);if(DAYS[k]||LKD[k]||SCID[k])return 'read';if(D.KCORE&&D.FROZEN&&D.FROZEN[k]&&D.FROZEN[k][PROF.key])return 'read';if(D.KCORE&&(NATD[k]||TZD[k]||SHD[k]))return 'read';if(k<((D.KCORE&&kStart())||PSTART))return 'off';if(isOff(d))return 'off';if(isBlack(k))return 'ex';return FIN&&k>iso(FIN)?'off':'ex'}
 function reason(k){const s=status(k),d=toD(k);if(s==='read')return '';if(k<((D.KCORE&&kStart())||PSTART))return D.KCORE?'قبل بداية الجدول، ويبدأ '+fL(toD(kStart())):'قبل بداية الجدول، ويبدأ الاثنين ١٦ نوفمبر ٢٠٢٦';if(isOff(d))return 'الجمعة: إجازة من الجدول';if(isBlack(k))return 'امتحان أو استعداد له';return FIN&&k>iso(FIN)?'لا قراءة مجدولة':'امتحانات أو فترة انتقال (تقديري)'}
 /* ---------- render: today ---------- */
 const TODAY=iso(new Date());
@@ -1688,12 +1688,12 @@ renderAll();show(LS.get('manhaj-tab2','today'));
   hide:{ok:a=>B(a.id)&&B(a.id).core,say:a=>`أشيل «${T(a.id)}» من الجدول (يبقى في المكتبة)`,run:a=>{const b=B(a.id);if(b.custom)EDIT.custom=EDIT.custom.filter(c=>c.id!==b.id);else{EDIT.hide[b.id]=1;delete EDIT.add[b.id]}return 1}},
   restore:{ok:a=>B(a.id)&&!B(a.id).core,say:a=>`أرجّع «${T(a.id)}» إلى الجدول`,run:a=>{EDIT.add[a.id]=1;delete EDIT.hide[a.id];return 1}},
   move_before:{ok:a=>B(a.id)&&B(a.ref)&&a.id!==a.ref,say:a=>`أنقل «${T(a.id)}» ليكون قبل «${T(a.ref)}»`,run:a=>{const y=B(a.ref);EDIT.move[a.id]={p:y.period,s:posOf(y)-0.3,l:laneOf(y),v:y.lv,c:y.sci};EDIT.add[a.id]=1;delete EDIT.hide[a.id];return 1}},
-  add_book:{ok:a=>a.title&&+a.pages>0&&(a.shari||!a.ref||B(a.ref))&&(!a.start||OKD(a.start)),say:a=>a.shari?`أضيف ${a.kind==='course'?'دورة':'كتابًا'} شرعيًّا: «${a.title}»${a.author?' لـ'+a.author:''} (${a.pages} ${a.kind==='course'?'درسًا':'صفحة'})${a.start?'، يبدأ '+dA(a.start):''}${a.with?'، مع غيره في اليوم نفسه':''}`:(()=>{const y=a.ref?B(a.ref):nextIn(a.lane||'A');return `أضيف كتابًا جديدًا: «${a.title}»${a.author?' لـ'+a.author:''} (${a.pages} صفحة)${y?' قبل «'+y.ttl+'»':''}`})(),
+  add_book:{ok:a=>a.title&&+a.pages>0&&(a.shari||!a.ref||B(a.ref))&&(a.shari||a.ref||!a.lane||['A','B','C'].includes(a.lane))&&(!a.start||OKD(a.start)),say:a=>a.shari?`أضيف ${a.kind==='course'?'دورة':'كتابًا'} شرعيًّا: «${a.title}»${a.author?' لـ'+a.author:''} (${a.pages} ${a.kind==='course'?'درسًا':'صفحة'})${a.start?'، يبدأ '+dA(a.start):''}${a.with?'، مع غيره في اليوم نفسه':''}`:(()=>{const y=a.ref?B(a.ref):nextIn(a.lane||'A');return `أضيف كتابًا جديدًا: «${a.title}»${a.author?' لـ'+a.author:''} (${a.pages} صفحة)${y?' قبل «'+y.ttl+'»':''}`})(),
    run:a=>{const id=Date.now().toString(36)+Math.random().toString(36).slice(2,5);
     if(a.shari){const n=(EDIT.custom||[]).filter(c=>c.shar).length,sc=SHSCI.some(x=>x[0]===a.science)?a.science:SHSCI[0][0];
      const o={id:'sh-'+id,ttl:a.title,by:a.author||'',pages:+a.pages,kind:a.kind==='course'?'course':'book',url:/^https?:\/\//.test(a.url||'')?a.url:'',lane:'A',period:'p1-0',sub:n,v:Math.max(0,Math.min(4,+a.level||0)),c:sc,t:'shar',shar:1,with:a.with?1:0};if(a.start)o.start=a.start;
      EDIT.custom=(EDIT.custom||[]).concat([o]);return 1}
-    const y=a.ref?B(a.ref):nextIn(a.lane||'A')||BOOKS.find(b=>b.core&&laneOf(b)===(a.lane||'A'));if(!y)return 0;
+    const y=a.ref?B(a.ref):nextIn(a.lane||'A')||BOOKS.find(b=>b.core&&laneOf(b)===(a.lane||'A'));if(!y)throw new Error('no lane');
     EDIT.custom=(EDIT.custom||[]).concat([{id:'c-'+id,ttl:a.title,by:a.author||'',pages:+a.pages,lane:laneOf(y),period:y.period,sub:posOf(y)-0.3,v:y.lv,c:y.sci}]);return 1}},
   shari_edit:{ok:a=>SHC(a.id)&&(a.start==null||a.start===''||OKD(a.start))&&(a.pages==null||+a.pages>0)&&(a.start!=null||a.with!=null||a.pages!=null),
    say:a=>{const p=[];if(a.start!=null)p.push(a.start?'يبدأ '+dA(a.start):'بلا موعد بدء خاص');if(a.with!=null)p.push(a.with?'يُقرأ مع غيره في اليوم نفسه':'يُقرأ وحده في يومه');if(a.pages!=null)p.push('عدده '+a.pages);return `أعدّل «${SHC(a.id).ttl}»: ${p.join('، ')}`},
@@ -1742,10 +1742,10 @@ renderAll();show(LS.get('manhaj-tab2','today'));
   log.innerHTML=AIH.map((m,i)=>{if(m.role==='sys')return `<div class="aiM s">${esc(m.content)}</div>`;let h=`<div class="aiM ${m.role==='user'?'u':'a'}">${m.role==='user'?esc(m.content).replace(/\n/g,'<br>'):md(m.content)}`;
    if(m.src&&m.src.length)h+=`<div class="aiSrc">${m.src.map(s=>`<a href="${esc(s.url)}" target="_blank" rel="noopener" title="${esc(s.title)}">🔎 ${esc(s.title||'مصدر')}</a>`).join('')}</div>`;
    if(m.mem&&m.mem.length)h+=`<div class="aiMem">📝 سأتذكر: ${m.mem.map(esc).join(' · ')}</div>`;
-   if(m.acts&&m.acts.length){h+=`<div class="aiAct">`+(m.st?`<div class="ah">${m.st==='done'?'✓ نُفّذ':'أُلغي'}</div><ul class="done">${m.acts.map((a,j)=>`<li>${m.st==='done'&&m.off&&m.off.includes(j)?'— ':m.st==='done'?'✓ ':''}${esc(a.say)}</li>`).join('')}</ul>`
+   if(m.acts&&m.acts.length){h+=`<div class="aiAct">`+(m.st?`<div class="ah">${m.st==='done'?(m.fail&&m.fail.length===m.acts.length-(m.off||[]).length?'تعذّر التنفيذ':'✓ نُفّذ'):'أُلغي'}</div><ul class="done">${m.acts.map((a,j)=>`<li>${m.st==='done'&&m.off&&m.off.includes(j)?'— ':m.st==='done'&&m.fail&&m.fail.includes(j)?'✗ تعذّر: ':m.st==='done'?'✓ ':''}${esc(a.say)}</li>`).join('')}</ul>`
     :`<div class="ah">${m.acts.length>1?'أنفّذ هذه التعديلات؟ اختر ما تريد:':'أنفّذ هذا؟'}</div>${m.acts.map((a,j)=>m.acts.length>1?`<label><input type="checkbox" data-ai-c="${i}:${j}" checked>${esc(a.say)}</label>`:`<div>${esc(a.say)}</div>`).join('')}<button class="go" data-ai-go="${i}">نفّذ</button><button data-ai-no="${i}">لا</button>`)+`</div>`}
    return h+'</div>'}).join('');log.scrollTop=log.scrollHeight}
- function prep(list){return (Array.isArray(list)?list:[]).map(a=>{const f=a&&ACT[a.type];if(!f)return null;try{return f.ok(a)?{...a,say:f.say(a)}:null}catch(e){return null}}).filter(Boolean).slice(0,20)}
+ function prep(list){return (Array.isArray(list)?list:[]).map(a=>{const f=a&&ACT[a.type];if(!f)return null;if((a.type==='tick'||a.type==='note')&&!a.date)a={...a,date:TODAY};try{return f.ok(a)?{...a,say:f.say(a)}:null}catch(e){return null}}).filter(Boolean).slice(0,20)}
  function learn(rem,fgt){let ch=0;(fgt||[]).forEach(f=>{const n=MEM.length;MEM=MEM.filter(m=>norm(m.t)!==norm(f));ch+=n-MEM.length});
   const got=[];(rem||[]).forEach(t=>{t=String(t).trim();if(t&&!MEM.some(m=>norm(m.t)===norm(t))){MEM.push({t,at:TODAY});got.push(t)}});MEM=MEM.slice(-60);return got}
  let busy=false;
@@ -1753,22 +1753,22 @@ renderAll();show(LS.get('manhaj-tab2','today'));
   const tok=syncState();
   if(!tok){inp.value=q;draw();return}
   if(busy)return;busy=true;
-  AIH.push({role:'user',content:q});save();draw();
+  AIH.push({role:'user',content:q});save();draw();const tid=CUR,put=x=>{if(CUR===tid)AIH.push(x);else{const t=TH.find(t=>t.id===tid);if(t){t.msgs.push(x);t.at=Date.now()}}};
   const wait=document.createElement('div');wait.className='aiDots';wait.setAttribute('aria-label','يكتب');wait.innerHTML='<i></i><i></i><i></i>';log.appendChild(wait);log.scrollTop=log.scrollHeight;
   try{const hist=AIH.filter(m=>m.role==='user'||m.role==='assistant').slice(-16).map(m=>({role:m.role,content:m.content+(m.acts&&m.acts.length?'\n[اقترحتُ: '+m.acts.map(a=>a.say).join('؛ ')+(m.st==='done'?' — ونُفّذ':m.st==='no'?' — ورفضه':' — ولم يردّ بعد')+']':'')}));
    const r=await fetch(D.BOT_URL+'/ai',{method:'POST',headers:{'content-type':'text/plain'},body:JSON.stringify({p:PROF.key,token:tok,messages:hist,ctx:ctx(q)})});
    const j=await r.json().catch(()=>({}));
    if(r.status===403){AIH.pop();LS.set('manhaj-synctoken','');inp.value=q;AIH.push({role:'sys',content:'رابط المزامنة على هذا الجهاز قديم؛ اربطه من جديد.'})}
-   else if(!r.ok||!j.ok)AIH.push({role:'sys',content:j.error||'تعذّر الوصول للمساعد الآن، جرّب بعد قليل.'});
+   else if(!r.ok||!j.ok)put({role:'sys',content:j.error||'تعذّر الوصول للمساعد الآن، جرّب بعد قليل.'});
    else{const acts=prep(j.actions);const mem=learn(j.remember,j.forget);
-    AIH.push({role:'assistant',content:String(j.reply||'').trim()||(acts.length?'هذا ما سأفعله:':'…'),acts,src:(j.sources||[]).filter(s=>s&&/^https?:\/\//.test(s.url)).slice(0,6),mem});
+    put({role:'assistant',content:String(j.reply||'').trim()||(acts.length?'هذا ما سأفعله:':'…'),acts,src:(j.sources||[]).filter(s=>s&&/^https?:\/\//.test(s.url)).slice(0,6),mem});
     document.getElementById('aiSub').textContent=/gemini/i.test(j.model||'')?'Gemini · يبحث في جوجل':'يعمل الآن بالنموذج الاحتياطي'}
-  }catch(e){AIH.push({role:'sys',content:'لا يوجد اتصال بالإنترنت.'})}
+  }catch(e){put({role:'sys',content:'لا يوجد اتصال بالإنترنت.'})}
   busy=false;save();draw()}
  function run(i){const m=AIH[i];if(!m||m.st)return;let edit=0;
   const off=[];log.querySelectorAll(`[data-ai-c^="${i}:"]`).forEach(c=>{if(!c.checked)off.push(+c.dataset.aiC.split(':')[1])});
   if(off.length===m.acts.length){m.st='no';save();draw();return}
-  const did=[];m.acts.forEach((a,j)=>{if(off.includes(j))return;try{edit|=ACT[a.type].run(a);if(a.type!=='open_tab')did.push(a.say)}catch(e){}});m.st='done';if(off.length)m.off=off;save();
+  const did=[],fail=[];m.acts.forEach((a,j)=>{if(off.includes(j))return;try{if(!ACT[a.type].ok(a))throw 0;edit|=ACT[a.type].run(a);if(a.type!=='open_tab')did.push(a.say)}catch(e){fail.push(j)}});m.st='done';if(off.length)m.off=off;if(fail.length){m.fail=fail;toast('تعذّر تنفيذ '+(fail.length>1?nA(fail.length)+' من التعديلات':'أحد التعديلات')+'، والباقي نُفّذ.')}save();
   if(did.length)try{fetch(D.BOT_URL+'/ainote',{method:'POST',keepalive:true,headers:{'content-type':'text/plain'},body:JSON.stringify({p:PROF.key,token:syncState(),items:did})}).catch(()=>{})}catch(e){}
   if(edit){LS.set('manhaj-edit',EDIT);LS.set('manhaj-aiopen',1);clearTimeout(pushT);pushPrefs();setTimeout(()=>location.reload(),300)}else{renderAll();draw();if(!m.acts.every(a=>a.type==='open_tab'))toast('✓ نُفّذ')}}
  // side panels: conversations and memory
@@ -1817,13 +1817,15 @@ renderAll();show(LS.get('manhaj-tab2','today'));
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!sheet.hidden)closeSheet()});
  window.navSync=t=>{bar.querySelectorAll('button[data-t]').forEach(b=>b.setAttribute('aria-selected',b.dataset.t===t));const m=bar.querySelector('[data-more]');m.setAttribute('aria-selected',MORE.includes(t));grid.querySelectorAll('button').forEach(b=>b.setAttribute('aria-current',b.dataset.t===t?'page':'false'))};
  if(typeof TABR==='object')TABR.nb=[()=>renderNB()];
+ {const newDay=()=>iso(new Date())!==TODAY&&!document.hidden&&!document.querySelector('input:focus,textarea:focus');document.addEventListener('visibilitychange',()=>{if(newDay())location.reload()});setInterval(()=>{if(newDay())location.reload()},60000)}
+ {const _sh=show;show=function(t){if(t==='nb'&&typeof DIRTY==='object')DIRTY.nb=1;_sh(t)}}
  // the type of a day, for the chip and the week dots
  const TY={A:['يوم الفكر','var(--teal)'],B:['يوم المنهج','var(--gold)'],C:['يوم المنطق','var(--gold)'],N:['يوم العلوم','var(--clay)'],T:['يوم التزكية','var(--lit)'],ex:['امتحان أو توقف','var(--red)'],off:['راحة','var(--rest)'],x:['بلا ورد','var(--rest)']};
  const dayType=k=>{const dy=DAYS[k];if(dy){const l=dy.segs.find(s=>!s.rv)||dy.segs[0];return TY[l.lane]||TY.A}if(NATD[k])return TY.N;if(TZD[k])return TY.T;const st=status(k);if(st==='ex')return TY.ex;if(st==='off')return TY.off;return dayTasks(k).length?TY.A:TY.x};
  const short=s=>s.replace(/^\S+\s+/,'').replace(/^(اقرأ|اسمع من|استمع:?)\s*/,'').replace(/من ص .*$/,'').replace(/[«»]/g,'').slice(0,34);
- function welcome(){const h=new Date().getHours();const d=new Date();const ty=dayType(TODAY);
+ function welcome(){const h=new Date().getHours();const d=toD(TODAY);const ty=dayType(TODAY);
   document.getElementById('welcome').innerHTML=`<div class="hi">${h<12?'صباح النور':'مساء النور'} يا ${esc(PROF.name||'')}،</div><div class="dn">${d.toLocaleDateString('ar-EG',{weekday:'long'})}</div><div class="dt">${d.toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'})} <span class="tchip" style="--k:${ty[1]}">${ty[0]}</span></div>`}
- function chips(){let w='';for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()+i);const k=iso(d),ty=dayType(k),ts=dayTasks(k).filter(t=>!['sum','rcl','arg'].includes(t.id));
+ function chips(){let w='';for(let i=0;i<7;i++){const d=toD(TODAY);d.setDate(d.getDate()+i);const k=iso(d),ty=dayType(k),ts=dayTasks(k).filter(t=>!['sum','rcl','arg'].includes(t.id));
    const st=status(k);w+=`<div class="wc ${i===0?'now':''} ${ts.length?'':'quiet'}" role="listitem" style="--k:${ty[1]}" data-cal="${k}" title="${esc(ty[0])}"><div class="wn">${i===0?'اليوم':d.toLocaleDateString('ar-EG',{weekday:'long'})}</div><div class="wd">${d.toLocaleDateString('ar-EG',{day:'numeric'})}</div><span class="wdot"></span><div class="wt">${ts.length?ts.slice(0,2).map(t=>esc(short(t.txt))).join('<br>'):esc(ty[0])}</div></div>`}
   const el=document.getElementById('wchips');el.innerHTML=w;el.querySelectorAll('[data-cal]').forEach(c=>c.onclick=()=>{calSel=c.dataset.cal;const dd=toD(calSel);calM=[dd.getFullYear(),dd.getMonth()];show('cal');if(typeof renderCal==='function')renderCal()})}
  function ring(v,label){const r=22,c=2*Math.PI*r;return `<div class="ring" aria-label="${esc(label)}"><svg viewBox="0 0 54 54"><circle cx="27" cy="27" r="${r}" fill="none" stroke="var(--soft)" stroke-width="5"/><circle cx="27" cy="27" r="${r}" fill="none" stroke="var(--teal)" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(c*Math.max(0,Math.min(1,v))).toFixed(1)} ${c.toFixed(1)}"/></svg><span>${esc(label)}</span></div>`}
@@ -1849,7 +1851,7 @@ renderAll();show(LS.get('manhaj-tab2','today'));
  // «دفترك»: every day comment and voice note in one place, newest first, with search
  let nbVoices=null;
  function allVoices(){if(nbVoices)return Promise.resolve(nbVoices);return VDB.open().then(db=>new Promise(res=>{try{const r=db.transaction('notes').objectStore('notes').getAll();r.onsuccess=()=>{nbVoices=r.result||[];res(nbVoices)};r.onerror=()=>res([])}catch(e){res([])}})).catch(()=>[])}
- window.renderNB=function(){const el=document.getElementById('nbBody');if(!el)return;const q=(document.getElementById('nbQ').value||'').trim();
+ window.renderNB=function(){nbVoices=null;const el=document.getElementById('nbBody');if(!el)return;const q=(document.getElementById('nbQ').value||'').trim();
   allVoices().then(vs=>{const byDay={};Object.entries(NOTES).forEach(([k,v])=>{if(v&&String(v).trim())(byDay[k]||(byDay[k]={t:'',v:[]})).t=String(v)});vs.forEach(v=>{(byDay[v.day]||(byDay[v.day]={t:'',v:[]})).v.push(v)});
    const ks=Object.keys(byDay).sort().reverse().filter(k=>!q||byDay[k].t.includes(q));
    const hl=s=>{const e=esc(s);return q?e.split(esc(q)).join('<mark>'+esc(q)+'</mark>'):e};
@@ -1891,7 +1893,7 @@ renderAll();show(LS.get('manhaj-tab2','today'));
   bar.innerHTML=`<div class="seg" role="group" aria-label="طريقة العرض"><button data-v="month" aria-pressed="${calView==='month'}">شهر</button><button data-v="week" aria-pressed="${calView==='week'}">أسبوع</button></div><button class="btn" id="calToday">اليوم</button>`
    +`<div class="legend" style="width:100%">${[TY.A,TY.B,TY.N,TY.T,TY.ex,TY.off].map(x=>`<span><i style="--k:${x[1]}"></i>${x[0]}</span>`).join('')}<span><b style="color:var(--teal)">✓</b> يوم أتممته</span></div>`;
   bar.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{calView=b.dataset.v;LS.set('manhaj-calview',calView);renderCal()});
-  document.getElementById('calToday').onclick=()=>{calSel=TODAY;const d=new Date();calM=[d.getFullYear(),d.getMonth()];renderCal()};
+  document.getElementById('calToday').onclick=()=>{calSel=TODAY;const d=toD(TODAY);calM=[d.getFullYear(),d.getMonth()];renderCal()};
   const move=n=>{if(calView==='week'){const d=toD(calSel);d.setDate(d.getDate()+7*n);calSel=iso(d);calM=[d.getFullYear(),d.getMonth()]}else{calM=calM[1]+n<0?[calM[0]-1,11]:calM[1]+n>11?[calM[0]+1,0]:[calM[0],calM[1]+n]}renderCal()};
   document.getElementById('calNext').onclick=()=>move(1);document.getElementById('calPrev').onclick=()=>move(-1);
   document.getElementById('calNext').textContent='‹';document.getElementById('calPrev').textContent='›';
@@ -2015,7 +2017,7 @@ renderAll();show(LS.get('manhaj-tab2','today'));
  function botData(){const o={};const e=toD(TODAY);e.setDate(e.getDate()+90);const d=toD(TODAY);d.setDate(d.getDate()-2);
   for(;d<=e;d.setDate(d.getDate()+1)){const k=iso(d);if(k<kBaseFrom())continue;const segs=DAYS[k]?DAYS[k].segs:[];
    const tasks=dayTasks(k).map(x=>{if(x.fz){const f={id:x.id,txt:x.txt,pg:x.pg||0};if(x.bid)f.bid=x.bid;return f}const m=/^s(\d+)-/.exec(x.id);const g=m?segs[+m[1]]:null;const t={id:x.id,txt:x.txt,pg:g&&!g.rv?(g.b-g.a+1):0};
-    if(g&&g.lane!=='R'){t.bid=g.id;if(g.rv?g.a===g.b:(g.lane==='L'&&g.b===g.tot))t.last=1}return t});
+    if(g&&g.lane!=='R'&&!String(g.id).startsWith('krev-')){t.bid=g.id;if(g.rv?g.a===g.b:((g.lane==='L'||D.KCORE)&&g.b===g.tot))t.last=1}return t});
    o[k]={tasks,why:tasks.length?'':reason(k)}}
   const books=[];const add=(id,t,a,l)=>{const b={id,t,a:String(a||'').split('،')[0].trim(),l};if(RANGE[id])b.s=RANGE[id].s;books.push(b)};
   BOOKS.forEach(b=>add(b.id,b.ttl,b.by,laneOf(b)));(D.SCI||[]).forEach((b,i)=>add('sci-'+i,b.title,b.author,'B'));(D.LK||[]).forEach((st,i)=>(st.books||[]).forEach((b,j)=>add('lk-'+i+'-'+j,b.title,b.author,'C')));(D.LIT||[]).forEach((b,i)=>add('lit-'+i,b.title,b.author,'L'));
