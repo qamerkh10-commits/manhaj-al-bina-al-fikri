@@ -838,31 +838,39 @@ html.k-calm .k-glide{transition:none}
 /* the navigation is a circle that opens into the bar (hover on the computer, tap on the phone) and folds back after a choice (Khaled, 24 Nov 2026) */
 .k-orbBtn{display:none}
 html.k-orbs nav.tabs.tabs.k-orb{overflow:hidden;transition:width .55s var(--ios),height .55s var(--ios),border-radius .55s var(--ios),box-shadow .35s var(--ios-soft),background-color .3s var(--ios-soft)}
-html.k-orbs nav.k-orb .k-orbBtn{display:grid;place-items:center;position:absolute;inset:0;z-index:3;border:0;border-radius:inherit;background:var(--teal);color:var(--on);cursor:pointer;padding:0;opacity:1;transition:opacity .22s var(--ios-soft)}
+html.k-orbs nav.k-orb .k-orbBtn{display:grid;place-items:center;justify-content:center;align-content:center;gap:0;min-height:0;position:absolute;inset:0;z-index:3;border:0;border-radius:inherit;background:var(--teal);color:var(--on);cursor:pointer;padding:0;opacity:1;transition:opacity .22s var(--ios-soft)}
 html.k-orbs nav.k-orb .k-orbBtn svg{width:24px;height:24px}
+:root{--k-orb:56px;--k-gap:12px;--k-orbsh:0 10px 24px -12px rgba(14,59,44,.55)}
+html.k-orbs nav.tabs.tabs.k-orb:not(.k-open){border-color:transparent;box-shadow:var(--k-orbsh)}
+html.k-orbs #aiFab{width:var(--k-orb);height:var(--k-orb);border-radius:50%;border:0;box-shadow:var(--k-orbsh)}
+html.k-orbs #aiFab svg{width:24px;height:24px}
 html.k-orbs nav.k-orb.k-open .k-orbBtn{opacity:0;pointer-events:none}
 html.k-orbs nav.k-orb>:not(.k-orbBtn){opacity:0;pointer-events:none;transition:opacity .15s var(--ios-soft)}
 html.k-orbs nav.k-orb.k-open>:not(.k-orbBtn){opacity:1;pointer-events:auto;transition:opacity .28s var(--ios-soft) .14s}
 @media (max-width:899px){
  html.k-orbs body{padding-bottom:96px}
- html.k-orbs nav.tabs.tabs.k-orb{inset-inline:auto;left:50%;right:auto;bottom:calc(14px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:30px;transform:translateX(-50%);border:1px solid var(--line);box-shadow:0 14px 32px -12px rgba(14,59,44,.45)}
- html.k-orbs nav.tabs.tabs.k-orb.k-open{width:min(560px,calc(100vw - 24px));height:70px;border-radius:35px;box-shadow:0 18px 40px -14px rgba(0,0,0,.35)}
+ html.k-orbs nav.tabs.tabs.k-orb{inset-inline:auto;left:50%;right:auto;bottom:calc(16px + env(safe-area-inset-bottom));width:var(--k-orb);height:var(--k-orb);border-radius:calc(var(--k-orb)/2);transform:translateX(calc(-50% + (var(--k-orb) + var(--k-gap))/2));border:1px solid var(--line)}
+ html.k-orbs nav.tabs.tabs.k-orb.k-open{width:min(560px,calc(100vw - 24px));height:70px;border-radius:35px;transform:translateX(-50%);box-shadow:0 18px 40px -14px rgba(0,0,0,.35)}
  html.k-orbs nav.k-orb .wrap{position:absolute;left:50%;top:0;transform:translateX(-50%);width:min(560px,calc(100vw - 24px));padding:7px 9px}
  html.k-orbs nav.k-orb #tabbar>button{min-height:56px}
  html.k-orbs #aiFab{bottom:calc(18px + env(safe-area-inset-bottom))}
  html.k-orbs .toast{bottom:92px}}
 @media (min-width:900px){
- html.k-orbs body{padding-inline-start:96px}
- html.k-orbs nav.tabs.tabs.k-orb{bottom:auto;width:60px;height:60px;border-radius:30px;padding:18px 12px}
+ html.k-orbs body{padding-inline-start:92px}
+ html.k-orbs nav.tabs.tabs.k-orb{bottom:auto;width:var(--k-orb);height:var(--k-orb);border-radius:calc(var(--k-orb)/2);padding:18px 12px}
  html.k-orbs nav.tabs.tabs.k-orb.k-open{width:216px;height:calc(100vh - 32px);border-radius:22px}
  html.k-orbs nav.k-orb>.nbrand,html.k-orbs nav.k-orb>.wrap,html.k-orbs nav.k-orb>.ntag{width:192px;flex:none}
  html.k-orbs nav.k-orb>.ntag{margin-top:auto}
- html.k-orbs #moreSheet .sheet.sheet{inset-inline-start:96px}}
+ html.k-orbs #moreSheet .sheet.sheet{inset-inline-start:92px}
+ /* with the side column folded, the header carries the name again, on the circles' line */
+ html.k-orbs .top .brand{display:flex}
+ html.k-orbs .top .row{justify-content:space-between;min-height:var(--k-orb)}
+ html.k-orbs .top .wrap{padding-top:16px}}
 html.k-orbs #aiFab{transition:opacity .25s var(--ios-soft),transform .4s var(--ios)}
 html.k-navopen #aiFab{opacity:0;transform:scale(.7);pointer-events:none}
 /* the assistant's circle sits beside the navigation circle (phone) or under it (computer) */
-@media (max-width:899px){html.k-orbs #aiFab.aiFab,html.k-orbs #aiFab{inset-inline:auto;left:calc(50% - 30px - 12px - 52px);right:auto;bottom:calc(18px + env(safe-area-inset-bottom));width:52px;height:52px}}
-@media (min-width:900px){html.k-orbs #aiFab{inset-inline-end:auto;inset-inline-start:16px;top:88px;bottom:auto;width:60px;height:60px}
+@media (max-width:899px){html.k-orbs #aiFab.aiFab,html.k-orbs #aiFab{inset-inline:auto;left:calc(50% - (var(--k-orb) + var(--k-gap))/2 - var(--k-orb)/2);right:auto;bottom:calc(16px + env(safe-area-inset-bottom))}}
+@media (min-width:900px){html.k-orbs #aiFab{inset-inline-end:auto;inset-inline-start:16px;top:calc(16px + var(--k-orb) + var(--k-gap));bottom:auto}
  html.k-orbs #aiBox{inset-inline-end:auto;inset-inline-start:92px;top:16px;bottom:auto;transform-origin:top right}}
 html.k-calm nav.k-orb,html.k-calm nav.k-orb *{transition:none!important}
 </style></head>
