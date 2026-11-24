@@ -1702,10 +1702,10 @@ renderAll();show(LS.get('manhaj-tab2','today'));
  if(typeof TABR==='object'&&TABR.cal)TABR.cal.push(()=>weekSum());
  // a day with tasks and nothing recorded: a quiet question, never "missed", never a schedule change
  function unrec(){const el=document.getElementById('todayCard');const dd=LS.get('manhaj-daydone',{}),skip=LS.get('manhaj-unrecskip',{});let k0=null;
-  for(let i=1;i<=7&&!k0;i++){const d=toD(TODAY);d.setDate(d.getDate()-i);const k=iso(d);if(k<((D.KCORE&&kStart())||PSTART))break;const ts=dayTasks(k);if(!ts.length||dd[k]||skip[k])continue;const st=(TODO[k]||{done:{}}).done||{};if(!ts.some(t=>st[t.id]))k0=k}
+  for(let i=1;i<=7&&!k0;i++){const d=toD(TODAY);d.setDate(d.getDate()-i);const k=iso(d);if(k<((D.KCORE&&kStart())||PSTART))break;const ts=dayTasks(k);if(!ts.length||dd[k]||skip[k])continue;const st=(TODO[k]||{done:{}}).done||{};if(!ts.every(t=>st[t.id])){k0=k;var n0=ts.filter(t=>st[t.id]).length,m0=ts.length}}
   if(!k0)return;const fh=el.querySelector('.fhead');
-  fh.insertAdjacentHTML('afterend',`<div class="alertw" role="status">📝 ورد <b>${esc(fL(toD(k0)))}</b> لم يُسجَّل إنجازه. هل أنجزته؟ <span style="display:inline-flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button class="btn primary" data-ur="done">أنجزته</button><button class="btn" data-ur="skip">تجاوز</button></span><div class="muted small" style="margin-top:4px">لا يُعدّ فائتًا ولا يتغير جدولك بسببه.</div></div>`);
-  el.querySelectorAll('[data-ur]').forEach(b=>b.onclick=()=>{if(b.dataset.ur==='done'){const d2=LS.get('manhaj-daydone',{});d2[k0]=true;LS.set('manhaj-daydone',d2)}else{const s2=LS.get('manhaj-unrecskip',{});s2[k0]=true;LS.set('manhaj-unrecskip',s2)}renderAll()})}
+  fh.insertAdjacentHTML('afterend',`<div class="alertw" role="status">📝 ورد <b>${esc(fL(toD(k0)))}</b> ${n0?`سجّلت منه ${nA(n0)} من ${nA(m0)} مهام. هل أنجزت الباقي؟`:'لم يُسجَّل إنجازه. هل أنجزته؟'} <span style="display:inline-flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button class="btn primary" data-ur="done">${n0?'أنجزت الباقي':'أنجزته'}</button><button class="btn" data-ur="skip">تجاوز</button></span><div class="muted small" style="margin-top:4px">لا يُعدّ فائتًا ولا يتغير جدولك بسببه.</div></div>`);
+  el.querySelectorAll('[data-ur]').forEach(b=>b.onclick=()=>{if(b.dataset.ur==='done'){const st2=TODO[k0]||(TODO[k0]={done:{},custom:[]});st2.done=st2.done||{};dayTasks(k0).forEach(t=>st2.done[t.id]=true);LS.set('manhaj-todo',TODO);const d2=LS.get('manhaj-daydone',{});d2[k0]=true;LS.set('manhaj-daydone',d2)}else{const s2=LS.get('manhaj-unrecskip',{});s2[k0]=true;LS.set('manhaj-unrecskip',s2)}renderAll()})}
  const _rt=renderToday;renderToday=function(){_rt();try{welcome();chips();focusHead();unrec()}catch(e){console.error(e)}};
  // «دفترك»: every day comment and voice note in one place, newest first, with search
  let nbVoices=null;
@@ -1934,14 +1934,6 @@ renderAll();show(LS.get('manhaj-tab2','today'));
   draw()}catch(e){console.error(e)}};
  if(typeof repaint==='function')repaint();
 })();
-/* ?diag on the page address: shows why the «لم يُسجَّل إنجازه» question does or doesn't appear on this device (24 Nov 2026) */
-(function(){if(!/[?&]diag/.test(location.search))return;
- const ce=console.error;console.error=function(...a){window.__lastErr=String(a[0]&&a[0].message||a[0]);ce.apply(console,a)};
- const _rt=renderToday;renderToday=function(){_rt();try{const dd=LS.get('manhaj-daydone',{}),sk=LS.get('manhaj-unrecskip',{});let h=`<b>فحص هذا الجهاز</b><br>اليوم: ${TODAY} · بداية الخطة: ${(D.KCORE&&kStart())||PSTART} · المسارات: ${['A','B','N','T','S'].map(k=>k+'='+kS(k)).join(' ')}<br>`;
-  for(let i=1;i<=3;i++){const d=toD(TODAY);d.setDate(d.getDate()-i);const k=iso(d),ts=dayTasks(k),st=(TODO[k]||{done:{}}).done||{};h+=`${k}: مهام ${ts.length} · معلَّم ${ts.filter(t=>st[t.id]).length} · أنجزته ${dd[k]?'نعم':'لا'} · تجاوز ${sk[k]?'نعم':'لا'}<br>`}
-  h+=`السؤال ظاهر: ${document.querySelector('#todayCard .alertw')?'نعم':'لا'}${window.__lastErr?' · خطأ: '+esc(window.__lastErr):''}`;
-  let b=document.getElementById('diagBox');if(!b){b=document.createElement('div');b.id='diagBox';b.className='card';b.style.cssText='margin:0 0 14px;font-size:13px;line-height:1.9;direction:rtl';const t=document.getElementById('todayCard');if(t)t.insertAdjacentElement('beforebegin',b)}b.innerHTML=h}catch(e){const b=document.getElementById('diagBox');if(b)b.textContent='خطأ: '+e.message}};
- if(typeof repaint==='function')repaint()})();
 </script>
 <script>
 if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;let rl=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl){rl=true;location.reload()}});addEventListener('load',()=>navigator.serviceWorker.register('sw.js').then(r=>r.update()).catch(()=>{}))}
