@@ -8,6 +8,7 @@
 import { DurableObject } from 'cloudflare:workers';
 import { makeBot } from '../../bot/core.mjs';
 import { askAI, AI_DAILY } from './ai.mjs';
+import { askAIK } from './aik.mjs';   // Khaled's assistant (Gemini); Mohamed's stays on ai.mjs
 
 // keep in step with the site (bot/profiles in sync.mjs and the pages under /khaled and /mohamed)
 const PROFILES = {
@@ -167,7 +168,7 @@ export class BotState extends DurableObject {
       const cors = { 'access-control-allow-origin': '*' };
       const pk = body && PROFILES[body.p] ? body.p : null;
       if (!pk || !body.token || !Array.isArray(body.messages)) return new Response('bad request', { status: 400, headers: cors });
-      if (!this.env.AI) return Response.json({ ok: false, error: 'المساعد غير مفعّل بعد.' }, { headers: cors });
+      if (!this.env.AI && !(pk === 'khaled' && this.env.GEMINI_API_KEY)) return Response.json({ ok: false, error: 'المساعد غير مفعّل بعد.' }, { headers: cors });
       const day = new Date(Date.now() + 2 * 3600e3).toISOString().slice(0, 10), cKey = `aiN:${pk}:${day}`;
       const gate = await this.lock(async () => {
         await this.load();
@@ -180,6 +181,11 @@ export class BotState extends DurableObject {
       });
       if (gate === 'forbidden') return new Response('forbidden', { status: 403, headers: cors });
       if (gate === 'limit') return Response.json({ ok: false, error: `انتهت أسئلة اليوم (${AI_DAILY}). يعود المساعد غدًا.` }, { headers: cors });
+      if (pk === 'khaled') {
+        const r = await askAIK(this.env, { name: PROFILES[pk].name, messages: body.messages, ctx: body.ctx });
+        if (!r.ok || r.fallback) console.error('aik', r.detail || 'fallback');
+        return Response.json({ ok: r.ok, reply: r.reply, actions: r.actions, remember: r.remember, forget: r.forget, sources: r.sources, model: r.model, error: r.error }, { headers: cors });
+      }
       const r = await askAI(this.env, { name: PROFILES[pk].name, messages: body.messages, ctx: body.ctx });
       if (!r.ok) console.error('ai', r.detail);
       return Response.json({ ok: r.ok, reply: r.reply, actions: r.actions, error: r.error }, { headers: cors });
