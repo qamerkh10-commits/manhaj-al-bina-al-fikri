@@ -88,6 +88,6 @@ export async function askAIK(env, { name, messages, ctx }) {
       errs.push(model + ' empty');
     } catch (e) { errs.push(String(e && e.message || e).slice(0, 200)); if (/ 40[13] |API key/i.test(String(e && e.message))) break; }   // a bad key: don't try the others
   }
-  if (env.AI) try { const j = await cloudflare(env, sys, msgs); return { ok: true, ...j, fallback: 1 }; } catch (e) { errs.push(String(e && e.message || e)); }
+  if (env.AI) try { const j = await cloudflare(env, sys, msgs); return { ok: true, ...j, fallback: 1, detail: errs.join(' | ').slice(0, 800) }; } catch (e) { errs.push(String(e && e.message || e)); }
   return { ok: false, error: 'المساعد لا يعمل الآن، جرّب بعد قليل.', detail: errs.join(' | ').slice(0, 500) };
 }

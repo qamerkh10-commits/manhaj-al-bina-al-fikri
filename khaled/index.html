@@ -1698,7 +1698,7 @@ renderAll();show(LS.get('manhaj-tab2','today'));
   if(!k0)return;const fh=el.querySelector('.fhead');
   fh.insertAdjacentHTML('afterend',`<div class="alertw" role="status">📝 ورد <b>${esc(fL(toD(k0)))}</b> لم يُسجَّل إنجازه. هل أنجزته؟ <span style="display:inline-flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button class="btn primary" data-ur="done">أنجزته</button><button class="btn" data-ur="skip">تجاوز</button></span><div class="muted small" style="margin-top:4px">لا يُعدّ فائتًا ولا يتغير جدولك بسببه.</div></div>`);
   el.querySelectorAll('[data-ur]').forEach(b=>b.onclick=()=>{if(b.dataset.ur==='done'){const d2=LS.get('manhaj-daydone',{});d2[k0]=true;LS.set('manhaj-daydone',d2)}else{const s2=LS.get('manhaj-unrecskip',{});s2[k0]=true;LS.set('manhaj-unrecskip',s2)}renderAll()})}
- const _rt=renderToday;renderToday=function(){_rt();try{welcome();chips();focusHead();unrec()}catch(e){console.error(e)}};
+ const _rt=renderToday;renderToday=function(){_rt();try{welcome();chips();focusHead()}catch(e){console.error(e)}};
  // «دفترك»: every day comment and voice note in one place, newest first, with search
  let nbVoices=null;
  function allVoices(){if(nbVoices)return Promise.resolve(nbVoices);return VDB.open().then(db=>new Promise(res=>{try{const r=db.transaction('notes').objectStore('notes').getAll();r.onsuccess=()=>{nbVoices=r.result||[];res(nbVoices)};r.onerror=()=>res([])}catch(e){res([])}})).catch(()=>[])}

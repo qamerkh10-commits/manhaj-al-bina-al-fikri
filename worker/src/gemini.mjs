@@ -12,16 +12,17 @@ let good = null, okModel = null;   // the endpoint that accepted the key, and th
 export const models = () => okModel ? [okModel].concat(GEMINI.filter(m => m !== okModel)) : GEMINI;
 const authErr = (status, msg) => status === 401 || status === 403 || /api key|unauthenticated|permission|credential/i.test(msg || '');
 
-export async function gemini(env, model, sys, msgs) {
+export async function gemini(env, model, sys, msgs, opt = {}) {
   let last = '';
   for (const e of good ? [good] : ENDS) {
     const body = { systemInstruction: { parts: [{ text: sys }] },
       contents: msgs.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
-      tools: [e.search], generationConfig: { temperature: 0.4, maxOutputTokens: 8192 } };
+      ...(opt.bare ? {} : { tools: [e.search] }), generationConfig: { temperature: 0.4, maxOutputTokens: 8192 } };
     const r = await fetch(e.url(model), { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY }, body: JSON.stringify(body) });
     const j = await r.json().catch(() => ({}));
     const msg = (j.error && j.error.message) || '';
-    if (!r.ok) { last = `${model} ${e.name} ${r.status} ${msg.slice(0, 160)}`; if (!good && authErr(r.status, msg)) continue; throw new Error(last); }
+    if (!r.ok && r.status === 400 && /search|tool|grounding/i.test(msg) && !opt.bare) return gemini(env, model, sys, msgs, { bare: 1 });   // search not allowed on this key: answer without it
+    if (!r.ok) { last = `${model} ${e.name} ${r.status} ${msg.slice(0, 300)}`; if (!good && authErr(r.status, msg)) continue; throw new Error(last); }
     good = e; okModel = model;
     const c = (j.candidates || [])[0] || {};
     const text = ((c.content && c.content.parts) || []).filter(p => p.text && !p.thought).map(p => p.text).join('');
