@@ -15,6 +15,8 @@ export async function buildSchedule(indexPath, settings, from, to) {
       w.matchMedia = () => ({ matches: false, addEventListener() {}, addListener() {} });
       if (w.HTMLDialogElement) w.HTMLDialogElement.prototype.showModal = function () {};
       w.scrollTo = () => {};
+      // the page's animations (requestAnimationFrame) must not run here: after close() they crashed the job (24 Nov 2026)
+      w.requestAnimationFrame = () => 0; w.cancelAnimationFrame = () => {};
     },
   });
   const js = `(()=>{const o={};const e=toD(${JSON.stringify(to)});
