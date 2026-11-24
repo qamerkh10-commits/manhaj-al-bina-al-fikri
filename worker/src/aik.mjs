@@ -3,8 +3,8 @@
 // and memory he controls. When Gemini is not available it falls back to Cloudflare Workers AI.
 // Mohamed's assistant is unchanged (ai.mjs).
 import { webSearch } from './ai.mjs';
+import { models, gemini } from './gemini.mjs';
 
-const GEMINI = ['gemini-flash-latest', 'gemini-3.7-flash', 'gemini-3.5-flash'];   // the alias follows Google's newest Flash
 const CF = ['@cf/zai-org/glm-5.3', '@cf/google/gemma-4-26b-a4b-it'];
 
 const SYSTEM = name => `أنت «رفيق الطلب»: مساعد ${name || 'صاحب الصفحة'} الشخصي في موقع «منهج البناء الفكري»، وهو برنامج قراءة طويل (فكر إسلامي، علوم وإنسانيات، منطق وتراث، علوم شرعية، تزكية، وسماع يومي). تكلّمه وحده.
@@ -54,21 +54,6 @@ function parse(s) {
   return s ? { reply: s, actions: [], remember: [], forget: [] } : null;
 }
 
-async function gemini(env, model, sys, msgs) {
-  const body = { systemInstruction: { parts: [{ text: sys }] },
-    contents: msgs.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
-    tools: [{ google_search: {} }], generationConfig: { temperature: 0.4, maxOutputTokens: 8192 } };
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-    method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY }, body: JSON.stringify(body) });
-  const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(`${model} ${r.status} ${(j.error && j.error.message || '').slice(0, 160)}`);
-  const c = (j.candidates || [])[0] || {};
-  const text = ((c.content && c.content.parts) || []).filter(p => p.text && !p.thought).map(p => p.text).join('');
-  const g = c.groundingMetadata || {};
-  const sources = (g.groundingChunks || []).map(x => x.web).filter(Boolean).slice(0, 6).map(w => ({ title: String(w.title || '').slice(0, 120), url: w.uri }));
-  return { text, sources, queries: (g.webSearchQueries || []).slice(0, 4) };
-}
-
 async function cloudflare(env, sys, msgs) {
   // the old way: the model may ask for a search with {"search": "…"}; we search and ask again
   const SEARCH = '\n\nإن احتجت بحثًا في الإنترنت فأجب فقط بـ {"search": "كلمات البحث"} وسأرسل لك النتائج.';
@@ -97,7 +82,7 @@ export async function askAIK(env, { name, messages, ctx }) {
     .map(m => ({ role: m && m.role === 'assistant' ? 'assistant' : 'user', content: String((m && m.content) || '').slice(0, 4000) }));
   while (msgs.length && msgs[0].role !== 'user') msgs.shift();   // Gemini wants the talk to start with him
   const errs = [];
-  if (env.GEMINI_API_KEY) for (const model of GEMINI) {
+  if (env.GEMINI_API_KEY) for (const model of models()) {
     try { const g = await gemini(env, model, sys, msgs); const j = parse(g.text);
       if (j && (j.reply || j.actions.length)) return { ok: true, ...j, model, sources: g.sources };
       errs.push(model + ' empty');

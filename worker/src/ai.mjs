@@ -1,6 +1,8 @@
 // The site's assistant: one question from a person's page → Cloudflare Workers AI (free daily allowance).
 // It answers in Arabic and may propose actions; the page shows them and runs them only when the person confirms.
-export const AI_MODELS = ['@cf/zai-org/glm-5.3-flash', '@cf/google/gemma-4-26b-a4b-it'];
+import { models, gemini } from './gemini.mjs';
+// glm-5.3-flash was withdrawn from Workers AI (found 24 Nov 2026); Gemini answers first when its key is set
+export const AI_MODELS = ['@cf/zai-org/glm-5.3', '@cf/google/gemma-4-26b-a4b-it'];
 export const AI_DAILY = 80;   // questions per person per day, so the free allowance is never used up
 
 const SYSTEM = name => `أنت «مساعد الخطة» في موقع «منهج البناء الفكري»، وتكلّم ${name || 'صاحب الصفحة'} وحده عن خطته في القراءة والسماع.
@@ -56,6 +58,19 @@ export async function askAI(env, { name, messages, ctx }) {
   const msgs = [{ role: 'system', content: sys }].concat((Array.isArray(messages) ? messages : []).slice(-10)
     .map(m => ({ role: m && m.role === 'assistant' ? 'assistant' : 'user', content: String((m && m.content) || '').slice(0, 2000) })));
   let err = '', searched = [];
+  if (env.GEMINI_API_KEY) {   // Gemini searches Google itself; the links it used are added under the answer
+    const talk = msgs.slice(1); while (talk.length && talk[0].role !== 'user') talk.shift();
+    for (const model of models()) {
+      try { const g = await gemini(env, model, sys, talk); const j = parse(g.text);
+        if (j && !j.search && (j.reply || j.actions.length)) {
+          const src = g.sources.filter(x => x.url && !j.reply.includes(x.url)).slice(0, 4);
+          const reply = j.reply + (src.length ? '\n\nالمصادر:\n' + src.map(x => `- ${x.title || 'مصدر'}: ${x.url}`).join('\n') : '');
+          return { ok: true, reply, actions: j.actions, model, searched };
+        }
+        err = model + ' empty';
+      } catch (e) { err = String(e && e.message || e).slice(0, 200); if (/ 40[13] |API key/i.test(err)) break; }
+    }
+  }
   for (let round = 0; round < 3; round++) {
     let j = null;
     for (const model of AI_MODELS) {
