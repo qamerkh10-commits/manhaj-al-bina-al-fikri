@@ -796,9 +796,25 @@ section.k-enter>*{animation:kIn .55s var(--ios) both;animation-delay:calc(var(--
 @media (min-width:900px){#moreSheet:not([hidden]) .sheet:not(.k-opened){animation:kPop .38s var(--ios) both}#moreSheet.k-out .sheet{animation:kPopOut .22s var(--ios-soft) both!important}}
 
 /* the assistant: a modal that rises on the phone, a popover on the computer */
-#aiBox:not([hidden]){animation:kPop .42s var(--ios) both;transform-origin:bottom left}
-#aiBox.k-out{animation:kPopOut .22s var(--ios-soft) both!important}
-@media (max-width:560px){#aiBox:not([hidden]){animation:kUp .5s var(--ios) both}#aiBox.k-out{animation:kDown .32s var(--ios) both!important}}
+/* phone: the window grows out of its own icon as a circle, and shrinks back into it (24 Nov 2026) */
+@keyframes kReveal{from{clip-path:circle(var(--fr,28px) at var(--fx,50%) var(--fy,100%))}to{clip-path:circle(150vmax at var(--fx,50%) var(--fy,100%))}}
+@keyframes kHide{from{clip-path:circle(150vmax at var(--fx,50%) var(--fy,100%))}to{clip-path:circle(var(--fr,28px) at var(--fx,50%) var(--fy,100%))}}
+@keyframes kSide{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:none}}
+@keyframes kSideOut{from{opacity:1;transform:none}to{opacity:0;transform:translateX(-40px)}}
+:root{--k-aiw:min(400px,32vw)}
+@media (max-width:899px){
+ html.k-orbs #aiBox{inset:0!important;width:100vw!important;height:100dvh!important;max-height:none;border-radius:0;border:0;z-index:90}
+ #aiBox:not([hidden]){animation:kReveal .55s var(--ios) both}
+ #aiBox.k-out{animation:kHide .38s var(--ios) both!important}
+ #aiBox:not([hidden]):not(.k-out)>*{animation:kFade .3s var(--ios-soft) .16s both}}
+/* computer: a panel docked at the side; the page makes room for it, and the navigation keeps its own side */
+@media (min-width:900px){
+ html.k-orbs #aiBox{inset-inline-start:auto!important;inset-inline-end:16px!important;top:16px!important;bottom:16px!important;height:auto!important;width:var(--k-aiw)!important;border-radius:22px}
+ html.k-orbs #aiBox:not([hidden]){animation:kSide .45s var(--ios) both}
+ html.k-orbs #aiBox.k-out{animation:kSideOut .28s var(--ios-soft) both!important}
+ html.k-orbs body{transition:padding .45s var(--ios)}
+ html.k-aiopen body{padding-inline-end:calc(var(--k-aiw) + 32px)}}
+html.k-aiopen #aiFab{box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--teal),var(--k-orbsh,0 10px 24px -12px rgba(14,59,44,.55))}
 #aiLog>.aiM.u.k-new{animation:kBubble .38s var(--ios) both;transform-origin:bottom left}
 #aiLog>.aiM.a.k-new{animation:kBubble .42s var(--ios) both;transform-origin:bottom right}
 #aiLog>.k-new:not(.aiM){animation:kIn .35s var(--ios) both}
@@ -872,7 +888,7 @@ html.k-navopen #aiFab{opacity:0;transform:scale(.7);pointer-events:none}
 /* the assistant's circle sits beside the navigation circle (phone) or under it (computer) */
 @media (max-width:899px){html.k-orbs #aiFab.aiFab,html.k-orbs #aiFab{inset-inline:auto;left:calc(50% - (var(--k-orb) + var(--k-gap))/2 - var(--k-orb)/2);right:auto;bottom:calc(16px + env(safe-area-inset-bottom))}}
 @media (min-width:900px){html.k-orbs #aiFab{inset-inline-end:auto;inset-inline-start:16px;top:calc(16px + var(--k-orb) + var(--k-gap));bottom:auto}
- html.k-orbs #aiBox{inset-inline-end:auto;inset-inline-start:92px;top:16px;bottom:auto;transform-origin:top right}}
+}
 html.k-calm nav.k-orb,html.k-calm nav.k-orb *{transition:none!important}
 </style></head>
 <body>
@@ -2105,7 +2121,13 @@ renderAll();show(LS.get('manhaj-tab2','today'));
  const sheet=document.getElementById('moreSheet');
  exitOn(sheet,300,open=>{H.classList.toggle('k-under',open&&!calm.matches);const s2=sheet&&sheet.querySelector('.sheet');if(open&&s2&&!sheet.classList.contains('k-out'))s2.classList.remove('k-opened')});
  if(sheet){const s2=sheet.querySelector('.sheet');if(s2)s2.addEventListener('animationend',e=>{if(e.animationName==='kUp'||e.animationName==='kPop')s2.classList.add('k-opened')})}
- exitOn(document.getElementById('aiBox'),300);
+ const aiBx=document.getElementById('aiBox'),narrow=()=>innerWidth<900;
+ exitOn(aiBx,400,open=>{H.classList.toggle('k-aiopen',open&&!narrow());
+  // on the phone one thing at a time: the assistant closes the navigation and «أقسام»
+  if(open&&narrow()){const nv=document.getElementById('mainNav');if(nv)nv.classList.remove('k-open');H.classList.remove('k-navopen');const ms=document.getElementById('moreSheet');if(ms&&!ms.hidden)ms.hidden=true}});
+ // the circle grows from the icon itself
+ {const fb=document.getElementById('aiFab');if(fb&&aiBx)fb.addEventListener('click',()=>{const r=fb.getBoundingClientRect();aiBx.style.setProperty('--fx',(r.left+r.width/2)+'px');aiBx.style.setProperty('--fy',(r.top+r.height/2)+'px');aiBx.style.setProperty('--fr',(r.width/2)+'px')},true)}
+ addEventListener('resize',()=>H.classList.toggle('k-aiopen',!!aiBx&&!aiBx.hidden&&!narrow()));
 
  // swipe the sheet down to close it, as on iOS
  const sh=sheet&&sheet.querySelector('.sheet');
@@ -2167,6 +2189,8 @@ renderAll();show(LS.get('manhaj-tab2','today'));
   document.addEventListener('pointerdown',e=>{if(nav.classList.contains('k-open')&&!nav.contains(e.target))close()});
   nav.addEventListener('focusin',e=>{if(e.target.matches(':focus-visible'))open()});document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
   new MutationObserver(icon).observe(bar,{subtree:true,childList:true,attributes:true,attributeFilter:['aria-selected']})}
+ {const close=()=>{if(aiBx&&!aiBx.hidden&&narrow())aiBx.hidden=true};if(nav)new MutationObserver(()=>{if(nav.classList.contains('k-open'))close()}).observe(nav,{attributes:true,attributeFilter:['class']});
+  if(sheet)new MutationObserver(()=>{if(!sheet.hidden&&!sheet.classList.contains('k-out'))close()}).observe(sheet,{attributes:true,attributeFilter:['hidden']})}
  // reopening during a closing animation cancels it (one click is enough)
  {const aiB=document.getElementById('aiBox'),fab=document.getElementById('aiFab');
   if(fab&&aiB)fab.addEventListener('click',e=>{if(aiB.classList.contains('k-out')&&aiB._kCancel&&aiB._kCancel()){e.stopImmediatePropagation();e.preventDefault()}},true);
