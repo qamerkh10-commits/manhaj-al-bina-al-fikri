@@ -2,7 +2,8 @@
 // Used by both people's assistants: Khaled's (aik.mjs) and Mohamed's (ai.mjs). Cloudflare Workers AI stays the fallback.
 // The key may be a Google AI Studio key (generativelanguage) or a Google Cloud express-mode key (Vertex AI,
 // keys like «AQ.…»): the first endpoint that accepts it is remembered for the rest of this Worker's life.
-export const GEMINI = ['gemini-flash-latest', 'gemini-3.7-flash', 'gemini-3.5-flash', 'gemini-2.5-flash'];
+// 24 Nov 2026: Google says gemini-3.8-flash is current; the lite model has the most generous free quota
+export const GEMINI = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-3.8-flash-lite', 'gemini-flash-lite-latest', 'gemini-3.7-flash'];
 
 const ENDS = [
   { name: 'studio', url: m => `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, search: { google_search: {} } },
@@ -21,8 +22,8 @@ export async function gemini(env, model, sys, msgs, opt = {}) {
     const r = await fetch(e.url(model), { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY }, body: JSON.stringify(body) });
     const j = await r.json().catch(() => ({}));
     const msg = (j.error && j.error.message) || '';
-    if (!r.ok && r.status === 400 && /search|tool|grounding/i.test(msg) && !opt.bare) return gemini(env, model, sys, msgs, { bare: 1 });   // search not allowed on this key: answer without it
-    if (!r.ok) { last = `${model} ${e.name} ${r.status} ${msg.slice(0, 300)}`; if (!good && authErr(r.status, msg)) continue; throw new Error(last); }
+    if (!r.ok && (r.status === 429 || (r.status === 400 && /search|tool|grounding/i.test(msg))) && !opt.bare) return gemini(env, model, sys, msgs, { bare: 1 });   // search not allowed on this key: answer without it
+    if (!r.ok) { last = `${model} ${e.name} ${r.status} ${msg.slice(0, 700)}`; if (!good && authErr(r.status, msg)) continue; throw new Error(last); }
     good = e; okModel = model;
     const c = (j.candidates || [])[0] || {};
     const text = ((c.content && c.content.parts) || []).filter(p => p.text && !p.thought).map(p => p.text).join('');
