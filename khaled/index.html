@@ -1521,13 +1521,21 @@ renderAll();show(LS.get('manhaj-tab2','today'));
    if(NOTES[k])o.his_note=String(NOTES[k]).slice(0,400);out.push(o)}return out}
  function ctx(q){
   const ws=norm(q).split(/[^\p{L}\p{N}]+/u).filter(w=>w.length>2&&!STOP.has(w));
-  const lanes={};BOOKS.filter(b=>b.core&&!done[b.id]&&RANGE[b.id]&&RANGE[b.id].e>=TODAY).sort((a,b)=>RANGE[a.id].s<RANGE[b.id].s?-1:1)
-   .forEach(b=>{const l=laneOf(b);const a=lanes[l]||(lanes[l]=[]);if(a.length<6)a.push(info(b))});
+  // every track's coming items, each in its own track: Shari, science, tazkiya kept apart from the rotating field
+  const TZ=new Set(((D.KCORE||{}).taz||[]).filter(x=>x!=='LIT'));
+  const lanes={};Object.keys(RANGE).filter(id=>RANGE[id].e>=TODAY&&!done[id]).sort((x,y)=>RANGE[x].s<RANGE[y].s?-1:RANGE[x].s>RANGE[y].s?1:0).forEach(id=>{
+   const b=B(id),r=RANGE[id];let l,o;
+   if(/^natex-/.test(id)){l='N';o={id,t:'أسبوع تمارين ومسائل'}}
+   else if(/^sci-/.test(id)){const x=(D.SCI||[])[+id.split('-')[1]];if(!x)return;l='N';o={id,t:x.title,by:String(x.author||'').split('،')[0]}}
+   else if(/^lit-/.test(id)){const x=(D.LIT||[])[+id.split('-')[1]];if(!x)return;l='T';o={id,t:x.title,by:String(x.author||'').split('،')[0]}}
+   else if(id==='lkc-turk'){l='C';o={id,t:'دورة المنطق للمبتدئين (التركماني)'}}
+   else if(b&&b.core){l=b.shar?'SH':TZ.has(id)?'T':laneOf(b);o=info(b)}else return;
+   o.dates=r.s+' → '+r.e;const a=lanes[l]||(lanes[l]=[]);if(a.length<6)a.push(o)});
   const hits=ws.length?BOOKS.map(b=>{const h=norm(b.ttl+' '+(b.by||''));return [ws.filter(w=>h.includes(w)).length,b]}).filter(x=>x[0]).sort((a,b)=>b[0]-a[0]).slice(0,14).map(x=>info(x[1])):[];
   const days=[];for(let i=-1;i<8;i++){const x=toD(TODAY);x.setDate(x.getDate()+i);const k=iso(x),st=TODO[k]||{done:{}};const ts=dayTasks(k);
    days.push({date:k,day:x.toLocaleDateString('ar-EG',{weekday:'long'}),tasks:ts.length?ts.map(t=>({id:t.id,txt:t.txt,done:!!(st.done&&st.done[t.id])})):[],why:ts.length?undefined:reason(k),note:NOTES[k]?String(NOTES[k]).slice(0,300):undefined})}
   return {person:PROF.name,today:TODAY,plan_ends:FIN?iso(FIN):null,memory:MEM.map(m=>m.t),
-   lanes_meaning:{A:'الفن الدوّار (فكر إسلامي ومذاهب ومجتمع وسياسة…)',B:'المنهج والحجاج ثم المنطق',N:'العلوم الطبيعية',L:'التزكية والأدب',SH:'العلوم الشرعية (يضيفها بنفسه)'},
+   lanes_meaning:{A:'الفن الدوّار (فكر إسلامي ومذاهب ومجتمع وسياسة…)',B:'المنهج والحجاج',C:'المنطق والكلام والتراث',N:'العلوم الطبيعية',T:'التزكية والأدب (الجمعة)',SH:'العلوم الشرعية (ما يضيفه بنفسه)'},
    starts:KS(),next_in_each_lane:lanes,books_matching_question:hits,days,record:record(),
    his_shari_items:BOOKS.filter(b=>b.shar&&b.custom).map(info),
    vacations:(S.black||[]).slice(-12).map(v=>({from:v[0],to:v[1],label:v[2]||''})),
@@ -1926,6 +1934,14 @@ renderAll();show(LS.get('manhaj-tab2','today'));
   draw()}catch(e){console.error(e)}};
  if(typeof repaint==='function')repaint();
 })();
+/* ?diag on the page address: shows why the «لم يُسجَّل إنجازه» question does or doesn't appear on this device (24 Nov 2026) */
+(function(){if(!/[?&]diag/.test(location.search))return;
+ const ce=console.error;console.error=function(...a){window.__lastErr=String(a[0]&&a[0].message||a[0]);ce.apply(console,a)};
+ const _rt=renderToday;renderToday=function(){_rt();try{const dd=LS.get('manhaj-daydone',{}),sk=LS.get('manhaj-unrecskip',{});let h=`<b>فحص هذا الجهاز</b><br>اليوم: ${TODAY} · بداية الخطة: ${(D.KCORE&&kStart())||PSTART} · المسارات: ${['A','B','N','T','S'].map(k=>k+'='+kS(k)).join(' ')}<br>`;
+  for(let i=1;i<=3;i++){const d=toD(TODAY);d.setDate(d.getDate()-i);const k=iso(d),ts=dayTasks(k),st=(TODO[k]||{done:{}}).done||{};h+=`${k}: مهام ${ts.length} · معلَّم ${ts.filter(t=>st[t.id]).length} · أنجزته ${dd[k]?'نعم':'لا'} · تجاوز ${sk[k]?'نعم':'لا'}<br>`}
+  h+=`السؤال ظاهر: ${document.querySelector('#todayCard .alertw')?'نعم':'لا'}${window.__lastErr?' · خطأ: '+esc(window.__lastErr):''}`;
+  let b=document.getElementById('diagBox');if(!b){b=document.createElement('div');b.id='diagBox';b.className='card';b.style.cssText='margin:0 0 14px;font-size:13px;line-height:1.9;direction:rtl';const t=document.getElementById('todayCard');if(t)t.insertAdjacentElement('beforebegin',b)}b.innerHTML=h}catch(e){const b=document.getElementById('diagBox');if(b)b.textContent='خطأ: '+e.message}};
+ if(typeof repaint==='function')repaint()})();
 </script>
 <script>
 if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;let rl=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl){rl=true;location.reload()}});addEventListener('load',()=>navigator.serviceWorker.register('sw.js').then(r=>r.update()).catch(()=>{}))}
