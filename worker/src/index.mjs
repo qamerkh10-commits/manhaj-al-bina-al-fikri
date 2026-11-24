@@ -11,6 +11,9 @@ import { askAI, AI_DAILY } from './ai.mjs';
 import { askAIK } from './aik.mjs';   // Khaled's assistant (Gemini); Mohamed's stays on ai.mjs
 
 // keep in step with the site (bot/profiles in sync.mjs and the pages under /khaled and /mohamed)
+// review 24 Nov 2026: «/start constructor» crashed the webhook; only real profile names are accepted
+const hash = str => { let h = 2166136261; for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 16777619) >>> 0; return h.toString(36) + '.' + str.length; };
+const isProfile = k => typeof k === 'string' && Object.prototype.hasOwnProperty.call(PROFILES, k);
 const PROFILES = {
   khaled: { key: 'khaled', name: 'خالد', ns: '', admin: true },
   mohamed: { key: 'mohamed', name: 'محمد', ns: 'm', admin: false },
@@ -43,9 +46,9 @@ export class BotState extends DurableObject {
     parts[name + ':n'] = n;
     await this.ctx.storage.put(parts);
   }
-  marks(S) {
+  marks(S) {   // review 24 Nov 2026: a content hash, so a moved window with the same number of days is saved too
     const { sched, books, ...rest } = S;
-    return { state: JSON.stringify(rest), sched: (S.schedKey || '') + ':' + Object.keys(sched || {}).length + ':' + (S.legacyAt || ''), books: books ? books.length + ':' + (S.schedKey || '') : '' };
+    return { state: JSON.stringify(rest), sched: (S.schedKey || '') + ':' + hash(JSON.stringify(sched || {})) + ':' + (S.legacyAt || ''), books: books ? hash(JSON.stringify(books)) : '' };
   }
   async load() {
     if (this.P) return;
@@ -121,10 +124,12 @@ export class BotState extends DurableObject {
     }
     if (path === '/push') { // «حدّث البوت الآن»: the page sends its settings and the schedule it computed itself; only his sync key
       const cors = { 'access-control-allow-origin': '*' };
-      const pk = body && PROFILES[body.p] ? body.p : null;
+      const pk = body && isProfile(body.p) ? body.p : null;
       const dd = body && body.data;
-      const ok = pk && body.token && typeof body.settings === 'object' && dd && typeof dd.days === 'object' && Array.isArray(dd.books)
-        && Object.keys(dd.days).length <= 120 && Object.keys(dd.days).every(k => /^\d{4}-\d{2}-\d{2}$/.test(k) && Array.isArray(dd.days[k].tasks) && dd.days[k].tasks.length <= 40);
+      const okTask = x => x && typeof x === 'object' && typeof x.id === 'string' && typeof x.txt === 'string';
+      const ok = pk && body.token && body.settings && typeof body.settings === 'object' && dd && dd.days && typeof dd.days === 'object' && Array.isArray(dd.books) && dd.books.length > 0
+        && Object.keys(dd.days).length >= 1 && Object.keys(dd.days).length <= 120 && Object.keys(dd.days).every(k => /^\d{4}-\d{2}-\d{2}$/.test(k) && dd.days[k] && typeof dd.days[k] === 'object' && Array.isArray(dd.days[k].tasks) && dd.days[k].tasks.length <= 40 && dd.days[k].tasks.every(okTask))
+        && dd.books.every(b => b && typeof b === 'object' && typeof b.id === 'string');
       if (!ok || raw.length > 900000) return new Response('bad request', { status: 400, headers: cors });
       return this.lock(async () => {
         await this.load();
@@ -138,7 +143,7 @@ export class BotState extends DurableObject {
     }
     if (path === '/prefs') { // a person's page sends its settings; only his private sync key is accepted
       const cors = { 'access-control-allow-origin': '*' };
-      const pk = body && PROFILES[body.p] ? body.p : null;
+      const pk = body && isProfile(body.p) ? body.p : null;
       if (!pk || !body.token || typeof body.settings !== 'object') return new Response('bad request', { status: 400, headers: cors });
       return this.lock(async () => {
         await this.load();
@@ -151,7 +156,7 @@ export class BotState extends DurableObject {
     }
     if (path === '/ainote') { // the assistant changed this person's plan (he pressed «نفّذ»): tell him on the bot
       const cors = { 'access-control-allow-origin': '*' };
-      const pk = body && PROFILES[body.p] ? body.p : null;
+      const pk = body && isProfile(body.p) ? body.p : null;
       const items = body && Array.isArray(body.items) ? body.items.map(x => String(x).slice(0, 300)).filter(Boolean).slice(0, 10) : [];
       if (!pk || !body.token || !items.length) return new Response('bad request', { status: 400, headers: cors });
       return this.lock(async () => {
@@ -166,7 +171,7 @@ export class BotState extends DurableObject {
     }
     if (path === '/ai') { // the assistant on a person's page; only his private sync key is accepted
       const cors = { 'access-control-allow-origin': '*' };
-      const pk = body && PROFILES[body.p] ? body.p : null;
+      const pk = body && isProfile(body.p) ? body.p : null;
       if (!pk || !body.token || !Array.isArray(body.messages)) return new Response('bad request', { status: 400, headers: cors });
       if (!this.env.AI && !(pk === 'khaled' && this.env.GEMINI_API_KEY)) return Response.json({ ok: false, error: 'المساعد غير مفعّل بعد.' }, { headers: cors });
       const day = new Date(Date.now() + 2 * 3600e3).toISOString().slice(0, 10), cKey = `aiN:${pk}:${day}`;
@@ -213,7 +218,7 @@ export class BotState extends DurableObject {
         await this.save();
         return Response.json(out);
       }
-      const pk = PROFILES[url.searchParams.get('p')] ? url.searchParams.get('p') : 'khaled';
+      const pk = isProfile(url.searchParams.get('p')) ? url.searchParams.get('p') : 'khaled';
       const P = this.P[pk];
       if (path === '/sync/data') out = (await this.run(pk, token, bot => bot.applyData(body))) || { ok: true };
       else if (path === '/sync/info') {
@@ -250,7 +255,7 @@ export class BotState extends DurableObject {
     if (!chat) return;
     let pk = this.chats[chat];
     const st = m && /^\/start(?:@\w+)?\s+(\w+)/.exec(m.text || '');
-    if (st && PROFILES[st[1]]) {   // "link the bot" button on a person's page: /start <person>
+    if (st && isProfile(st[1])) {   // "link the bot" button on a person's page: /start <person>
       const want = st[1], W = this.P[want].S;
       if (pk && pk !== want) { await this.tg(token, 'sendMessage', { chat_id: chat, text: `حسابك مربوط بصفحة ${PROFILES[pk].name}، فلا يمكن ربطه بصفحة ${PROFILES[want].name} أيضًا.` }); return; }
       if (W.owner && W.owner !== chat) { await this.tg(token, 'sendMessage', { chat_id: chat, text: `صفحة ${PROFILES[want].name} مربوطة بحساب آخر.` }); return; }

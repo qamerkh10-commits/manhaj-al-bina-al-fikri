@@ -582,6 +582,7 @@ async function tick() {
 }
 // new schedule window and book catalog, computed by the GitHub sync job from the app itself
 async function applyData(data) {
+  if (!data || !data.days || !Object.keys(data.days).length) return { ok: false };   // review 24 Nov 2026: an empty window must not wipe the history
   const from = Object.keys(data.days).sort()[0];
   const past = Object.fromEntries(Object.entries(S.sched).filter(([k]) => k < from && k >= addDays(TODAY, -120)));
   const sig = () => JSON.stringify([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map(i => (S.sched[addDays(TODAY, i)] || {}).tasks || []));
