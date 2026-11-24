@@ -783,16 +783,17 @@ section.k-enter>*{animation:kIn .55s var(--ios) both;animation-delay:calc(var(--
 
 /* «أقسام»: an iOS sheet; the page behind recedes like a card underneath */
 #moreSheet:not([hidden]){animation:kFade .35s var(--ios-soft) both}
-#moreSheet:not([hidden]) .sheet{animation:kUp .5s var(--ios) both}
+#moreSheet:not([hidden]) .sheet:not(.k-opened){animation:kUp .5s var(--ios) both}
 #moreSheet.k-out{animation:kFadeOut .3s var(--ios-soft) both!important}
 #moreSheet.k-out .sheet{animation:kDown .32s var(--ios) both!important}
-#moreSheet .sheet.k-drag{animation:none!important;transition:none!important}
+#moreSheet .sheet.k-drag{transition:none!important}
+#moreSheet.k-swiped{animation:kFadeOut .28s var(--ios-soft) both!important}
 #moreSheet .sheet.k-snap{transition:transform .4s var(--ios)!important}
 @media (max-width:899px){
  main,header.top{transition:transform .5s var(--ios),border-radius .5s var(--ios),filter .5s var(--ios);transform-origin:50% 0}
  html.k-under main{transform:scale(.955) translateY(6px);border-radius:16px;overflow:hidden;filter:brightness(.92)}
  html.k-under header.top{transform:scale(.955);filter:brightness(.92)}}
-@media (min-width:900px){#moreSheet:not([hidden]) .sheet{animation:kPop .38s var(--ios) both}#moreSheet.k-out .sheet{animation:kPopOut .22s var(--ios-soft) both!important}}
+@media (min-width:900px){#moreSheet:not([hidden]) .sheet:not(.k-opened){animation:kPop .38s var(--ios) both}#moreSheet.k-out .sheet{animation:kPopOut .22s var(--ios-soft) both!important}}
 
 /* the assistant: a modal that rises on the phone, a popover on the computer */
 #aiBox:not([hidden]){animation:kPop .42s var(--ios) both;transform-origin:bottom left}
@@ -1851,11 +1852,11 @@ renderAll();show(LS.get('manhaj-tab2','today'));
  // «دفترك»: every day comment and voice note in one place, newest first, with search
  let nbVoices=null;
  function allVoices(){if(nbVoices)return Promise.resolve(nbVoices);return VDB.open().then(db=>new Promise(res=>{try{const r=db.transaction('notes').objectStore('notes').getAll();r.onsuccess=()=>{nbVoices=r.result||[];res(nbVoices)};r.onerror=()=>res([])}catch(e){res([])}})).catch(()=>[])}
- window.renderNB=function(){nbVoices=null;const el=document.getElementById('nbBody');if(!el)return;const q=(document.getElementById('nbQ').value||'').trim();
+ window.renderNB=function(){nbVoices=null;(window.__nbURLs||[]).forEach(u=>URL.revokeObjectURL(u));window.__nbURLs=[];const el=document.getElementById('nbBody');if(!el)return;const q=(document.getElementById('nbQ').value||'').trim();
   allVoices().then(vs=>{const byDay={};Object.entries(NOTES).forEach(([k,v])=>{if(v&&String(v).trim())(byDay[k]||(byDay[k]={t:'',v:[]})).t=String(v)});vs.forEach(v=>{(byDay[v.day]||(byDay[v.day]={t:'',v:[]})).v.push(v)});
    const ks=Object.keys(byDay).sort().reverse().filter(k=>!q||byDay[k].t.includes(q));
    const hl=s=>{const e=esc(s);return q?e.split(esc(q)).join('<mark>'+esc(q)+'</mark>'):e};
-   el.innerHTML=ks.length?ks.map(k=>{const x=byDay[k];return `<div class="nbitem"><div class="nd"><b>${esc(fL(toD(k)))}</b><span>${x.v.length?nA(x.v.length)+' تسجيل':''}</span></div>${x.t?`<div class="nt">${hl(x.t)}</div>`:''}${q?'':x.v.map(v=>`<audio controls preload="none" src="${URL.createObjectURL(v.blob)}"></audio>`).join('')}</div>`}).join(''):`<p class="muted">${q?'لا نتيجة لهذا البحث.':'لم تكتب تعليقًا ولم تسجّل بعد. اكتب تعليقك على يومك من بطاقة «تعليقك على اليوم» في تبويب اليوم.'}</p>`})};
+   el.innerHTML=ks.length?ks.map(k=>{const x=byDay[k];return `<div class="nbitem"><div class="nd"><b>${esc(fL(toD(k)))}</b><span>${x.v.length?nA(x.v.length)+' تسجيل':''}</span></div>${x.t?`<div class="nt">${hl(x.t)}</div>`:''}${q?'':x.v.map(v=>`<audio controls preload="none" src="${(u=>(window.__nbURLs.push(u),u))(URL.createObjectURL(v.blob))}"></audio>`).join('')}</div>`}).join(''):`<p class="muted">${q?'لا نتيجة لهذا البحث.':'لم تكتب تعليقًا ولم تسجّل بعد. اكتب تعليقك على يومك من بطاقة «تعليقك على اليوم» في تبويب اليوم.'}</p>`})};
  const nbq=document.getElementById('nbQ');if(nbq)nbq.oninput=()=>renderNB();
  // reading comfort: text size (this device only)
  const FS=[['صغير',.92],['عادي',1],['كبير',1.1],['أكبر',1.22]];const applyFs=()=>{const z=+LS.get('manhaj-fs',1)||1;document.documentElement.style.setProperty('--z',z)};applyFs();
@@ -2094,14 +2095,16 @@ renderAll();show(LS.get('manhaj-tab2','today'));
  const first=document.querySelector('section[data-tab]:not([hidden])');if(first)enter(first.dataset.tab);
 
  // a closing that plays out: when the page hides a sheet, keep it on screen for its exit, then hide it
- function exitOn(el,ms,after){if(!el)return;let busy=false;
+ function exitOn(el,ms,after){if(!el)return;let busy=false,tm=0;
+  el._kCancel=()=>{if(!busy)return false;clearTimeout(tm);el.classList.remove('k-out');busy=false;if(after)after(true);return true};
   new MutationObserver(()=>{if(busy)return;const hid=el.hidden;
    if(!hid){el.classList.remove('k-out');if(after)after(true);return}
-   if(calm.matches){if(after)after(false);return}
+   if(calm.matches||el._kSwiped){el._kSwiped=0;if(after)after(false);return}
    busy=true;el.hidden=false;el.classList.add('k-out');if(after)after(false);
-   setTimeout(()=>{el.hidden=true;el.classList.remove('k-out');setTimeout(()=>{busy=false},0)},ms)}).observe(el,{attributes:true,attributeFilter:['hidden']})}
+   tm=setTimeout(()=>{el.hidden=true;el.classList.remove('k-out');setTimeout(()=>{busy=false},0)},ms)}).observe(el,{attributes:true,attributeFilter:['hidden']})}
  const sheet=document.getElementById('moreSheet');
- exitOn(sheet,300,open=>H.classList.toggle('k-under',open&&!calm.matches));
+ exitOn(sheet,300,open=>{H.classList.toggle('k-under',open&&!calm.matches);const s2=sheet&&sheet.querySelector('.sheet');if(open&&s2&&!sheet.classList.contains('k-out'))s2.classList.remove('k-opened')});
+ if(sheet){const s2=sheet.querySelector('.sheet');if(s2)s2.addEventListener('animationend',e=>{if(e.animationName==='kUp'||e.animationName==='kPop')s2.classList.add('k-opened')})}
  exitOn(document.getElementById('aiBox'),300);
 
  // swipe the sheet down to close it, as on iOS
@@ -2110,11 +2113,13 @@ renderAll();show(LS.get('manhaj-tab2','today'));
   sh.addEventListener('touchstart',e=>{if(innerWidth>=900||sh.scrollTop>0)return;y0=e.touches[0].clientY;dy=0;sh.classList.add('k-drag')},{passive:true});
   sh.addEventListener('touchmove',e=>{if(y0==null)return;dy=Math.max(0,e.touches[0].clientY-y0);sh.style.transform=`translateY(${dy}px)`},{passive:true});
   sh.addEventListener('touchend',()=>{if(y0==null)return;y0=null;sh.classList.remove('k-drag');
-   if(dy>90){sh.style.transform='';sheet.hidden=true}else{sh.classList.add('k-snap');sh.style.transform='';setTimeout(()=>sh.classList.remove('k-snap'),400)}})}
+   if(dy>90){sh.style.transition='transform .28s var(--ios)';sh.style.transform='translateY(100%)';sheet.classList.add('k-swiped');
+    setTimeout(()=>{sheet._kSwiped=1;sheet.hidden=true;sheet.classList.remove('k-swiped');sh.style.transition='';sh.style.transform=''},280)}
+   else{sh.classList.add('k-snap');sh.style.transform='';setTimeout(()=>sh.classList.remove('k-snap'),400)}})}
 
  // the assistant: only the newest bubble animates, not the whole log on every redraw
  const log=document.getElementById('aiLog');
- if(log){let n=0;new MutationObserver(()=>{const k=log.children.length;if(k>n&&log.lastElementChild)log.lastElementChild.classList.add('k-new');n=k}).observe(log,{childList:true})}
+ if(log){let n=0;new MutationObserver(()=>{const b=log.querySelectorAll(':scope>.aiM,:scope>.aiDots'),m=log.querySelectorAll(':scope>.aiM').length;if(m>n&&b.length)b[b.length-1].classList.add('k-new');else{const d=log.querySelector(':scope>.aiDots');if(d)d.classList.add('k-new')}n=m}).observe(log,{childList:true})}
  // «رسالة اليوم»: the text eases in when he moves to another day
  document.addEventListener('click',e=>{const b=e.target.closest('#dayMsg [data-m="prev"],#dayMsg [data-m="next"]');if(!b)return;
   requestAnimationFrame(()=>{const d=document.getElementById('dayMsg');if(!d)return;d.classList.remove('k-swap');void d.offsetWidth;d.classList.add('k-swap');clearTimeout(d._kt);d._kt=setTimeout(()=>d.classList.remove('k-swap'),800)})},true);
@@ -2151,7 +2156,7 @@ renderAll();show(LS.get('manhaj-tab2','today'));
  const nav=document.getElementById('mainNav');
  if(nav&&bar){nav.classList.add('k-orb');H.classList.add('k-orbs');
   const ob=document.createElement('button');ob.type='button';ob.className='k-orbBtn';ob.setAttribute('aria-label','افتح التنقل');ob.setAttribute('aria-expanded','false');nav.appendChild(ob);
-  const icon=()=>{const a=bar.querySelector(':scope>[aria-selected="true"] svg')||bar.querySelector(':scope>[data-more] svg');ob.innerHTML=a?a.outerHTML:''};icon();
+  const icon=()=>{const a=bar.querySelector(':scope>[aria-selected="true"] svg')||bar.querySelector(':scope>[data-more] svg');if(a){const c=a.cloneNode(true);c.removeAttribute('style');ob.replaceChildren(c)}else ob.replaceChildren()};icon();
   const hov=matchMedia('(hover: hover) and (min-width: 900px)');
   const open=()=>{if(nav.classList.contains('k-open'))return;nav.classList.add('k-open');H.classList.add('k-navopen');ob.setAttribute('aria-expanded','true');requestAnimationFrame(()=>glide(false))};
   const close=()=>{nav.classList.remove('k-open');H.classList.remove('k-navopen');ob.setAttribute('aria-expanded','false');bar.querySelectorAll(':scope>button svg').forEach(sv=>sv.style.transform='')};
@@ -2162,6 +2167,10 @@ renderAll();show(LS.get('manhaj-tab2','today'));
   document.addEventListener('pointerdown',e=>{if(nav.classList.contains('k-open')&&!nav.contains(e.target))close()});
   nav.addEventListener('focusin',e=>{if(e.target.matches(':focus-visible'))open()});document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
   new MutationObserver(icon).observe(bar,{subtree:true,childList:true,attributes:true,attributeFilter:['aria-selected']})}
+ // reopening during a closing animation cancels it (one click is enough)
+ {const aiB=document.getElementById('aiBox'),fab=document.getElementById('aiFab');
+  if(fab&&aiB)fab.addEventListener('click',e=>{if(aiB.classList.contains('k-out')&&aiB._kCancel&&aiB._kCancel()){e.stopImmediatePropagation();e.preventDefault()}},true);
+  if(bar&&sheet)bar.addEventListener('click',e=>{if(e.target.closest('[data-more]')&&sheet.classList.contains('k-out')&&sheet._kCancel&&sheet._kCancel())e.stopImmediatePropagation()},true)}
 })();
 </script>
 <script>

@@ -174,7 +174,7 @@ export class BotState extends DurableObject {
       const pk = body && isProfile(body.p) ? body.p : null;
       if (!pk || !body.token || !Array.isArray(body.messages)) return new Response('bad request', { status: 400, headers: cors });
       if (!this.env.AI && !(pk === 'khaled' && this.env.GEMINI_API_KEY)) return Response.json({ ok: false, error: 'المساعد غير مفعّل بعد.' }, { headers: cors });
-      const day = new Date(Date.now() + 2 * 3600e3).toISOString().slice(0, 10), cKey = `aiN:${pk}:${day}`;
+      const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo' }).format(new Date()), cKey = `aiN:${pk}:${day}`;
       const gate = await this.lock(async () => {
         await this.load();
         const P = this.P[pk];
@@ -214,7 +214,7 @@ export class BotState extends DurableObject {
         return new Response('ok'); // always 200 to Telegram, so it does not resend
       }
       if (path === '/tick') {
-        for (const pk of Object.keys(PROFILES)) if (this.P[pk].S.owner) await this.run(pk, token, bot => bot.tick());
+        for (const pk of Object.keys(PROFILES)) if (this.P[pk].S.owner) { await this.run(pk, token, bot => bot.tick()); await this.save(); }
         await this.save();
         return Response.json(out);
       }
