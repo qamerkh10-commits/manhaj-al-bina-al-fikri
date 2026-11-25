@@ -1063,6 +1063,16 @@ html.k-calm #bookDlg.kbk,html.k-calm #bookDlg.kbk *,html.k-calm #bookDlg.kbk::ba
 #kRd .rpages{flex:1;overflow:auto;scrollbar-gutter:stable;padding:16px 16px 90px;scroll-behavior:auto;overscroll-behavior:contain}
 #kRd .rpg{direction:ltr;position:relative;margin:0 auto 16px;background:#fff;box-shadow:0 10px 30px -14px rgba(0,0,0,.55),0 0 0 1px rgba(0,0,0,.06);border-radius:4px;overflow:hidden}
 #kRd .rpg canvas{position:absolute;inset:0;display:block}
+#kRd.bookmode .rpages{display:flex;justify-content:center;align-items:center;overflow:hidden;perspective:2400px;padding:14px;gap:0;scrollbar-gutter:auto}
+#kRd.bookmode .rpg{display:none;margin:0;border-radius:3px;transform-style:preserve-3d;backface-visibility:hidden}
+#kRd.bookmode .rpg.on{display:block}
+#kRd.bookmode .rpg.on.r{border-radius:3px 6px 6px 3px;box-shadow:8px 14px 34px -18px rgba(0,0,0,.6)}
+#kRd.bookmode .rpg.on.l{border-radius:6px 3px 3px 6px;box-shadow:-8px 14px 34px -18px rgba(0,0,0,.6)}
+#kRd.bookmode .rpg.on.r::after,#kRd.bookmode .rpg.on.l::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:4}
+#kRd.bookmode .rpg.on.r::after{background:linear-gradient(to left,transparent 90%,rgba(0,0,0,.16))}
+#kRd.bookmode .rpg.on.l::after{background:linear-gradient(to right,transparent 90%,rgba(0,0,0,.16))}
+#kRd.bookmode .rpg .pnum{bottom:4px}
+#kRd .ib.bookon{background:color-mix(in srgb,var(--teal) 22%,transparent);color:var(--teal)}
 #kRd .rpg .pbar{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:5;display:flex;gap:6px;align-items:center;padding:4px 6px 4px 10px;border-radius:12px;background:rgba(255,255,255,.92);box-shadow:0 2px 10px rgba(0,0,0,.15);font-size:12px;color:#334;white-space:nowrap}
 #kRd .rpg .pbar select,#kRd .rpg .pbar button{font:inherit;font-size:12px;border:1px solid #d5dbe5;border-radius:8px;background:#fff;color:#223;padding:2px 6px;cursor:pointer}
 #kRd .ptiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}#kRd .ptiles button{display:flex;flex-direction:column;align-items:center;gap:4px;border:1px solid var(--lg-edge,var(--line));border-radius:14px;background:color-mix(in srgb,var(--card) 50%,transparent);color:var(--ink);font:inherit;font-size:12px;font-weight:700;padding:8px 4px;cursor:pointer}
@@ -1090,7 +1100,11 @@ html.k-calm #bookDlg.kbk,html.k-calm #bookDlg.kbk *,html.k-calm #bookDlg.kbk::ba
 #kRd .tedit{position:absolute;z-index:4;min-width:120px;font:inherit;border:1.5px dashed #2f7bff;background:rgba(255,255,255,.92);color:#111;padding:2px 4px;resize:both;line-height:1.5;border-radius:4px}
 #kRd .pop{position:fixed;z-index:99;border-radius:22px;padding:14px;width:min(320px,calc(100vw - 24px));max-height:70vh;overflow:auto}
 #kRd .pop[hidden]{display:none}
-#kRd .pop h4{margin:0 0 10px;font-size:15px;display:flex;align-items:center;gap:8px}
+#kRd .pop h4{margin:-2px 0 12px;font-size:15px;display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+#kRd .pop h4 svg{width:18px;height:18px;flex:none;padding:7px;border-radius:10px;background:color-mix(in srgb,var(--teal) 16%,transparent);color:var(--teal);box-sizing:content-box}
+#kRd .pop svg{max-width:100%}#kRd .pop .sw input[type=color]{border-radius:9px;overflow:hidden;cursor:pointer}
+#kRd .pop label{font-weight:700}#kRd .pop .row output{color:var(--ink)}
+#kRd .pop textarea{display:block;margin-bottom:8px}
 #kRd .pop .sw{display:flex;flex-wrap:wrap;gap:7px;margin:4px 0 10px}
 #kRd .pop .sw button{width:28px;height:28px;border-radius:9px;border:2px solid transparent;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
 #kRd .pop .sw button[aria-pressed="true"]{border-color:var(--ink)}
@@ -2812,7 +2826,7 @@ const IC={hand:'M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0
  side:'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',book:'M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z',
  x:'M18 6 6 18M6 6l12 12',zin:'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-4.3-4.3M11 8v6M8 11h6',zout:'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-4.3-4.3M8 11h6',
  fit:'M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7',lib:'M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5zM4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5',
- prev:'m9 18 6-6-6-6',next:'m15 18-6-6 6-6',trash:'M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6',dl:'M12 3v12M7 10l5 5 5-5M5 21h14'};
+ prev:'m9 18 6-6-6-6',flip:'M12 6c-2-1.5-5-2-9-1.5v14c4-.5 7 0 9 1.5 2-1.5 5-2 9-1.5v-14c-4-.5-7 0-9 1.5zM12 6v14',next:'m15 18-6-6 6-6',trash:'M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6',dl:'M12 3v12M7 10l5 5 5-5M5 21h14'};
 const ic=k=>{const d=IC[k]||'';return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(d.startsWith('<')?d:'<path d="'+d+'"/>')+'</svg>'};
 const TOOLS=[['hand','تحديد وتحريك'],['pen','قلم'],['hl','قلم تظليل'],['er','ممحاة'],'|',['mark','تظليل نص'],['ul','خط تحت النص'],['sq','خط متموج'],['st','شطب'],'|',['txt','كتابة'],['rect','مستطيل'],['ell','شكل بيضاوي'],['line','خط مستقيم'],['arrow','سهم'],'|',['note','تعليق'],['bm','علامة في موضع']];
 const COLORS=['#E5484D','#2F6BFF','#111111','#12A150','#8B5CF6','#F59E0B','#06B6D4','#EC4899','#FACC15'];
@@ -2844,7 +2858,7 @@ function build(){if(R)return R;R=document.createElement('div');R.id='kRd';R.hidd
   <div class="tt"><b id="rdT">القارئ</b><small id="rdS"></small></div>
   <div class="pgn"><button class="ib" data-a="prev" aria-label="الصفحة السابقة">${ic('prev')}</button><input id="rdPg" type="number" min="1" inputmode="numeric" aria-label="رقم الصفحة"> / <span id="rdN">–</span><button class="ib" data-a="next" aria-label="الصفحة التالية">${ic('next')}</button></div>
   <button class="ib hidem" data-a="zout" aria-label="تصغير">${ic('zout')}</button><button class="ib hidem" data-a="fit" title="ملء العرض" aria-label="ملء العرض">${ic('fit')}</button><button class="ib hidem" data-a="zin" aria-label="تكبير">${ic('zin')}</button>
-  <button class="tb" data-a="addpg" title="أضف صفحة فارغة أو مسطّرة بعد هذه الصفحة">＋ صفحة</button><button class="ib" data-a="undo" title="تراجع (Ctrl+Z)" aria-label="تراجع">${ic('undo')}</button><button class="ib" data-a="redo" title="إعادة" aria-label="إعادة">${ic('redo')}</button>
+  <button class="ib" data-a="book" title="وضع الكتاب: صفحات متقابلة تتقلّب" aria-label="وضع الكتاب">${ic('flip')}</button><button class="tb" data-a="addpg" title="أضف صفحة فارغة أو مسطّرة بعد هذه الصفحة">＋ صفحة</button><button class="ib" data-a="undo" title="تراجع (Ctrl+Z)" aria-label="تراجع">${ic('undo')}</button><button class="ib" data-a="redo" title="إعادة" aria-label="إعادة">${ic('redo')}</button>
   <button class="tb pri" data-a="here" hidden>وصلت هنا</button><button class="ib" data-a="side" title="العلامات والتعليقات" aria-label="العلامات والتعليقات">${ic('side')}</button></div>
   <div class="rtools g" role="toolbar" aria-label="أدوات">${TOOLS.map(t=>t==='|'?'<span class="sep"></span>':`<button class="ib tool" data-t="${t[0]}" title="${t[1]}" aria-label="${t[1]}" aria-pressed="false">${ic(t[0])}<i></i></button>`).join('')}</div>
   <div class="rbody"><div class="rpages" id="rdPages"></div><aside class="side g" id="rdSide" hidden><div class="stabs"><button class="tb" data-s="bm">العلامات</button><button class="tb" data-s="map">الخريطة</button><button class="tb" data-s="ann">تعليقاتك</button></div><div class="sb" id="rdSb"></div></aside>
@@ -2866,7 +2880,7 @@ function onClick(e){const b=e.target.closest('[data-a],[data-t],[data-s]');if(!b
  if(b.dataset.t){const t=b.dataset.t;if(ST.tool===t&&t!=='hand'){toolPop(t,b)}else{setTool(t);hidePop()}return}
  if(b.dataset.s){ST.side=b.dataset.s;drawSide();return}
  const a=b.dataset.a;
- if(a==='close')close();else if(a==='lib')showLib();else if(a==='prev')go(ST.cur-1);else if(a==='next')go(ST.cur+1);
+ if(a==='close')close();else if(a==='lib')showLib();else if(a==='prev'){if(ST.book)flip(-1);else go(ST.cur-1)}else if(a==='next'){if(ST.book)flip(1);else go(ST.cur+1)}else if(a==='book')bookMode(!ST.book);
  else if(a==='zin')zoom(ST.zoom*1.2);else if(a==='zout')zoom(ST.zoom/1.2);else if(a==='fit')zoom(1);
  else if(a==='undo')undo();else if(a==='redo')redo();else if(a==='side'){showSide($('#rdSide',R).hidden)}
  else if(a==='here')here();else if(a==='addpg')pagePop(b)}
@@ -2907,7 +2921,7 @@ async function open(fileId,page){build();R.hidden=false;document.documentElement
   ST.pdf=await lib.getDocument({data:new Uint8Array(buf),standardFontDataUrl:FD+'standard_fonts/',cMapUrl:FD+'cmaps/',cMapPacked:true,useSystemFonts:false}).promise;ST.n=ST.pdf.numPages;const a=await RDB.ann(fileId);if(a)ST.A=Object.assign({anns:[],bms:[],links:[],ins:[]},a);
   const p1=await ST.pdf.getPage(1),v=p1.getViewport({scale:1});ST.W=v.width;ST.H=v.height;if(meta.pages!==ST.n){meta.pages=ST.n;RDB.put(meta)}
  }catch(e){console.error(e);P.innerHTML='<div class="empty" style="text-align:center;padding:40px">تعذّر فتح الملف. تأكد من اتصالك بالإنترنت أول مرة (يُحمَّل محرك القراءة)، أو أن الملف PDF سليم.</div>';return}
- $('#rdN',R).textContent=nA(ST.n);buildPages();hereBtn();go(page||meta.last||1,true);drawSide();if(!meta.outlineDone)outlineImport(false)}
+ $('#rdN',R).textContent=nA(ST.n);buildPages();hereBtn();ST.book=false;R.classList.remove('bookmode');if(meta.book)bookMode(true,page||meta.last||1);else go(page||meta.last||1,true);drawSide();if(!meta.outlineDone)outlineImport(false)}
 const PT=[['blank','فارغة'],['lines','مسطّرة'],['narrow','مسطّرة ضيقة'],['margin','مسطّرة بهامش'],['grid','مربعات'],['dots','نقاط'],['cornell','كورنيل (تلخيص)']];
 const insOf=k=>(ST.A.ins||[]).find(x=>'x:'+x.id===k);
 const seq=()=>{const o=[];for(let i=1;i<=ST.n;i++){o.push(i);(ST.A.ins||[]).filter(x=>x.after===i).forEach(x=>o.push('x:'+x.id))}return o};
@@ -2916,7 +2930,7 @@ const pL=p=>typeof p==='string'?'صفحة مضافة بعد ص '+nA((insOf(p)||{
 function buildPages(){const P=$('#rdPages',R);if(ST.io)ST.io.disconnect();P.innerHTML='';ST.rendered.clear();
  seq().forEach(k=>{const d=document.createElement('div');d.className='rpg';d.dir='ltr';d.dataset.p=k;const x=typeof k==='string';
   d.innerHTML=(x?`<div class="pbar" dir="rtl"><b>صفحة مضافة</b><select data-pt="${k}" aria-label="نوع الصفحة">${PT.map(q=>`<option value="${q[0]}" ${(insOf(k)||{}).k===q[0]?'selected':''}>${q[1]}</option>`).join('')}</select><button data-pdel="${k}">حذف الصفحة</button></div>`:'<canvas></canvas><div class="textLayer"></div>')+`<svg class="rsvg hlay" xmlns="http://www.w3.org/2000/svg"></svg><svg class="rsvg" xmlns="http://www.w3.org/2000/svg"></svg><span class="pnum">${x?'+':nA(k)}</span>`;P.appendChild(d)});
- ST.io=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting)renderPage(pkOf(en.target))}),{root:P,rootMargin:'700px 0px'});$$('.rpg',P).forEach(d=>ST.io.observe(d));relayout()}
+ ST.io=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting)renderPage(pkOf(en.target))}),{root:P,rootMargin:'700px 0px'});$$('.rpg',P).forEach(d=>ST.io.observe(d));relayout();if(ST.book)bookShow(ST.spread&&ST.spread[0]||ST.cur)}
 function patBg(d){const x=insOf(d.dataset.p);if(!x)return;const s=ST.scale,[W,H]=sizeOf(d.dataset.p),ln=c=>`linear-gradient(${c},${c})`,line='#bccbe0',red='#eaa0a0',top=`${ln('#fff')} top/100% ${Math.round(56*s)}px no-repeat`;
  const rule=g=>`repeating-linear-gradient(to bottom,transparent 0,transparent ${g*s-1}px,${line} ${g*s-1}px,${line} ${g*s}px)`;let b='#fff';
  if(x.k==='lines')b=`${top},${rule(22)}`;else if(x.k==='narrow')b=`${top},${rule(16)}`;
@@ -2931,11 +2945,41 @@ function delPage(k){const x=insOf(k);if(!x)return;const n=ST.A.anns.filter(a=>a.
 function pagePop(btn){const p=$('#rdPop',R);p.innerHTML=`<h4>＋ صفحة بعد ص ${nA(ST.cur)}</h4><div class="ptiles">${PT.map(q=>`<button data-addpg="${q[0]}"><span class="pv pv-${q[0]}"></span>${q[1]}</button>`).join('')}</div>`;p.hidden=false;
  const r=btn.getBoundingClientRect();p.style.top=Math.min(innerHeight-40,r.bottom+8)+'px';p.style.left=Math.max(12,Math.min(innerWidth-p.offsetWidth-12,r.left+r.width/2-p.offsetWidth/2))+'px';
  p.onclick=e=>{const b=e.target.closest('[data-addpg]');if(b)addPage(b.dataset.addpg)};p.oninput=null;p.onchange=null}
+const two=()=>innerWidth>=900&&$('#rdPages',R).clientWidth>=760;
+function spreadOf(k){const S=seq();let i=S.indexOf(k);if(i<0)i=0;if(!two())return [S[i]];if(i===0)return [S[0]];const st=i%2?i:i-1;return S.slice(st,st+2)}
+function bookFit(){const P=$('#rdPages',R),sp=ST.spread||[ST.cur],[w,h]=sizeOf(sp[0]);const n=sp.length>1||two()?2:1;
+ ST.scale=Math.max(.2,Math.min((P.clientHeight-28)/h,(P.clientWidth-28)/(w*n)));$$('.rpg',P).forEach(d=>{const [a,b]=sizeOf(pkOf(d));d.style.width=a*ST.scale+'px';d.style.height=b*ST.scale+'px'});sp.forEach(p=>renderPage(p))}
+function bookShow(k){const sp=spreadOf(k);ST.spread=sp;const P=$('#rdPages',R);$$('.rpg',P).forEach(d=>{const q=pkOf(d),i=sp.indexOf(q);d.classList.toggle('on',i>=0);d.classList.toggle('r',i===0&&sp.length>1);d.classList.toggle('l',i===1)});
+ bookFit();const f=sp.find(q=>typeof q==='number');setCur(f!=null?f:((insOf(sp[0])||{}).after||1));
+ // the next pages render ahead, so turning is instant
+ const S=seq(),j=S.indexOf(sp[sp.length-1]);[S[j+1],S[j+2]].forEach(q=>{if(q!=null)setTimeout(()=>{const d=pageEl(q);if(d){d.style.display='block';d.style.visibility='hidden';d.style.position='absolute';renderPage(q).then(()=>{d.style.display='';d.style.visibility='';d.style.position=''})}},120)})}
+function bookMode(on,at){ST.book=!!on;R.classList.toggle('bookmode',ST.book);$('[data-a="book"]',R).classList.toggle('bookon',ST.book);deselect();
+ if(ST.meta){ST.meta.book=ST.book?1:0;RDB.put(ST.meta)}
+ if(ST.book){bookShow(at||ST.cur);if(!LS.get('manhaj-rdbooktip',0)){toast('قلّب الصفحات بسحب الصفحة، أو اضغط طرفها، أو بالأسهم.');LS.set('manhaj-rdbooktip',1)}}
+ else{$$('.rpg',R).forEach(d=>d.classList.remove('on','r','l'));ST.spread=null;relayout();go(at||ST.cur,true)}}
+let flipping=0;const anim=(el,k,o)=>Promise.race([el.animate(k,o).finished.catch(()=>{}),new Promise(r=>setTimeout(r,o.duration+150))]);
+async function flip(dir){if(!ST.book||flipping)return;const S=seq(),cur=ST.spread||[S[0]];let i=S.indexOf(cur[0]);if(i<0)i=0;
+ const ni=dir>0?i+cur.length:(two()?Math.max(0,i-1):i-1);if(ni<0||ni>=S.length)return;const target=S[ni];
+ const calm=document.documentElement.classList.contains('k-calm');if(calm){bookShow(target);return}
+ flipping=1;const P=$('#rdPages',R);
+ // Arabic book: going forward you turn the left page over the spine to the right
+ const out=dir>0?(cur.length>1?pageEl(cur[1]):pageEl(cur[0])):pageEl(cur[0]);
+ const o1=dir>0?(cur.length>1?'right center':'right center'):(cur.length>1?'left center':'left center');
+ try{if(out){out.style.transformOrigin=o1;await anim(out,[{transform:'rotateY(0deg)',filter:'brightness(1)'},{transform:`rotateY(${dir>0?-90:90}deg)`,filter:'brightness(.75)'}],{duration:230,easing:'cubic-bezier(.45,.05,.55,.95)'});out.style.transformOrigin=''}}catch(e){}
+ bookShow(target);const ns=ST.spread,inn=dir>0?pageEl(ns[0]):(ns.length>1?pageEl(ns[1]):pageEl(ns[0]));
+ try{if(inn){inn.style.transformOrigin=dir>0?(ns.length>1?'left center':'right center'):(ns.length>1?'right center':'left center');await anim(inn,[{transform:`rotateY(${dir>0?90:-90}deg)`,filter:'brightness(.75)'},{transform:'rotateY(0deg)',filter:'brightness(1)'}],{duration:260,easing:'cubic-bezier(.2,.7,.3,1)'});inn.style.transformOrigin=''}}catch(e){}
+ flipping=0}
+// swipe, edge click and wheel turn the pages in book mode
+{let sx=null,sy=0,st=0;document.addEventListener('pointerdown',e=>{if(!R||R.hidden||!ST.book||ST.tool!=='hand'||!e.target.closest('#rdPages')||e.target.closest('[data-aid],[data-bid],.pbar'))return;sx=e.clientX;sy=e.clientY;st=Date.now()},true);
+ document.addEventListener('pointerup',e=>{if(sx==null)return;const dx=e.clientX-sx,dy=e.clientY-sy,quick=Date.now()-st<600;sx=null;
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)){flip(dx>0?1:-1);return}
+  if(Math.abs(dx)<6&&Math.abs(dy)<6&&quick&&!getSelection().toString()){const P=$('#rdPages',R).getBoundingClientRect(),x=(e.clientX-P.left)/P.width;if(x<.16)flip(1);else if(x>.84)flip(-1)}},true);
+ let wl=0;document.addEventListener('wheel',e=>{if(!R||R.hidden||!ST.book||!e.target.closest('#rdPages'))return;e.preventDefault();const n=Date.now();if(n-wl<450)return;wl=n;flip(e.deltaY>0||e.deltaX<0?1:-1)},{passive:false})}
 function close(){if(!R)return;saveNow();R.hidden=true;hidePop();deselect();document.documentElement.style.overflow='';if(typeof renderAll==='function')renderAll()}
 // ---------- layout and rendering ----------
 const fitScale=()=>{const P=$('#rdPages',R);return Math.max(.3,(P.clientWidth-(innerWidth<900?12:32))/ST.W)};
 function sizeOf(p){if(typeof p==='string'){if(/^\d+$/.test(p))p=+p;else{const x=insOf(p);return sizeOf(x?x.after:1)}}return ST.sizes[p]||[ST.W,ST.H]}
-function relayout(keep){if(!ST.pdf)return;const P=$('#rdPages',R),cp=ST.cur,top=keep?pageOffset(cp):0;ST.scale=fitScale()*ST.zoom;
+function relayout(keep){if(!ST.pdf)return;if(ST.book){bookFit();return}const P=$('#rdPages',R),cp=ST.cur,top=keep?pageOffset(cp):0;ST.scale=fitScale()*ST.zoom;
  $$('.rpg',P).forEach(d=>{const [w,h]=sizeOf(pkOf(d));d.style.width=w*ST.scale+'px';d.style.height=h*ST.scale+'px';d._r=0});
  ST.rendered.forEach(p=>renderPage(p));if(keep)P.scrollTop=pageEl(cp).offsetTop-16+top*ST.scale}
 function pageOffset(p){const P=$('#rdPages',R),d=pageEl(p);return d?(P.scrollTop-d.offsetTop+16)/ST.scale:0}
@@ -2952,9 +2996,9 @@ async function renderPage(p){const d=pageEl(p);if(!d||d._r===ST.scale)return;con
   ST.rendered.add(p);drawAnn(p);evict()}catch(e){if(!/cancel/i.test(String(e&&e.name||e)))console.error(e)}}
 function evict(){if(ST.rendered.size<=14)return;[...ST.rendered].filter(p=>typeof p==='number').sort((a,b)=>Math.abs(b-ST.cur)-Math.abs(a-ST.cur)).slice(0,ST.rendered.size-14).forEach(p=>{const d=pageEl(p);if(!d)return;const cv=d.querySelector('canvas');cv.width=cv.height=0;d.querySelector('.textLayer').innerHTML='';d._r=0;ST.rendered.delete(p)})}
 function zoom(z){ST.zoom=Math.max(.4,Math.min(4,z));if(ST.meta){ST.meta.zoom=ST.zoom;RDB.put(ST.meta)}relayout(true)}
-function go(p,instant){if(!ST.pdf)return;if(typeof p!=='string'||!/^x:/.test(p))p=Math.max(1,Math.min(ST.n,(+p)|0||1));const d=pageEl(p);if(!d)return;$('#rdPages',R).scrollTo({top:d.offsetTop-12,behavior:instant?'auto':'smooth'});setCur(typeof p==='string'?((insOf(p)||{}).after||1):p)}
+function go(p,instant){if(!ST.pdf)return;if(typeof p!=='string'||!/^x:/.test(p))p=Math.max(1,Math.min(ST.n,(+p)|0||1));const d=pageEl(p);if(!d)return;if(ST.book){bookShow(p);return}$('#rdPages',R).scrollTo({top:d.offsetTop-12,behavior:instant?'auto':'smooth'});setCur(typeof p==='string'?((insOf(p)||{}).after||1):p)}
 function setCur(p){if(p===ST.cur&&$('#rdPg',R).value==p)return;ST.cur=p;$('#rdPg',R).value=p;hereBtn();if(ST.meta){ST.meta.last=p;clearTimeout(ST._lt);ST._lt=setTimeout(()=>RDB.put(ST.meta),800)}}
-function onScroll(){clearTimeout(ST._st);ST._st=setTimeout(()=>{const P=$('#rdPages',R),mid=P.scrollTop+P.clientHeight*0.35;let best=1;$$('.rpg',P).some(d=>{if(d.offsetTop<=mid){best=pkOf(d);return false}return true});setCur(typeof best==='string'?((insOf(best)||{}).after||1):best)},80)}
+function onScroll(){if(ST.book)return;clearTimeout(ST._st);ST._st=setTimeout(()=>{const P=$('#rdPages',R),mid=P.scrollTop+P.clientHeight*0.35;let best=1;$$('.rpg',P).some(d=>{if(d.offsetTop<=mid){best=pkOf(d);return false}return true});setCur(typeof best==='string'?((insOf(best)||{}).after||1):best)},80)}
 // ---------- annotations: drawing them ----------
 const pathOf=pts=>{if(!pts.length)return '';if(pts.length<3)return 'M'+pts.map(q=>q[0]+' '+q[1]).join(' L')+(pts.length===1?' l0.01 0':'');let d='M'+pts[0][0]+' '+pts[0][1];
  for(let i=1;i<pts.length-1;i++){const a=pts[i],b=pts[i+1];d+=` Q${a[0]} ${a[1]} ${r2((a[0]+b[0])/2)} ${r2((a[1]+b[1])/2)}`}const l=pts[pts.length-1];return d+` L${l[0]} ${l[1]}`};
@@ -3080,7 +3124,7 @@ function onKey(e){if(!R||R.hidden)return;const inField=/^(INPUT|TEXTAREA|SELECT)
  if((e.ctrlKey||e.metaKey)&&(e.code==='KeyZ'||e.key.toLowerCase()==='z')){e.preventDefault();e.shiftKey?redo():undo();return}
  if((e.ctrlKey||e.metaKey)&&(e.code==='KeyY'||e.key.toLowerCase()==='y')){e.preventDefault();redo();return}
  if((e.key==='Delete'||e.key==='Backspace')&&ST.sel){e.preventDefault();removeSel();return}
- if(e.key==='PageDown'||e.key==='ArrowLeft'){e.preventDefault();go(ST.cur+1)}else if(e.key==='PageUp'||e.key==='ArrowRight'){e.preventDefault();go(ST.cur-1)}}
+ if(e.key==='PageDown'||e.key==='ArrowLeft'){e.preventDefault();ST.book?flip(1):go(ST.cur+1)}else if(e.key==='PageUp'||e.key==='ArrowRight'){e.preventDefault();ST.book?flip(-1):go(ST.cur-1)}}
 // ---------- the file's own bookmarks (outline): read once, then his to edit ----------
 async function outlineImport(again){if(!ST.pdf||!ST.meta)return 0;let ol=null;try{ol=await ST.pdf.getOutline()}catch(e){}if(!ol||!ol.length){if(again)toast('هذا الملف ليس فيه علامات (فهرس) خاصة به.');return 0}
  const have=new Set(ST.A.bms.map(b=>b.title+'|'+b.p));const add=[];
