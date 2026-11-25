@@ -1225,7 +1225,7 @@ dialog:not(#bookDlg)::backdrop{background:rgba(6,10,18,.38);-webkit-backdrop-fil
  #aiBox,#moreSheet .sheet,#kSr .pan,html.k-orbs nav.tabs.tabs,dialog:not(#bookDlg){background-color:var(--card)!important}
  #aiLog,#aiForm{background:var(--bg)!important}
  .toast{background-color:var(--deep)!important}}
-</style></head>
+</style><meta name="kbuild" content="1795638093"></head>
 <body>
 <header class="top"><div class="wrap"><div class="row"><div class="brand"><span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="شعار منهج البناء الفكري"><rect width="512" height="512" rx="116" fill="#22304D"/><g transform="translate(0.0,0.0) scale(1.0)"><rect x="132" y="250" width="66" height="134" rx="10" fill="#F6F1E4"/><rect x="223" y="196" width="66" height="188" rx="10" fill="#F6F1E4"/><rect x="314" y="140" width="66" height="244" rx="10" fill="#F6F1E4"/><g fill="#9AA6BF"><rect x="132" y="276" width="66" height="10"/><rect x="223" y="222" width="66" height="10"/><rect x="314" y="166" width="66" height="10"/><rect x="132" y="352" width="66" height="6"/><rect x="223" y="352" width="66" height="6"/><rect x="314" y="352" width="66" height="6"/></g><path d="M352 140 L352 206 L364 194 L376 206 L376 140 Z" fill="#D2AE62"/><rect x="112" y="392" width="288" height="14" rx="7" fill="#D2AE62"/></g></svg></span><h1>منهج البناء الفكري</h1></div><div class="acts"><button class="themeBtn" id="dlBtn" aria-label="تنزيل التطبيق"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 19h16"/></svg><span class="dlTxt">تنزيل</span></button><button class="themeBtn" id="fsBtn" aria-label="حجم الخط" title="حجم الخط">أ<small>+</small></button><button class="themeBtn" id="themeBtn" aria-label="تبديل الوضع الليلي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button></div></div><div class="sub profbar" id="profBar" hidden></div></div></header>
 <nav class="tabs" id="mainNav" aria-label="التنقل"><div class="nbrand"><span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="شعار منهج البناء الفكري"><rect width="512" height="512" rx="116" fill="#22304D"/><g transform="translate(0.0,0.0) scale(1.0)"><rect x="132" y="250" width="66" height="134" rx="10" fill="#F6F1E4"/><rect x="223" y="196" width="66" height="188" rx="10" fill="#F6F1E4"/><rect x="314" y="140" width="66" height="244" rx="10" fill="#F6F1E4"/><g fill="#9AA6BF"><rect x="132" y="276" width="66" height="10"/><rect x="223" y="222" width="66" height="10"/><rect x="314" y="166" width="66" height="10"/><rect x="132" y="352" width="66" height="6"/><rect x="223" y="352" width="66" height="6"/><rect x="314" y="352" width="66" height="6"/></g><path d="M352 140 L352 206 L364 194 L376 206 L376 140 Z" fill="#D2AE62"/><rect x="112" y="392" width="288" height="14" rx="7" fill="#D2AE62"/></g></svg></span><b>منهج البناء الفكري</b></div><div class="wrap" id="tabbar" role="tablist"></div><div class="ntag">رفيق القراءة اليومي</div></nav><div id="moreSheet" hidden><div class="sheet" role="dialog" aria-label="أقسام"><div class="grab"></div><h3>أقسام المنهج</h3><div class="mgrid" id="moreGrid"></div></div></div>
@@ -3315,6 +3315,24 @@ if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;
   document.getElementById('dlDlg').showModal();
  };
 })();
+</script>
+<style id="kUpdCss">
+.kupd{position:fixed;top:12px;left:50%;transform:translate(-50%,-140%);z-index:120;display:flex;align-items:center;gap:10px;padding:8px 8px 8px 16px;border-radius:18px;font-size:14px;font-weight:700;color:var(--ink);
+ background-color:var(--lg-fill2,var(--card));background-image:var(--lg-sheen,none);-webkit-backdrop-filter:var(--lg-blur,none);backdrop-filter:var(--lg-blur,none);border:1px solid var(--lg-edge,var(--line));
+ box-shadow:var(--lg-shadow,0 10px 30px rgba(0,0,0,.25)),inset 0 1px 0 var(--lg-hi,transparent);transition:transform .5s cubic-bezier(.32,.72,0,1);max-width:calc(100vw - 24px)}
+.kupd.on{transform:translate(-50%,0)}
+.kupd button{font:inherit;font-size:13px;border:0;border-radius:12px;padding:7px 14px;background:var(--teal);color:var(--on);cursor:pointer}
+.kupd .x{background:transparent;color:var(--muted);padding:4px 8px}
+</style>
+<script>
+/* ===== a newer version of this page is published: offer to load it ===== */
+(function(){const me=(document.querySelector('meta[name="kbuild"]')||{}).content;if(!me||!window.fetch)return;let shown=0,last=0;
+ function bar(){if(shown)return;shown=1;const b=document.createElement('div');b.className='kupd';b.setAttribute('role','status');
+  b.innerHTML='يوجد تحديث جديد للصفحة <button>حدّث الآن</button><button class="x" aria-label="لاحقًا">×</button>';
+  b.querySelector('button').onclick=()=>{location.reload()};b.querySelector('.x').onclick=()=>{b.classList.remove('on');setTimeout(()=>b.remove(),500)};
+  document.body.appendChild(b);void b.offsetWidth;setTimeout(()=>b.classList.add('on'),40)}
+ async function check(){const n=Date.now();if(n-last<30000)return;last=n;try{const t=await (await fetch('./sw.js?u='+n,{cache:'no-store'})).text();const m=/manhaj-(\d+)/.exec(t);if(m&&m[1]!==me)bar()}catch(e){}}
+ setTimeout(check,5000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check()});addEventListener('focus',check);setInterval(check,600000)})();
 </script>
 </body>
 </html>
