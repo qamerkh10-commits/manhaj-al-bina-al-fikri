@@ -1066,7 +1066,8 @@ html.k-calm #bookDlg.kbk,html.k-calm #bookDlg.kbk *,html.k-calm #bookDlg.kbk::ba
 #kRd.bookmode .rpages{display:flex;justify-content:safe center;align-items:safe center;overflow:hidden;perspective:2600px;padding:14px;gap:0;scrollbar-gutter:auto;position:relative;touch-action:pan-x pan-y}
 #kRd.bookmode.zoomed .rpages{overflow:auto}
 #kRd .rpages{touch-action:pan-x pan-y}
-#kRd .leaf{position:absolute;z-index:20;pointer-events:none;transform-style:preserve-3d;will-change:transform}
+#kRd .leaf{position:absolute;z-index:20;pointer-events:none;transform-style:preserve-3d;will-change:transform;contain:layout}
+#kRd .leaf .shade,#kRd .cast{will-change:opacity}
 #kRd .leaf .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.05)}
 #kRd .leaf .back{transform:rotateY(180deg)}
 #kRd .leaf .shade{position:absolute;inset:0;z-index:9;pointer-events:none}
@@ -2958,8 +2959,8 @@ function bookFit(){const P=$('#rdPages',R),sp=ST.spread||[ST.cur],[w,h]=sizeOf(s
  ST.scale=Math.max(.2,Math.min((P.clientHeight-28)/h,(P.clientWidth-28)/(w*n)))*ST.zoom;R.classList.toggle('zoomed',ST.zoom>1.01);$$('.rpg',P).forEach(d=>{const [a,b]=sizeOf(pkOf(d));d.style.width=a*ST.scale+'px';d.style.height=b*ST.scale+'px'});sp.forEach(p=>renderPage(p))}
 function bookShow(k){const sp=spreadOf(k);ST.spread=sp;const P=$('#rdPages',R);$$('.rpg',P).forEach(d=>{const q=pkOf(d),i=sp.indexOf(q);d.classList.toggle('on',i>=0);d.classList.toggle('r',i===0&&sp.length>1);d.classList.toggle('l',i===1)});
  bookFit();const f=sp.find(q=>typeof q==='number');setCur(f!=null?f:((insOf(sp[0])||{}).after||1));
- // the next pages render ahead, so turning is instant
- const S=seq(),j=S.indexOf(sp[sp.length-1]);[S[j+1],S[j+2]].forEach(q=>{if(q!=null)setTimeout(()=>{const d=pageEl(q);if(d){d.style.display='block';d.style.visibility='hidden';d.style.position='absolute';renderPage(q).then(()=>{d.style.display='';d.style.visibility='';d.style.position=''})}},120)})}
+ // the pages around the spread are drawn ahead, so a turn starts at once
+ const S=seq(),a=S.indexOf(sp[0]),z=S.indexOf(sp[sp.length-1]);[S[z+1],S[z+2],S[a-1],S[a-2]].forEach((q,n)=>{if(q!=null)setTimeout(()=>renderPage(q),60+n*40)})}
 function bookMode(on,at){ST.book=!!on;R.classList.toggle('bookmode',ST.book);$('[data-a="book"]',R).classList.toggle('bookon',ST.book);deselect();
  if(ST.meta){ST.meta.book=ST.book?1:0;RDB.put(ST.meta)}
  if(ST.book){bookShow(at||ST.cur);if(!LS.get('manhaj-rdbooktip',0)){toast('قلّب الصفحات بسحب الصفحة، أو اضغط طرفها، أو بالأسهم.');LS.set('manhaj-rdbooktip',1)}}
@@ -2971,18 +2972,22 @@ function faceOf(src){const c=document.createElement('div');c.style.cssText='posi
  src.querySelectorAll('svg.rsvg').forEach(s=>{const k=s.cloneNode(true);k.style.cssText='position:absolute;inset:0;width:100%;height:100%';if(s.classList.contains('hlay'))k.style.mixBlendMode='multiply';c.appendChild(k)});return c}
 // the stage shows these pages while a leaf turns over them
 function stageShow(rk,lk){$$('.rpg',$('#rdPages',R)).forEach(d=>{const q=pkOf(d),isR=rk!=null&&q===rk,isL=lk!=null&&q===lk;d.classList.toggle('on',isR||isL);d.classList.toggle('r',isR&&lk!=null);d.classList.toggle('l',isL&&rk!=null)})}
-function leafMake(over,front,back,origin){const P=$('#rdPages',R),pr=P.getBoundingClientRect(),r=over.getBoundingClientRect();
+function leafMake(over,front,back,origin,sign){const P=$('#rdPages',R),pr=P.getBoundingClientRect(),r=over.getBoundingClientRect();
  const L=document.createElement('div');L.className='leaf';L.style.cssText=`left:${r.left-pr.left+P.scrollLeft}px;top:${r.top-pr.top+P.scrollTop}px;width:${r.width}px;height:${r.height}px;transform-origin:${origin}`;
  const f=document.createElement('div'),b=document.createElement('div');f.className='face front';b.className='face back';f.appendChild(faceOf(front));b.appendChild(faceOf(back));
- const sf=document.createElement('i'),sb=document.createElement('i');sf.className='shade';sb.className='shade';f.appendChild(sf);b.appendChild(sb);L.append(f,b);P.appendChild(L);
- const cast=document.createElement('i');cast.className='cast';P.appendChild(cast);L._cast=cast;return L}
-// deg: 0 (flat where it started) .. 180 (turned over the spine); sign +1 turns to the right, -1 to the left
-function leafAt(L,deg,sign,under){const k=Math.sin(deg*Math.PI/180),side=sign>0?'to left':'to right',back=sign>0?'to right':'to left';
- L.style.transform=`rotateY(${sign*deg}deg) translateZ(${k*6}px)`;
- L.querySelector('.front .shade').style.background=`linear-gradient(${side},rgba(0,0,0,${(.42*k).toFixed(3)}) 0%,rgba(0,0,0,${(.12*k).toFixed(3)}) 30%,rgba(255,255,255,${(.16*k).toFixed(3)}) 62%,rgba(0,0,0,${(.06*k).toFixed(3)}) 100%)`;
- L.querySelector('.back .shade').style.background=`linear-gradient(${back},rgba(0,0,0,${(.38*k).toFixed(3)}) 0%,rgba(0,0,0,${(.08*k).toFixed(3)}) 40%,rgba(255,255,255,${(.1*k).toFixed(3)}) 75%,transparent 100%)`;
- const c=L._cast;if(c&&under){const P=$('#rdPages',R),pr=P.getBoundingClientRect(),u=under.getBoundingClientRect();c.style.cssText=`left:${u.left-pr.left+P.scrollLeft}px;top:${u.top-pr.top+P.scrollTop}px;width:${u.width}px;height:${u.height}px;opacity:${(k*.9).toFixed(3)};background:linear-gradient(${sign>0?'to left':'to right'},rgba(0,0,0,.45) 0%,rgba(0,0,0,.12) ${Math.round(20+40*(deg/180))}%,transparent ${Math.round(40+55*(deg/180))}%)`}}
-function leafEnd(L){if(L._cast)L._cast.remove();L.remove()}
+ const side=sign>0?'to left':'to right',bk=sign>0?'to right':'to left';
+ const sf=document.createElement('i'),sb=document.createElement('i');sf.className='shade';sb.className='shade';
+ sf.style.background=`linear-gradient(${side},rgba(0,0,0,.42) 0%,rgba(0,0,0,.12) 30%,rgba(255,255,255,.16) 62%,rgba(0,0,0,.05) 100%)`;
+ sb.style.background=`linear-gradient(${bk},rgba(0,0,0,.36) 0%,rgba(0,0,0,.08) 40%,rgba(255,255,255,.1) 75%,transparent 100%)`;
+ sf.style.opacity=sb.style.opacity=0;f.appendChild(sf);b.appendChild(sb);L.append(f,b);P.appendChild(L);L._sf=sf;L._sb=sb;L._sign=sign;
+ const cast=document.createElement('i');cast.className='cast';cast.style.opacity=0;P.appendChild(cast);L._cast=cast;return L}
+function castOver(L,under){const c=L._cast;if(!c||!under)return;const P=$('#rdPages',R),pr=P.getBoundingClientRect(),u=under.getBoundingClientRect();
+ c.style.left=(u.left-pr.left+P.scrollLeft)+'px';c.style.top=(u.top-pr.top+P.scrollTop)+'px';c.style.width=u.width+'px';c.style.height=u.height+'px';
+ c.style.background=`linear-gradient(${L._sign>0?'to left':'to right'},rgba(0,0,0,.42) 0%,rgba(0,0,0,.14) 28%,transparent 70%)`}
+// deg: 0 (flat where it started) .. 180 (turned over the spine)
+function leafAt(L,deg,sign){L._deg=deg;const n=performance.now();if(!L._lp||n-L._lp>16){L._lp=n;leafPaint(L);return}if(!L._raf)L._raf=requestAnimationFrame(()=>{L._raf=0;L._lp=performance.now();leafPaint(L)})}
+function leafPaint(L){const d=L._deg,k=Math.sin(d*Math.PI/180);L.style.transform=`rotateY(${L._sign*d}deg)`;L._sf.style.opacity=k.toFixed(3);L._sb.style.opacity=(k*.9).toFixed(3);if(L._cast)L._cast.style.opacity=(k*.8).toFixed(3)}
+function leafEnd(L){if(L._raf)cancelAnimationFrame(L._raf);if(L._cast)L._cast.remove();L.remove()}
 function tween(from,to,ms,step){return new Promise(res=>{const t0=performance.now(),ease=x=>1-Math.pow(1-x,3);const f=n=>{const x=Math.min(1,(n-t0)/ms);step(from+(to-from)*ease(x));if(x<1)requestAnimationFrame(f);else res()};requestAnimationFrame(f);setTimeout(()=>{step(to);res()},ms+400)})}
 // prepare a turn: which page lifts, what is on its back, what lies beneath
 async function turnPrep(dir){const S=seq(),cur=ST.spread||[S[0]];let i=S.indexOf(cur[0]);if(i<0)i=0;
@@ -2994,16 +2999,16 @@ async function turnPrep(dir){const S=seq(),cur=ST.spread||[S[0]];let i=S.indexOf
  else if(dir>0){o.over=E(cur[0]);o.front=E(cur[0]);o.back=null;o.origin='right center';o.sign=1;o.from=0;o.to=180;o.rk=tgt[0];o.lk=null;o.under=E(tgt[0])}
  else{o.over=E(cur[0]);o.front=E(tgt[0]);o.back=null;o.origin='right center';o.sign=1;o.from=180;o.to=0;o.rk=cur[0];o.lk=null;o.under=E(cur[0])}
  return o}
-function turnStart(o){o.pw=o.over.getBoundingClientRect().width;const L=leafMake(o.over,o.front,o.back,o.origin);stageShow(o.rk,o.lk);leafAt(L,o.from,o.sign,o.under);o.L=L;return o}
+function turnStart(o){o.pw=o.over.getBoundingClientRect().width;const L=leafMake(o.over,o.front,o.back,o.origin,o.sign);stageShow(o.rk,o.lk);castOver(L,o.under);L._deg=o.from;leafPaint(L);o.L=L;return o}
 async function turnFinish(o,done){const L=o.L,cur=o.deg!=null?o.deg:o.from,end=done?o.to:o.from,ms=Math.max(160,Math.abs(end-cur)/180*720);
- await tween(cur,end,ms,v=>{o.deg=v;leafAt(L,v,o.sign,o.under)});leafEnd(L);bookShow(done?o.tgt[0]:o.cur[0])}
+ await tween(cur,end,ms,v=>{o.deg=v;L._deg=v;leafPaint(L)});leafEnd(L);bookShow(done?o.tgt[0]:o.cur[0])}
 async function flip(dir){if(!ST.book||flipping)return;flipping=1;try{const o=await turnPrep(dir);if(!o)return;if(!flipOK()){bookShow(o.tgt[0]);return}turnStart(o);await turnFinish(o,true)}catch(e){console.error(e)}finally{flipping=0}}
 // drag a page: the leaf follows the hand; let go past a third (or flick) and it turns
 {let g=null;
  document.addEventListener('pointerdown',e=>{if(!R||R.hidden||!ST.book||flipping||ST.tool!=='hand'||ST.zoom>1.01||e.button>0||!e.target.closest('#rdPages')||e.target.closest('[data-aid],[data-bid],.pbar'))return;
   g={x:e.clientX,y:e.clientY,t:performance.now(),o:null,busy:0,id:e.pointerId}},true);
  document.addEventListener('pointermove',async e=>{if(!g||e.pointerId!==g.id)return;const dx=e.clientX-g.x,dy=e.clientY-g.y;
-  if(!g.o&&!g.busy){if(Math.abs(dx)<10||Math.abs(dx)<Math.abs(dy))return;g.busy=1;flipping=1;const o=await turnPrep(dx>0?1:-1);if(!o||!g){flipping=0;if(g)g.busy=0;return}
+  if(!g.o&&!g.busy){if(Math.abs(dx)<6||Math.abs(dx)<Math.abs(dy))return;g.busy=1;flipping=1;const o=await turnPrep(dx>0?1:-1);if(!o||!g){flipping=0;if(g)g.busy=0;return}
    if(!flipOK()){bookShow(o.tgt[0]);flipping=0;g=null;return}g.o=turnStart(o);g.w=Math.max(80,o.pw*(two()?2:1))}
   if(g&&g.o){const o=g.o,pr=Math.min(1,Math.max(0,Math.abs(e.clientX-g.x)/g.w*1.15));o.deg=o.from+(o.to-o.from)*pr;leafAt(o.L,o.deg,o.sign,o.under);getSelection().removeAllRanges()}},true);
  document.addEventListener('pointerup',async e=>{if(!g||e.pointerId!==g.id)return;const c=g;g=null;
