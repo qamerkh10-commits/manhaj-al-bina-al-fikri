@@ -1104,6 +1104,8 @@ html.k-calm #bookDlg.kbk,html.k-calm #bookDlg.kbk *,html.k-calm #bookDlg.kbk::ba
 #kRd .bmi .h small{color:var(--muted);font-size:11.5px;white-space:nowrap}
 #kRd .bmi .acts{display:flex;gap:2px;flex-wrap:wrap;margin-top:4px}
 #kRd .bmi .acts button{font:inherit;font-size:11.5px;border:0;background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--ink);padding:3px 8px;border-radius:8px;cursor:pointer}
+#kRd .bmi .cols{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}#kRd .bmi .cols button{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}#kRd .bmi .cols button[aria-pressed="true"]{border-color:var(--ink)}
+#kRd .bmi .h i{width:10px;height:10px;border-radius:50%;flex:none;background:var(--bc)}
 #kRd .bmi .lnk{font-size:12px;color:var(--muted);margin-top:4px;display:flex;gap:6px;align-items:center}
 #kRd .bmi .lnk a{color:var(--teal);cursor:pointer;text-decoration:none}
 #kRd .bmi .lnk .x{all:unset;cursor:pointer;color:var(--muted)}
@@ -2933,7 +2935,7 @@ function annSvg(a){const sel=ST.sel===a.id?' sel':'',o=a.o!=null?a.o:1,id=`data-
  if(a.t==='txt')return `<foreignObject class="${sel}" ${id} x="${a.x}" y="${a.y}" width="${a.w}" height="${a.h||a.s*2}"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:${a.s}px;color:${a.c}" dir="auto">${esc(a.txt)}</div></foreignObject>`;
  if(a.t==='note')return `<g class="${sel}" ${id} transform="translate(${a.x} ${a.y})"><title>${esc(a.txt||'تعليق')}</title><path d="M0 0h16v12h-9l-4 4v-4H0z" fill="${a.c}" stroke="rgba(0,0,0,.35)" stroke-width=".6"/><path d="M3 4h10M3 7.5h7" stroke="rgba(0,0,0,.55)" stroke-width="1"/></g>`;
  return ''}
-function bmSvg(b){const sel=ST.sel===b.id?' sel':'';return `<g class="${sel}" data-bid="${b.id}" transform="translate(${b.x} ${b.y})"><title>${esc(b.title)}</title><path d="M-6 -14h12v16l-6-4.5-6 4.5z" fill="${b.c||'#2F6BFF'}" stroke="#fff" stroke-width="1"/>${b.parent?'<circle cx="0" cy="-8" r="1.6" fill="#fff"/>':''}</g>`}
+function bmSvg(b){const sel=ST.sel===b.id?' sel':'';return `<g class="${sel}" data-bid="${b.id}" transform="translate(${b.x} ${b.y})"><title>${esc(b.title)}</title><path d="M-6 -14h12v16l-6-4.5-6 4.5z" fill="${b.c||'#2F6BFF'}" stroke="rgba(0,0,0,.45)" stroke-width=".9"/>${b.parent?'<circle cx="0" cy="-8" r="1.6" fill="rgba(0,0,0,.45)"/>':''}</g>`}
 const isHl=a=>(a.t==='mark'&&a.k==='mark')||(a.t==='ink'&&a.hl);
 function drawAnn(p){const d=pageEl(p);if(!d)return;const [w,h]=sizeOf(p),[s1,s2]=d.querySelectorAll('svg');[s1,s2].forEach(s=>{s.setAttribute('viewBox',`0 0 ${w} ${h}`);s.setAttribute('preserveAspectRatio','none')});
  const A=ST.A.anns.filter(a=>a.p===p);s1.innerHTML=A.filter(isHl).map(annSvg).join('');s2.innerHTML=A.filter(a=>!isHl(a)).map(annSvg).join('')+ST.A.bms.filter(b=>b.p===p).map(bmSvg).join('')}
@@ -3006,12 +3008,14 @@ function noteEdit(a){const p=$('#rdPop',R);p.innerHTML=`<h4>${ic('note')} تعل
   if(b.dataset.del){snap();ST.A.anns=ST.A.anns.filter(x=>x!==a);hidePop();deselect();changed(a.p);return}if(b.dataset.ok){a.txt=ta.value.trim();hidePop();changed(a.p)}};p.oninput=null}
 // selection bar: colours, edit, delete
 function select(id){ST.sel=id;const a=ST.A.anns.find(x=>x.id===id),b=ST.A.bms.find(x=>x.id===id);redraw((a||b||{}).p);const S=$('#rdSel',R);
- S.innerHTML=(a?(a.t==='mark'&&a.k==='mark'||a.hl?HLC:COLORS).slice(0,6).map(v=>`<button class="c" style="background:${v}" data-c="${v}" aria-label="${v}"></button>`).join(''):'')+
-  (a&&(a.t==='note'||a.t==='txt')?'<button class="tb" data-ed="1">تعديل</button>':'')+(b?'<button class="tb" data-goside="1">في العلامات</button>':'')+`<button class="ib" data-rm="1" aria-label="حذف" title="حذف (Delete)">${ic('trash')}</button>`;
+ S.innerHTML=(a?(a.t==='mark'&&a.k==='mark'||a.hl?HLC:COLORS).slice(0,6):b?BMC.slice(0,9):[]).map(v=>`<button class="c" style="background:${v}" data-c="${v}" aria-label="${v}"></button>`).join('')+
+  (a&&(a.t==='note'||a.t==='txt')?'<button class="tb" data-ed="1">تعديل</button>':'')+(b?'<button class="tb" data-goside="1">في العلامات</button>':'')+(a&&(a.t==='mark'||a.hl)?'<button class="tb" data-tobm="1">اجعله علامة</button>':'')+`<button class="ib" data-rm="1" aria-label="حذف" title="حذف (Delete)">${ic('trash')}</button>`;
  S.hidden=false;placeSel();S.onclick=e=>{const t=e.target.closest('button');if(!t)return;
-  if(t.dataset.c){snap();if(a)a.c=t.dataset.c;changed(a.p);return}
+  if(t.dataset.c){snap();if(a)a.c=t.dataset.c;if(b)b.c=t.dataset.c;changed((a||b).p);return}
   if(t.dataset.ed){if(a.t==='note')noteEdit(a);else{deselect();textEditor(pageEl(a.p),a.p,null,a)}return}
   if(t.dataset.goside){showSide(true,'bm');return}
+  if(t.dataset.tobm){let x,y;if(a.t==='mark'){const q=a.rects[0];x=q[0]+q[2]+8;y=q[1]+4}else{const q=a.pts[a.pts.length-1];x=q[0]+8;y=q[1]}x=Math.min(x,sizeOf(a.p)[0]-8);
+   const title=String(a.txt||'').trim().replace(/\s+/g,' ').slice(0,60)||('علامة ص '+nA(a.p));snap();const nb={id:uid(),p:a.p,x:r2(x),y:r2(Math.max(14,y)),title,parent:null,c:a.c,at:Date.now()};ST.A.bms.push(nb);deselect();changed(a.p);showSide(true,'bm');toast('✓ صار علامة بلون التظليل.');return}
   if(t.dataset.rm)removeSel()}}
 function placeSel(){const S=$('#rdSel',R);if(S.hidden||!ST.sel)return;const el=$(`[data-aid="${ST.sel}"],[data-bid="${ST.sel}"]`,R);if(!el){S.hidden=true;return}const r=el.getBoundingClientRect();
  S.style.top=Math.max(8,r.top-S.offsetHeight-10)+'px';S.style.left=Math.max(8,Math.min(innerWidth-S.offsetWidth-8,r.left+r.width/2-S.offsetWidth/2))+'px'}
@@ -3036,6 +3040,7 @@ async function outlineImport(again){if(!ST.pdf||!ST.meta)return 0;let ol=null;tr
  await walk(ol,null);if(add.length){snap();ST.A.bms.push(...add);changed()}ST.meta.outlineDone=1;RDB.put(ST.meta);
  if(again||add.length)toast(add.length?'✓ قُرئت '+nA(add.length)+' علامة من فهرس الملف، وتقدر تعدّل فيها.':'علامات الملف موجودة عندك كلها.');return add.length}
 // ---------- bookmarks: main and sub, links, map ----------
+const BMC=HLC.concat(['#2F6BFF','#E5484D','#12A150']);
 const kids=id=>ST.A.bms.filter(b=>b.parent===id);
 const desc=id=>{const o=new Set();const w=i=>kids(i).forEach(c=>{o.add(c.id);w(c.id)});w(id);return o};
 function removeBm(id,silent){const b=ST.A.bms.find(x=>x.id===id);if(!b)return;if(!silent)snap();kids(id).forEach(c=>c.parent=b.parent||null);ST.A.bms=ST.A.bms.filter(x=>x.id!==id);ST.A.links=ST.A.links.filter(l=>l.a!==id&&l.b!==id);if(!silent)changed(b.p)}
@@ -3044,15 +3049,19 @@ function drawSide(){if(!R)return;const sb=$('#rdSb',R);$$('.stabs .tb',R).forEac
  if(ST.side==='bm')return bmList(sb);if(ST.side==='map')return bmMap(sb);annList(sb)}
 function bmList(sb){const B=ST.A.bms,T=x=>(B.find(b=>b.id===x)||{}).title||'';const roots=B.filter(b=>!b.parent||!B.some(x=>x.id===b.parent)).sort((a,b)=>a.p-b.p||a.y-b.y);
  const node=(b,d)=>{const L=ST.A.links.filter(l=>l.a===b.id||l.b===b.id);return `<div class="bmi ${ST.linkFrom&&ST.linkFrom!==b.id?'lk':''}" style="--d:${Math.min(d,6)};--bc:${b.c||'#2F6BFF'}" data-bm="${b.id}">
-  <div class="h"><b data-go="${b.id}">${esc(b.title)}</b><small>${b.src==='pdf'?'من الملف · ':''}ص ${nA(b.p)}</small></div>
+  <div class="h"><i></i><b data-go="${b.id}">${esc(b.title)}</b><small>${b.src==='pdf'?'من الملف · ':''}ص ${nA(b.p)}</small></div>
   ${ST.ren===b.id?`<input data-renin="${b.id}" value="${esc(b.title)}" style="width:100%;margin-top:4px" aria-label="اسم العلامة">`:''}
+  ${ST.colr===b.id?`<div class="cols">${BMC.map(v=>`<button style="background:${v}" data-bmc="${v}" data-bmid="${b.id}" aria-label="${v}" aria-pressed="${(b.c||'#2F6BFF')===v}"></button>`).join('')}<button style="background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red)" data-bmcp="${b.id}" aria-label="لون آخر"></button></div>`:''}
   ${ST.par===b.id?`<div style="margin-top:4px"><select data-parin="${b.id}" aria-label="تحت أي علامة"><option value="">— علامة رئيسية —</option>${B.filter(x=>x.id!==b.id&&!desc(b.id).has(x.id)).map(x=>`<option value="${x.id}" ${b.parent===x.id?'selected':''}>${esc(x.title)} (ص ${nA(x.p)})</option>`).join('')}</select></div>`:''}
   ${L.map(l=>{const o=l.a===b.id?l.b:l.a;return `<div class="lnk">⇄ <a data-go="${o}">${esc(T(o))}</a>${l.label?' · '+esc(l.label):''}<button class="x" data-unlink="${l.id}" aria-label="فك الربط">×</button></div>`}).join('')}
-  <div class="acts"><button data-ren="${b.id}">تسمية</button><button data-par="${b.id}">${b.parent?'نقلها':'اجعلها فرعية'}</button><button data-sub="${b.id}">＋ فرعية هنا</button><button data-link="${b.id}">⇄ اربط</button><button data-del="${b.id}">حذف</button></div></div>`+kids(b.id).sort((x,y)=>x.p-y.p||x.y-y.y).map(c=>node(c,d+1)).join('')};
+  <div class="acts"><button data-ren="${b.id}">تسمية</button><button data-colr="${b.id}">لون</button><button data-par="${b.id}">${b.parent?'نقلها':'اجعلها فرعية'}</button><button data-sub="${b.id}">＋ فرعية هنا</button><button data-link="${b.id}">⇄ اربط</button><button data-del="${b.id}">حذف</button></div></div>`+kids(b.id).sort((x,y)=>x.p-y.p||x.y-y.y).map(c=>node(c,d+1)).join('')};
  sb.innerHTML=(ST.linkFrom?`<div class="banner">اختر العلامة التي تربطها بـ «${esc(T(ST.linkFrom))}» <button class="tb" data-cancel="1">إلغاء</button></div>`:'')+
   `<div style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 6px"><button class="tb pri" data-addbm="1">＋ علامة في هذه الصفحة</button><button class="tb" data-usebm="1">ضع علامة في موضع</button><button class="tb" data-olimp="1" title="يقرأ العلامات المحفوظة داخل ملف PDF نفسه">علامات الملف</button></div>`+
   (roots.length?roots.map(b=>node(b,0)).join(''):'<div class="empty">لا علامات بعد. اختر أداة «علامة في موضع» ثم اضغط على المكان الذي تريده في الصفحة، أو «علامة في هذه الصفحة». وتقدر تجعل أي علامة فرعية تحت غيرها، وتربط أي علامتين.</div>');
- sb.onclick=e=>{const t=e.target.closest('[data-go],[data-ren],[data-par],[data-sub],[data-link],[data-del],[data-unlink],[data-addbm],[data-usebm],[data-cancel],[data-olimp],.bmi.lk');if(!t)return;if(t.dataset.olimp){outlineImport(true);return}
+ sb.onclick=e=>{const t=e.target.closest('[data-go],[data-ren],[data-par],[data-sub],[data-link],[data-del],[data-unlink],[data-addbm],[data-usebm],[data-cancel],[data-olimp],[data-colr],[data-bmc],[data-bmcp],.bmi.lk');if(!t)return;if(t.dataset.olimp){outlineImport(true);return}
+  if(t.dataset.colr){ST.colr=ST.colr===t.dataset.colr?null:t.dataset.colr;drawSide();return}
+  if(t.dataset.bmc){const b=ST.A.bms.find(x=>x.id===t.dataset.bmid);if(b){snap();b.c=t.dataset.bmc;TC.bm.c=b.c;saveTC();changed(b.p)}return}
+  if(t.dataset.bmcp){const b=ST.A.bms.find(x=>x.id===t.dataset.bmcp);const i=document.createElement('input');i.type='color';i.value=b.c||'#2F6BFF';i.onchange=()=>{snap();b.c=i.value;changed(b.p)};i.click();return}
   if(t.classList.contains('lk')&&!e.target.closest('button,[data-go]')){const id=t.dataset.bm;const label=prompt('وصف الربط (اختياري):','')||'';snap();ST.A.links.push({id:uid(),a:ST.linkFrom,b:id,label:label.trim()});ST.linkFrom=null;changed();return}
   const d=t.dataset;if(d.go){if(ST.linkFrom&&d.go!==ST.linkFrom){const label=prompt('وصف الربط (اختياري):','')||'';snap();ST.A.links.push({id:uid(),a:ST.linkFrom,b:d.go,label:label.trim()});ST.linkFrom=null;changed();return}const b=ST.A.bms.find(x=>x.id===d.go);if(b)flash(b.id,b.p);if(innerWidth<900)showSide(false);return}
   if(d.ren){ST.ren=ST.ren===d.ren?null:d.ren;drawSide();const i=$(`[data-renin="${d.ren}"]`,sb);if(i){i.focus();i.select();i.onkeydown=ev=>{ev.stopPropagation();if(ev.key==='Enter')i.blur()};i.onblur=()=>{const b=ST.A.bms.find(x=>x.id===d.ren);if(b&&i.value.trim()&&i.value.trim()!==b.title){snap();b.title=i.value.trim();ST.ren=null;changed(b.p)}else{ST.ren=null;drawSide()}}}return}
