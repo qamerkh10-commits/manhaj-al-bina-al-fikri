@@ -778,6 +778,19 @@ body .dmsg blockquote,body .dmsg .bt span{font-family:"Thmanyah Serif Text","Seg
 .kday .kx{all:unset;cursor:pointer;color:var(--muted);font-size:18px;line-height:1;padding:0 4px}
 .kday .kfoot{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .kday .linkbtn{all:unset;cursor:pointer;color:var(--teal);font-size:13px;font-weight:700}
+</style><style id="kSetCss">
+#natSet{display:none!important}
+#paceSet.settings{display:block!important}
+#paceSet .btn[disabled]{opacity:.5;cursor:default}
+.kdaily{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.kdaily label{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:16px;background:var(--soft);border:1px solid var(--line);font-weight:700;font-size:14px}
+.kdaily label small{font-weight:400;color:var(--muted);font-size:12px;line-height:1.6}
+.kdaily .r{display:flex;align-items:center;gap:8px;font-weight:400;color:var(--muted);font-size:13px}
+.kdaily input,.kdaily select{width:84px;font:inherit;font-size:15px;padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.kdaily select{width:auto}
+.kfin{margin-top:12px;display:grid;gap:4px;font-size:13.5px}
+.kfin b{color:var(--teal)}
+.litpick{margin-inline-start:8px;min-height:30px;padding:3px 12px;font-size:12.5px}
 </style><style id="kaiCss">
 #aiBox{width:min(460px,calc(100vw - 32px));height:min(680px,calc(100vh - 120px));border-radius:22px;border:1px solid var(--line);background:var(--bg);box-shadow:0 24px 60px -20px rgba(15,20,32,.45)}
 #aiBox .kh{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--deep);color:#F6F1E4;border-bottom:3px solid #D2AE62}
@@ -1099,7 +1112,7 @@ dialog:not(#bookDlg)::backdrop{background:rgba(6,10,18,.38);-webkit-backdrop-fil
 <section data-tab="path" hidden>
  <h2 class="h2">المسار: ماذا تقرأ ومتى</h2>
  <p class="lead">كل كتاب يظهر في <b>السنة والفترة التي ستقرؤه فيها فعلًا</b> بسرعتك الحالية، والمراحل موقّتة على قدر ذلك. وإن غيّرت السرعة من الإعدادات تغيّر التوزيع.</p>
- <p class="lead"><b>كل كتب الخطة في الجدول:</b> لكل كتاب مستواه وموعده، ولا شيء اختياري. والعلوم الشرعية مسار رابع تملؤه أنت من تبويب «العلوم الشرعية». بعد كل كتاب أيام مراجعة 🔁 على قدر حجمه (يوم لكل ١٥٠ صفحة تقريبًا، من يوم إلى ٤). ويوم في الأسبوع للأدب 📜. والورد اليومي ثلاثة مسارات تُقرأ معًا: 📘 الفكر الإسلامي، و🔬 العلوم والإنسانيات، و🏛️ التراث والمنطق والكلام. والكتب مرقّمة خطوةً خطوة بترتيب قراءتها: تبدأ بالخطوة ١، وكل خطوة معها فائدتها وتاريخ بدايتها ونهايتها. اضغط اسم أي كتاب لترى تفاصيله كاملة، والكتاب الذي قبله والذي بعده.</p>
+ <p class="lead"><b>كل كتب الخطة في الجدول:</b> لكل كتاب مستواه وموعده، ولا شيء اختياري. والورد اليومي: 📘 <b>الورد الفكري</b> <span data-kc="rot">٢٠</span> صفحة في تسلسل واحد، كتابًا بعد كتاب على مكونات سلطان العميري في ثلاث مراحل؛ و🌿 <b>الورد التزكوي</b> <span data-kc="taz">١٠</span> صفحات كل يوم من منهج «معارج العلوم»؛ و📖 <b>الورد الأدبي</b> <span data-kc="lit">١٠</span> صفحات من كتاب تختاره أنت؛ و🧮 <b>العلوم العقلية</b> يوم <span data-kc="day">الجمعة</span>؛ و🏛️ <b>المنطق والكلام</b> بعد انتهاء الورد الفكري كله. والعلوم الشرعية تضيفها أنت من تبويب «العلوم الشرعية». وبعد كل كتاب فكري تراجعه ربع ساعة قبل أن تبدأ الذي بعده. وما تسجّله في «اليوم» من صفحات وصلت إليها هو الذي يمشي عليه الجدول. والكتب مرقّمة خطوةً خطوة بترتيب قراءتها: تبدأ بالخطوة ١، وكل خطوة معها فائدتها وتاريخ بدايتها ونهايتها. اضغط اسم أي كتاب لترى تفاصيله كاملة، والكتاب الذي قبله والذي بعده.</p>
  <div id="pathBody"></div>
 </section>
 
@@ -1144,21 +1157,21 @@ dialog:not(#bookDlg)::backdrop{background:rgba(6,10,18,.38);-webkit-backdrop-fil
 
 <section data-tab="lit" hidden>
  <h2 class="h2">الأدب والترويح</h2>
- <p class="lead">يوم في الأسبوع يحل فيه الأدب محل الورد العادي ليستريح ذهنك، وتقدر من تبويب «اليوم» تحوّل أي يوم إلى يوم أدب حين تحتاج. وفيه كتب التزكية المعاصرة الرقيقة، تتناوب مع كتب الأدب. والقائمة تبدأ بالخفيف: خواطر ومقالات وسير ورحلات، ثم شعر ونثر تراثي أعلى.</p>
- <div class="settings" style="margin-bottom:12px"><label>يوم الأدب الأسبوعي: <select id="litWd" style="font:inherit;border:1px solid var(--line);border-radius:8px;background:var(--soft);color:var(--ink)"><option value="-1">لا يوم ثابت</option><option value="6">السبت</option><option value="0">الأحد</option><option value="1">الاثنين</option><option value="2">الثلاثاء</option><option value="3">الأربعاء</option><option value="4">الخميس</option></select></label></div>
+ <p class="lead">📖 الورد الأدبي: <span data-kc="lit">١٠</span> صفحات كل يوم من الكتاب الذي تختاره أنت، والقائمة تبدأ بالرافعي من «السحاب الأحمر». اضغط «اقرأه الآن» على أي كتاب هنا، أو «غيّر الكتاب» في «وردك اليوم»، وسجّل هناك الصفحة التي وصلت إليها فيمشي موضعك منها.</p>
+ <div class="settings" style="margin-bottom:12px;display:none"><label>يوم الأدب الأسبوعي: <select id="litWd" style="font:inherit;border:1px solid var(--line);border-radius:8px;background:var(--soft);color:var(--ink)"><option value="-1">لا يوم ثابت</option><option value="6">السبت</option><option value="0">الأحد</option><option value="1">الاثنين</option><option value="2">الثلاثاء</option><option value="3">الأربعاء</option><option value="4">الخميس</option></select></label></div>
  <div class="card"><ul class="tl" id="litBody"></ul></div>
 </section>
 <section data-tab="sci" hidden>
  <h2 class="h2">أسس العلوم</h2>
- <p class="muted small">العلوم الطبيعية 🧪 لها ورد يومي مستقل: صفحات قليلة كل يوم قراءة، بالترتيب: المنهج العلمي، ثم الرياضيات، ثم الفيزياء، ثم الكيمياء، ثم الأرض والكون، ثم الحياة. أما بقية مداخل هذا التبويب (المجتمع والنفس والاقتصاد…) فتُقرأ ضمن مسار 🔬 العلوم والإنسانيات.</p><div class="settings" id="natSet" style="margin-bottom:12px"></div><p class="lead">أصول كل علم بقدر ما يجعلك تفهم الكلام فيه، لا دراسة تخصص. مرتبة ترتيبًا منطقيًّا: الرياضيات، ثم علوم الطبيعة، ثم فلسفة العلم والمنطق، ثم العلوم الإنسانية. تسير موازية لمنهج القراءة بصفحات قليلة كل يوم من أول الجدول، وأغلبها من سلسلة «مقدمة قصيرة جدًّا» المجانية.</p>
+ <p class="muted small">🧮 العلوم العقلية لها يوم واحد في الأسبوع (يوم <span data-kc="day">الجمعة</span>)، تقرأ فيه <span data-kc="sci">٣٠</span> صفحة بالترتيب المكتوب هنا، وتغيّر اليوم وعدد الصفحات من «الإعدادات». أما مداخل المجتمع والنفس والاقتصاد والسياسة فدخلت في الورد الفكري ضمن مكوّن «العلوم الإنسانية».</p><div class="settings" id="natSet" style="margin-bottom:12px"></div><p class="lead">أصول كل علم بقدر ما يجعلك تفهم الكلام فيه، لا دراسة تخصص. مرتبة ترتيبًا منطقيًّا: الرياضيات، ثم علوم الطبيعة، ثم فلسفة العلم والمنطق، ثم العلوم الإنسانية. وأغلبها من سلسلة «مقدمة قصيرة جدًّا» المجانية.</p>
  <div class="settings" style="margin-bottom:12px;display:none"><label>يبدأ في: <input type="date" id="sciStart"></label><input type="hidden" id="sciBud"></div>
  <p class="lead" id="sciInfo"></p>
  <div class="card"><ul class="tl" id="sciBody"></ul></div>
 </section>
 <section data-tab="lk" hidden>
- <h2 class="h2">الدراسة المنطقية والكلامية</h2><p class="muted small">يقرأ ضمن مسار 🏛️ التراث والمنطق والكلام في الورد اليومي، وسرعته من «مراجع وإعدادات».</p>
- <p class="lead">مسار موازٍ مأخوذ بترتيبه من «السبل المرضية»: المنطق، ثم التراث التيمي وعلم الكلام والفلسفة الإسلامية. يبدأ بعد انتهائك من «كفاءات»، فاكتب تاريخ انتهائك ويُبنى الجدول عليه.</p>
- <div class="settings" style="margin-bottom:12px"><label>تاريخ انتهائك من «كفاءات»: <input type="date" id="lkStart"></label><input type="hidden" id="lkBud"></div>
+ <h2 class="h2">الدراسة المنطقية والكلامية</h2><p class="muted small">يُقرأ في الورد اليومي بعد انتهاء الورد الفكري كله، مكانه، وعدد صفحاته من «الإعدادات».</p>
+ <p class="lead">مأخوذ بترتيبه من «السبل المرضية»: المنطق، ثم التراث التيمي وعلم الكلام والفلسفة الإسلامية. لا يُقرأ موازيًا للفكر، بل بعده.</p>
+ <div class="settings" style="margin-bottom:12px;display:none"><label>تاريخ انتهائك من «كفاءات»: <input type="date" id="lkStart"></label><input type="hidden" id="lkBud"></div>
  <p class="lead" id="lkInfo"></p><p class="muted small">البنود المعلَّمة «بديل» يختار منها «السبل» كتابًا واحدًا، فلا تدخل الجدول. و«قائمة مطالعة» اختيارية. ونصوص «مجموع الفتاوى» محسوبة ١٥ صفحة للنص الواحد تقديرًا.</p>
  <div id="lkBody"></div>
  <details class="card" style="margin-top:16px"><summary class="k" style="cursor:pointer;color:var(--navy)">ملخصات كتب «التفكير المستقيم» (خارج الجدول)</summary><div style="margin-top:10px"><h3 style="font-size:15px;margin-top:12px">«فصول في التفكير الموضوعي» لعبد الكريم بكار</h3>
@@ -1192,7 +1205,7 @@ dialog:not(#bookDlg)::backdrop{background:rgba(6,10,18,.38);-webkit-backdrop-fil
 <section data-tab="ref" hidden>
  <h2 class="h2">مراجع وإعدادات</h2>
  <div class="card" style="margin-bottom:14px">
-  <h3 style="font-size:16px;color:var(--navy);margin-bottom:4px">ورد اليوم: ثلاثة مسارات معًا (صفحات في اليوم)</h3><p class="muted small" style="margin:0 0 8px">كل يوم قراءة تقرأ من المسارات الثلاثة معًا، فتمر في كل شهر على الفكر والعلوم والتراث. ومسار التراث والمنطق والكلام يبدأ بعد «كفاءات».</p>
+  <h3 style="font-size:16px;color:var(--navy);margin-bottom:4px">الورد اليومي (صفحات في اليوم)</h3><p class="muted small" style="margin:0 0 8px">غيّر عدد صفحات أي ورد أو يوم العلوم، فيُعاد توزيع الجدول من اليوم ويصل التعديل للبوت تلقائيًّا. والعدد اقتراح: ما تسجّله في «اليوم» من صفحات وصلت إليها هو الذي يمشي عليه الجدول.</p>
   <div class="settings" id="paceSet"></div>
   <p class="muted small" style="margin-top:8px" id="finishLine"></p>
  </div>
@@ -1205,10 +1218,10 @@ dialog:not(#bookDlg)::backdrop{background:rgba(6,10,18,.38);-webkit-backdrop-fil
 <li><b>احذر التضخم السياسي:</b> سؤال الدولة ثمرة الدراسة لا بدايتها.</li>
 <li><b>لكل مفهوم ثلاثة أسئلة:</b> ما تعريفه؟ وما سياقه التاريخي؟ وما حكمه وبديله في الشريعة؟</li>
 <li><b>اقرأ المخالف من كتبه</b> بعد التأصيل، واعرف موقع الكاتب قبل أن تقرأه.</li>
-<li><b>الكلية أولًا:</b> لا قراءة في الامتحانات، والتعويض في الإجازات.</li>
-<li><b>كتاب فكري واحد في وقت واحد</b>، وإن ثقل عليك كتاب فأجّله بلا حرج.</li></ul></div>
+<li><b>الكلية أولًا:</b> في الامتحانات يتوقف الورد الفكري، ويبقى معك التزكوي والأدبي.</li>
+<li><b>كتاب فكري واحد في وقت واحد</b>، وإن ثقل عليك كتاب فأجّله بلا حرج.</li> <li><b>سجّل ما قرأته فعلًا:</b> عشرون صفحة اقتراح، فإن قرأت أكثر أو أقل اكتب الصفحة التي وصلت إليها، ويتعدّل الباقي.</li></ul></div>
  <div class="card" style="margin-bottom:14px"><h3 style="font-size:16px;color:var(--navy);margin-bottom:6px">الأهداف السنوية</h3><p class="muted small" style="margin:0 0 8px">بدل تاريخ النهاية البعيد: قِس إنجازك سنة بسنة. وفي أول كل صيف يوم «مراجعة سنوية» تعدّل فيه الخطة على ضوء ما تعلمت.</p><div style="overflow-x:auto" id="goalsTbl"></div></div>
- <div class="card" style="margin-bottom:14px"><h3 style="font-size:16px;color:var(--navy);margin-bottom:6px">حفظ تقدّمك</h3><p class="muted small" style="margin:0 0 8px">التقدّم محفوظ في هذا المتصفح فقط. صدّره في ملف صغير احتياطًا، أو لتنقله إلى جهاز آخر.</p><button class="btn primary" id="expBtn">تصدير التقدّم</button> <label class="btn" style="display:inline-block">استيراد ملف تقدّم<input type="file" id="impFile" accept=".json" hidden></label></div>
+ <div class="card" style="margin-bottom:14px"><h3 style="font-size:16px;color:var(--navy);margin-bottom:6px">حفظ تقدّمك</h3><p class="muted small" style="margin:0 0 8px">تقدّمك وإعداداتك تصل للبوت تلقائيًّا ما دامت صفحتك مربوطة به، أما تعليقاتك وتسجيلاتك الصوتية فتبقى على هذا الجهاز. صدّر كل شيء في ملف صغير احتياطًا، أو لتنقله إلى جهاز آخر.</p><button class="btn primary" id="expBtn">تصدير التقدّم</button> <label class="btn" style="display:inline-block">استيراد ملف تقدّم<input type="file" id="impFile" accept=".json" hidden></label></div>
  <div class="card" style="margin-bottom:14px"><h3 style="font-size:16px;color:var(--navy);margin-bottom:6px">رفيق القراءة</h3><p class="small" style="margin:0">الاستمرار أسهل مع رفقة: اقرأ «كتاب الشهر» الظاهر في تبويب «اليوم» مع زميل أو حلقة صغيرة، واجتمعوا آخر كل شهر ساعة للنقاش، ولكلٍّ ملخصه المكتوب.</p></div>
  <div class="card" style="margin-bottom:14px"><h3 style="font-size:16px;color:var(--navy);margin-bottom:6px">مهارات مرافقة (خارج الجدول اليومي)</h3><ul style="margin:0;padding-inline-start:20px;font-size:15px">
 <li><b>الإنجليزية:</b> عشرون دقيقة، ثلاث مرات في الأسبوع، أغلب أدبيات الفكر السياسي والاجتماعي بها، وستحتاجها للماجستير: <a href="https://www.bbc.co.uk/learningenglish" target="_blank" rel="noopener">BBC Learning English ↗</a> · <a href="https://learnenglish.britishcouncil.org" target="_blank" rel="noopener">British Council LearnEnglish ↗</a></li>
@@ -1510,7 +1523,7 @@ function renderToday(){
  const a=AUD[k],l=LKD[k];
  let s=`<h3 style="font-size:15px;color:var(--navy);margin-bottom:6px">معك في هذا اليوم</h3>`;
  s+=(HSD&&HSF[TODAY]&&!HSF[TODAY].pause)?hsfBox(TODAY):`<div class="mini"><div class="ico">🎧</div><div>${a?`<b>${esc(a.series)}</b><div class="muted small">${esc(a.speaker)} · الحلقة ${nA(a.ep)}${a.est?'':' من '+nA(a.n)}</div>${a.url?`<a class="small" href="${esc(a.url)}" target="_blank" rel="noopener">افتح الرابط ↗</a>`:''}`:'<span class="muted">لا مسموع مجدول</span>'}</div></div>`;
- if(NATD[TODAY])s+=`<div class="mini"><div class="ico">🧪</div><div><span class="step">العلوم الطبيعية</span>${NATD[TODAY].map(x=>`<div class="small"><b>${esc(x.ttl)}</b> · ص ${nA(x.a)}–${nA(x.b)} <span class="muted">(من ${nA(x.tot)})</span></div>`).join('')}</div></div>`;
+ if(NATD[TODAY])s+=`<div class="mini"><div class="ico">🧪</div><div><span class="step">العلوم العقلية</span>${NATD[TODAY].map(x=>`<div class="small"><b>${esc(x.ttl)}</b> · ص ${nA(x.a)}–${nA(x.b)} <span class="muted">(من ${nA(x.tot)})</span></div>`).join('')}</div></div>`;
  if(SHD[TODAY])s+=`<div class="mini"><div class="ico">📗</div><div><span class="step">العلوم الشرعية</span>${SHD[TODAY].map(x=>`<div class="small">${esc(shTxt(x))}${x.url?` <a href="${esc(x.url)}" target="_blank" rel="noopener">↗</a>`:''}</div>`).join('')}</div></div>`;
  if(!D.KCORE)s+=`<div class="mini"><div class="ico">🧭</div><div><b>ورد اليوم ثلاثة مسارات</b><div class="muted small">📘 الفكر الإسلامي · 🔬 العلوم والإنسانيات · 🏛️ التراث والمنطق والكلام (يبدأ بعد «كفاءات» ${fS(toD(lkCfg.start))})</div></div></div>`;
  document.getElementById('todaySide').innerHTML=s;
@@ -1642,7 +1655,7 @@ function renderCal(){
  const g=document.getElementById('calGrid');g.innerHTML=h;
  g.querySelectorAll('.cell[data-k]').forEach(c=>c.onclick=()=>{calSel=c.dataset.k;renderCal()});
  const k=calSel,dy=DAYS[k],a=AUD[k],l=LKD[k];
- document.getElementById('calDay').innerHTML=`<h3 style="font-size:16px;color:var(--navy)">${fL(toD(k))}</h3>${NOTES[k]?`<div class="ben" style="margin-bottom:8px"><b>تعليقك: </b>${esc(NOTES[k])}</div>`:''}${dy?dy.segs.map(s=>`<div class="mini"><div class="ico">${LANES[s.lane].ico}</div><div><span class="step">${LANES[s.lane].n}</span><br><b>${esc(s.ttl)}</b><div class="muted small">${s.rv?segTxt(s):'من صفحة '+nA(s.a)+' إلى '+nA(s.b)+' (من '+nA(s.tot)+')'}</div></div></div>`).join(''):`<p class="muted">${esc(reason(k))}</p>`}${a?`<div class="mini"><div class="ico">🎧</div><div><b>${esc(a.series)}</b><div class="muted small">${esc(a.speaker)} · الحلقة ${nA(a.ep)}</div></div></div>`:''}${SCID[k]?SCID[k].map(x=>`<div class="mini"><div class="ico">🔬</div><div><b>${esc(x.ttl)}</b><div class="muted small">أسس العلوم · ص ${nA(x.a)}–${nA(x.b)}</div></div></div>`).join(''):''}${l?l.map(x=>`<div class="mini"><div class="ico">📐</div><div><b>${esc(x.ttl)}</b><div class="muted small">ص ${nA(x.a)}–${nA(x.b)}</div></div></div>`).join(''):''}${HSD&&HSF[k]&&!HSF[k].pause?hsfBox(k):''}${NATD[k]?NATD[k].map(x=>`<div class="mini"><div class="ico">🧪</div><div><span class="step">العلوم الطبيعية</span><br><b>${esc(x.ttl)}</b><div class="muted small">ص ${nA(x.a)}–${nA(x.b)} (من ${nA(x.tot)})</div></div></div>`).join(''):''}${SHD[k]?SHD[k].map(x=>`<div class="mini"><div class="ico">📗</div><div><span class="step">العلوم الشرعية</span><br><b>${esc(x.ttl)}</b><div class="muted small">${esc(shTxt(x))}</div></div></div>`).join(''):''}`;
+ document.getElementById('calDay').innerHTML=`<h3 style="font-size:16px;color:var(--navy)">${fL(toD(k))}</h3>${NOTES[k]?`<div class="ben" style="margin-bottom:8px"><b>تعليقك: </b>${esc(NOTES[k])}</div>`:''}${dy?dy.segs.map(s=>`<div class="mini"><div class="ico">${LANES[s.lane].ico}</div><div><span class="step">${LANES[s.lane].n}</span><br><b>${esc(s.ttl)}</b><div class="muted small">${s.rv?segTxt(s):'من صفحة '+nA(s.a)+' إلى '+nA(s.b)+' (من '+nA(s.tot)+')'}</div></div></div>`).join(''):`<p class="muted">${esc(reason(k))}</p>`}${a?`<div class="mini"><div class="ico">🎧</div><div><b>${esc(a.series)}</b><div class="muted small">${esc(a.speaker)} · الحلقة ${nA(a.ep)}</div></div></div>`:''}${SCID[k]?SCID[k].map(x=>`<div class="mini"><div class="ico">🔬</div><div><b>${esc(x.ttl)}</b><div class="muted small">أسس العلوم · ص ${nA(x.a)}–${nA(x.b)}</div></div></div>`).join(''):''}${l?l.map(x=>`<div class="mini"><div class="ico">📐</div><div><b>${esc(x.ttl)}</b><div class="muted small">ص ${nA(x.a)}–${nA(x.b)}</div></div></div>`).join(''):''}${HSD&&HSF[k]&&!HSF[k].pause?hsfBox(k):''}${NATD[k]?NATD[k].map(x=>`<div class="mini"><div class="ico">🧪</div><div><span class="step">العلوم العقلية</span><br><b>${esc(x.ttl)}</b><div class="muted small">ص ${nA(x.a)}–${nA(x.b)} (من ${nA(x.tot)})</div></div></div>`).join(''):''}${SHD[k]?SHD[k].map(x=>`<div class="mini"><div class="ico">📗</div><div><span class="step">العلوم الشرعية</span><br><b>${esc(x.ttl)}</b><div class="muted small">${esc(shTxt(x))}</div></div></div>`).join(''):''}`;
 }
 /* ---------- library ---------- */
 let libT=null;
@@ -1769,7 +1782,7 @@ if(PROF.key){const pb=document.getElementById('profBar');pb.hidden=false;documen
  const bl=document.getElementById('botLink');if(bl)bl.onclick=e=>{if(bl.dataset.ok)return;e.preventDefault();fetch(D.BOT_URL+'/botname').then(r=>r.json()).then(j=>{if(!j.username)throw 0;bl.href='https://t.me/'+j.username+'?start='+PROF.key;bl.dataset.ok=1;window.open(bl.href,'_blank')}).catch(()=>alert('تعذّر الوصول للبوت الآن، جرّب بعد قليل'))};}
 document.getElementById('themeBtn').onclick=()=>{const cur=document.documentElement.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');LS.set('manhaj-theme',cur==='dark'?'light':'dark');applyTheme()};
 function renderExams(){const el=document.getElementById('examCard');if(!el)return;const L=S.black.slice().sort((x,y)=>x[0]<y[0]?-1:1);
- el.innerHTML=`<h3 style="font-size:16px;color:var(--navy);margin-bottom:6px">امتحاناتك (أيام بلا قراءة)</h3><p class="muted small" style="margin:0 0 8px">أضف كل امتحان أو فترة امتحانات، فلا يضع الجدول فيها قراءة ويعيد توزيع الكتب بعدها. واجعل «من» قبل الامتحان بيومين للاستعداد. والجمعة إجازة دائمًا.</p><div style="overflow-x:auto"><table class="t"><tr><th>من</th><th>إلى</th><th>الوصف</th><th></th></tr>${L.map(x=>`<tr><td>${fS(toD(x[0]))}</td><td>${fS(toD(x[1]))}</td><td>${esc(x[2]||'امتحانات')}</td><td><button class="x btn" data-exdel="${x[0]}|${x[1]}" aria-label="حذف">×</button></td></tr>`).join('')||'<tr><td colspan="4" class="muted">لا امتحانات مضافة</td></tr>'}</table></div><div class="addrow" style="flex-wrap:wrap"><input type="date" id="exFrom" aria-label="من"><input type="date" id="exTo" aria-label="إلى"><input id="exLbl" placeholder="الوصف، مثلًا: امتحانات الترم الأول"><button class="btn primary" id="exAdd">إضافة</button></div><button class="btn" id="exReset" style="margin-top:8px">رجوع للجدول الأصلي</button>`;
+ el.innerHTML=`<h3 style="font-size:16px;color:var(--navy);margin-bottom:6px">امتحاناتك (أيام بلا ورد فكري)</h3><p class="muted small" style="margin:0 0 8px">أضف كل امتحان أو فترة امتحانات، فيتوقف فيها الورد الفكري والعلوم العقلية والمسموع ويُعاد توزيعها بعدها، ويبقى معك الورد التزكوي والأدبي. (إيقاف المسموع تغيّره من إعدادات «المسموع».) واجعل «من» قبل الامتحان بيومين للاستعداد.</p><div style="overflow-x:auto"><table class="t"><tr><th>من</th><th>إلى</th><th>الوصف</th><th></th></tr>${L.map(x=>`<tr><td>${fS(toD(x[0]))}</td><td>${fS(toD(x[1]))}</td><td>${esc(x[2]||'امتحانات')}</td><td><button class="x btn" data-exdel="${x[0]}|${x[1]}" aria-label="حذف">×</button></td></tr>`).join('')||'<tr><td colspan="4" class="muted">لا امتحانات مضافة</td></tr>'}</table></div><div class="addrow" style="flex-wrap:wrap"><input type="date" id="exFrom" aria-label="من"><input type="date" id="exTo" aria-label="إلى"><input id="exLbl" placeholder="الوصف، مثلًا: امتحانات الترم الأول"><button class="btn primary" id="exAdd">إضافة</button></div><button class="btn" id="exReset" style="margin-top:8px">رجوع للجدول الأصلي</button>`;
  el.querySelector('#exAdd').onclick=()=>{const f=el.querySelector('#exFrom').value,t=el.querySelector('#exTo').value||f,l=el.querySelector('#exLbl').value.trim();if(!f)return;S.black.push([f<t?f:t,f<t?t:f,l]);LS.set('manhaj-black',S.black);renderAll()};
  el.querySelectorAll('[data-exdel]').forEach(x=>x.onclick=()=>{const [f,t]=x.dataset.exdel.split('|');S.black=S.black.filter(y=>!(y[0]===f&&y[1]===t));LS.set('manhaj-black',S.black);renderAll()});
  el.querySelector('#exReset').onclick=()=>{if(confirm('ترجع لجدول الامتحانات الأصلي؟')){try{localStorage.removeItem(KK('manhaj-black'))}catch(e){}location.reload()}};}
@@ -1861,7 +1874,7 @@ renderAll();show(LS.get('manhaj-tab2','today'));
   if(b.lv!=null)o.level=b.lv;if(b.sci&&D.SCINAMES&&D.SCINAMES[b.sci])o.science=D.SCINAMES[b.sci];o.state=done[b.id]?'قرأه':!b.core?'في المكتبة فقط، ليس في الجدول':r?'في الجدول':'في الجدول (لم يُجدول بعد)';
   if(r)o.dates=r.s+' → '+r.e;if(b.shar)o.shari=1;if(b.custom)o.added_by_him=1;if(b.course)o.course=1;
   const c=(EDIT.custom||[]).find(x=>x.id===b.id);if(c&&c.shar){if(c.start)o.start=c.start;if(c.with)o.with_others=1}return o};
- const KS=()=>{const o={};[['A','الفن الدوّار'],['B','المنهج والحجاج'],['N','العلوم الطبيعية'],['T','التزكية والأدب'],['S','العلوم الشرعية']].forEach(([k,n])=>{try{o[k]=n+': '+kS(k)}catch(e){}});o.H='السماع اليومي: '+hsfCfg.start;o.L='المنطق: '+lkCfg.start;return o};
+ const KS=()=>{const o={};[['A','الورد الفكري'],['B','المنطق والكلام (لا يبدأ قبل هذا التاريخ، وبعد انتهاء الورد الفكري)'],['N','العلوم العقلية'],['T','الورد التزكوي'],['S','العلوم الشرعية']].forEach(([k,n])=>{try{o[k]=n+': '+kFrom(kS(k))}catch(e){}});o.H='المسموع: '+hsfCfg.start;return o};
  function record(){const out=[],st0=(typeof kStart==='function'&&kStart())||'';const dd=LS.get('manhaj-daydone',{});
   for(let i=14;i>=1;i--){const x=toD(TODAY);x.setDate(x.getDate()-i);const k=iso(x);if(st0&&k<st0)continue;const ts=dayTasks(k),st=TODO[k]||{};
    const o={date:k,day:x.toLocaleDateString('ar-EG',{weekday:'long'})};
@@ -1883,7 +1896,9 @@ renderAll();show(LS.get('manhaj-tab2','today'));
   const days=[];for(let i=-1;i<8;i++){const x=toD(TODAY);x.setDate(x.getDate()+i);const k=iso(x),st=TODO[k]||{done:{}};const ts=dayTasks(k);
    days.push({date:k,day:x.toLocaleDateString('ar-EG',{weekday:'long'}),tasks:ts.length?ts.map(t=>({id:t.id,txt:t.txt,done:!!(st.done&&st.done[t.id])})):[],why:ts.length?undefined:reason(k),note:NOTES[k]?String(NOTES[k]).slice(0,300):undefined})}
   return {person:PROF.name,today:TODAY,plan_ends:FIN?iso(FIN):null,memory:MEM.map(m=>m.t),
-   lanes_meaning:{A:'الفن الدوّار (فكر إسلامي ومذاهب ومجتمع وسياسة…)',B:'المنهج والحجاج',C:'المنطق والكلام والتراث',N:'العلوم الطبيعية',T:'التزكية والأدب (الجمعة)',SH:'العلوم الشرعية (ما يضيفه بنفسه)'},
+   lanes_meaning:{A:'الورد الفكري: تسلسل واحد على مكونات سلطان العميري في ٣ مراحل، كتاب بعد كتاب',C:'المنطق والكلام والتراث: بعد انتهاء الورد الفكري كله',N:'العلوم العقلية: يوم واحد في الأسبوع',T:'الورد التزكوي: كل يوم، من منهج «معارج العلوم» للأسطل',LIT:'الورد الأدبي: كل يوم من كتاب يختاره هو',SH:'العلوم الشرعية: ساعة يضيفها بنفسه'},
+   daily_pages:{thought:+KCAP.rot,tazkiya:+KCAP.taz,literature:window.kLit&&kLit.per?kLit.per():10,sciences:+KCAP.sci,sciences_day:Object.keys(KDAY).filter(d=>String(KDAY[d]).includes('N')).map(d=>['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'][+d]).join('، '),logic:+KCAP.method},
+   how_pages_work:'لكل كتاب في ورد اليوم خانة «وصلت إلى ص»: ما يسجله هو الذي يمشي عليه الجدول، ويوم لا يسجل فيه يُحسب كما خُطط. وأيام الامتحانات يتوقف فيها الفكر والعلوم والمسموع، ويستمر التزكوي والأدبي.',
    starts:KS(),next_in_each_lane:lanes,books_matching_question:hits,days,record:record(),
    his_shari_items:BOOKS.filter(b=>b.shar&&b.custom).map(info),
    vacations:(S.black||[]).slice(-12).map(v=>({from:v[0],to:v[1],label:v[2]||''})),
@@ -1892,7 +1907,7 @@ renderAll();show(LS.get('manhaj-tab2','today'));
  const OKD=s=>/^\d{4}-\d{2}-\d{2}$/.test(String(s||'')),dA=k=>OKD(k)?fS(toD(k)):k;
  const nextIn=l=>BOOKS.filter(b=>b.core&&!done[b.id]&&RANGE[b.id]&&RANGE[b.id].s>TODAY&&laneOf(b)===l).sort((a,b)=>RANGE[a.id].s<RANGE[b.id].s?-1:1)[0];
  const SHC=id=>(EDIT.custom||[]).find(c=>c.id===id&&c.shar);
- const TRK={A:'الفن الدوّار',B:'المنهج والحجاج',N:'العلوم الطبيعية',T:'التزكية والأدب',S:'العلوم الشرعية',H:'السماع اليومي',L:'المنطق'};
+ const TRK={A:'الورد الفكري',B:'المنطق والكلام',N:'العلوم العقلية',T:'الورد التزكوي',S:'العلوم الشرعية',H:'المسموع',L:'المنطق (قديم، لا أثر له)'};
  const ACT={
   hide:{ok:a=>B(a.id)&&B(a.id).core,say:a=>`أشيل «${T(a.id)}» من الجدول (يبقى في المكتبة)`,run:a=>{const b=B(a.id);if(b.custom)EDIT.custom=EDIT.custom.filter(c=>c.id!==b.id);else{EDIT.hide[b.id]=1;delete EDIT.add[b.id]}return 1}},
   restore:{ok:a=>B(a.id)&&!B(a.id).core,say:a=>`أرجّع «${T(a.id)}» إلى الجدول`,run:a=>{EDIT.add[a.id]=1;delete EDIT.hide[a.id];return 1}},
@@ -2072,21 +2087,20 @@ renderAll();show(LS.get('manhaj-tab2','today'));
  const drawFs=()=>{const z=+LS.get('manhaj-fs',1)||1;fsCard.innerHTML=`<h3 style="font-size:16px;margin-bottom:8px">حجم الخط</h3><div class="fsrow">${FS.map(([n,v])=>`<button class="btn" data-fs="${v}" aria-pressed="${Math.abs(v-z)<.01}">${n}</button>`).join('')}</div><p class="muted small" style="margin:8px 0 0">لراحة القراءة على هذا الجهاز وحده.</p>`;fsCard.querySelectorAll('[data-fs]').forEach(b=>b.onclick=()=>{LS.set('manhaj-fs',+b.dataset.fs);applyFs();drawFs()})};drawFs();
  const fb=document.getElementById('fsBtn');if(fb)fb.onclick=()=>{const z=+LS.get('manhaj-fs',1)||1;const i=FS.findIndex(x=>Math.abs(x[1]-z)<.01);const nx=FS[(i+1)%FS.length][1];LS.set('manhaj-fs',nx);applyFs();drawFs()};
  // ===== «مواعيد البدء»: every track's start date, on his page; the bot follows (the settings sync as usual) =====
- const SD=[['A','📘 الفن الدوّار'],['B','🔬 المنهج والحجاج (ثم المنطق)'],['N','🧪 العلوم الطبيعية'],['T','🌿 التزكية والأدب (الجمعة)'],['S','📗 العلوم الشرعية (ما تضيفه أنت)']];
+ const SD=[['A','📘 الورد الفكري'],['T','🌿 الورد التزكوي'],['N','🧮 العلوم العقلية'],['S','📗 العلوم الشرعية (ما تضيفه أنت)'],['B','🏛️ المنطق والكلام (بعد الورد الفكري كله، ولا يبدأ قبل)']];
  const sdCard=document.createElement('div');sdCard.className='card';sdCard.id='startCard';sdCard.style.marginBottom='14px';
  function drawStarts(){const ov=LS.get('manhaj-kcap-v1',{});
-  sdCard.innerHTML=`<h3 style="font-size:16px;margin-bottom:6px">مواعيد البدء</h3><p class="muted small" style="margin:0 0 10px">غيّر تاريخ بداية أي مسار وحده، فيُعاد توزيع كتبه من ذلك اليوم، ويصل التعديل للبوت تلقائيًّا. ولا يتغير ما قبل اليوم.</p>`
+  sdCard.innerHTML=`<h3 style="font-size:16px;margin-bottom:6px">مواعيد البدء</h3><p class="muted small" style="margin:0 0 10px">غيّر تاريخ بداية أي ورد وحده، فيُعاد توزيع كتبه من ذلك اليوم، ويصل التعديل للبوت تلقائيًّا. ولا يتغير ما قبل اليوم، فخطتك بدأت يوم ${esc(fL(toD(kBaseFrom()||kStart())))}. والورد الأدبي يمشي مع الكتاب الذي تختاره من تبويب «اليوم».</p>`
    +`<div class="settings" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px">`
-   +SD.map(([k,n])=>`<label>${n}<br><input type="date" data-sd="${k}" value="${kS(k)}" style="width:100%;margin:4px 0 0"></label>`).join('')
-   +`<label>🎧 السماع اليومي<br><input type="date" data-sd="H" value="${hsfCfg.start}" style="width:100%;margin:4px 0 0"></label>`
-   +`<label>🏛️ المنطق (بعد كتب المنهج، ولا يبدأ قبل)<br><input type="date" data-sd="L" value="${lkCfg.start}" style="width:100%;margin:4px 0 0"></label></div>`
-   +`<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="sdAll">اجعل المسارات الأربعة تبدأ معًا</button><button class="btn" id="sdReset">رجوع للمواعيد الأصلية</button></div>`;
+   +SD.map(([k,n])=>`<label>${n}<br><input type="date" data-sd="${k}" value="${kFrom(kS(k))}" style="width:100%;margin:4px 0 0"></label>`).join('')
+   +`<label>🎧 المسموع<br><input type="date" data-sd="H" value="${hsfCfg.start}" style="width:100%;margin:4px 0 0"></label></div>`
+   +`<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="sdAll">اجعلها كلها تبدأ في يوم واحد</button><button class="btn" id="sdReset">رجوع للمواعيد الأصلية</button></div>`;
   sdCard.querySelectorAll('[data-sd]').forEach(inp=>inp.onchange=()=>{const v=inp.value;if(!/^\d{4}-\d{2}-\d{2}$/.test(v))return;const k=inp.dataset.sd;
    if(k==='H'){hsfCfg.start=v;LS.set('manhaj-listen-v1',hsfCfg)}else if(k==='L'){lkCfg.start=v;LS.set('manhaj-lk-v1',lkCfg)}
    else{const o=LS.get('manhaj-kcap-v1',{});o['start'+k]=v;LS.set('manhaj-kcap-v1',o);KCAP['start'+k]=v}
    renderAll();drawStarts();toast('✓ تغيّر موعد البدء وأُعيد توزيع الجدول.')});
-  sdCard.querySelector('#sdAll').onclick=()=>{const v=prompt('تاريخ البداية للمسارات الأربعة (YYYY-MM-DD):',kStart());if(!v||!/^\d{4}-\d{2}-\d{2}$/.test(v))return;const o=LS.get('manhaj-kcap-v1',{});SD.forEach(([k])=>{o['start'+k]=v;KCAP['start'+k]=v});LS.set('manhaj-kcap-v1',o);renderAll();drawStarts();toast('✓ تبدأ المسارات الأربعة يوم '+fL(toD(v)))};
-  sdCard.querySelector('#sdReset').onclick=()=>{if(!confirm('ترجع مواعيد بداية المسارات الأربعة للأصل؟'))return;const o=LS.get('manhaj-kcap-v1',{});SD.forEach(([k])=>{delete o['start'+k];delete KCAP['start'+k]});LS.set('manhaj-kcap-v1',o);renderAll();drawStarts()}}
+  sdCard.querySelector('#sdAll').onclick=()=>{const v=prompt('تاريخ البداية لكل الأوراد (YYYY-MM-DD):',kBaseFrom()||kStart());if(!v||!/^\d{4}-\d{2}-\d{2}$/.test(v))return;const o=LS.get('manhaj-kcap-v1',{});SD.forEach(([k])=>{o['start'+k]=v;KCAP['start'+k]=v});LS.set('manhaj-kcap-v1',o);renderAll();drawStarts();toast('✓ تبدأ الأوراد كلها يوم '+fL(toD(v)))};
+  sdCard.querySelector('#sdReset').onclick=()=>{if(!confirm('ترجع مواعيد البدء كلها للأصل؟'))return;const o=LS.get('manhaj-kcap-v1',{});SD.forEach(([k])=>{delete o['start'+k];delete KCAP['start'+k]});LS.set('manhaj-kcap-v1',o);renderAll();drawStarts()}}
  drawStarts();
  const ref=document.querySelector('section[data-tab="ref"] .h2');if(ref)ref.insertAdjacentElement('afterend',fsCard);
  if(ref)fsCard.insertAdjacentElement('afterend',sdCard);
@@ -2288,7 +2302,7 @@ renderAll();show(LS.get('manhaj-tab2','today'));
 <script>
 /* ===== the literature shelf: he picks the book, 10 pages a day, his place moves when he ticks it ===== */
 (function(){if(!D.KCORE||!(D.LIT||[]).length)return;
- const PER=10,KEY='manhaj-litpick-v1';
+ const KEY='manhaj-litpick-v1',PERf=()=>Math.max(1,+((LS.get('manhaj-kcap-v1',{})||{}).lit)||10);   // pages a day (الإعدادات)
  const st=()=>{const s=LS.get(KEY,null)||{};s.cur=+s.cur||0;s.bm=s.bm||{};s.tick=s.tick||{};return s};
  const norm=x=>String(x||'').replace(/[ً-ْـ]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').toLowerCase();
  const P=i=>{const b=LIT[i];return b?Math.max(1,pages(b.title)[0]||150):0};
@@ -2300,27 +2314,27 @@ renderAll();show(LS.get('manhaj-tab2','today'));
   if(k<TODAY){const t=s.tick[k];return t?{i:t.i,a:t.a}:null}
   const B0=TODAY>=from()?TODAY:from();   // the first day his place counts from (today, or the plan's start if later)
   // after today: from the page he recorded today (or today's start plus the day's pages)
-  const tt=s.tick[TODAY];let i=s.cur,a=k===B0?s0(s):(tt&&B0===TODAY?(+s.bm[s.cur]||0):s0(s)+PER)+PER*(days(B0,k)-1),n=0;
+  const tt=s.tick[TODAY];let i=s.cur,a=k===B0?s0(s):(tt&&B0===TODAY?(+s.bm[s.cur]||0):s0(s)+PERf())+PERf()*(days(B0,k)-1),n=0;
   while(i<LIT.length&&a>=P(i)&&n++<200){a-=P(i);i++;while(i<LIT.length&&(+s.bm[i]||0)>=P(i))i++;if(i<LIT.length)a+=(+s.bm[i]||0)}
   return i<LIT.length?{i,a}:null}
- const endOf=x=>{const s=st(),t=s.tick[TODAY];return x.k===TODAY&&t&&t.i===x.i?Math.min(P(x.i),+s.bm[x.i]||0):Math.min(x.a+PER,P(x.i))};
+ const endOf=x=>{const s=st(),t=s.tick[TODAY];return x.k===TODAY&&t&&t.i===x.i?Math.min(P(x.i),+s.bm[x.i]||0):Math.min(x.a+PERf(),P(x.i))};
  const txt=x=>{const b=LIT[x.i],e=endOf(x);return `📖 أدب: اقرأ «${b.title}» من ص ${nA(x.a+1)} إلى ${nA(e)}`};
  const _dt=dayTasks;dayTasks=function(k){const t=_dt(k);const x=at(k);if(x)x.k=k;if(x&&!t.some(y=>y.id==='lit'))t.push({id:'lit',txt:txt(x)});return t};
  // ticking today's task moves his place by 10 pages (unticking puts it back)
  let was=!!((TODO[TODAY]||{}).done||{}).lit;
  const _on=window.__onLS;window.__onLS=k=>{if(k==='manhaj-todo'){const now=!!((TODO[TODAY]||{}).done||{}).lit;if(now!==was){const s=st();
-    if(now){const a=s0(s);s.tick[TODAY]={i:s.cur,a};s.bm[s.cur]=Math.min(P(s.cur),a+PER)}else{const t=s.tick[TODAY];if(t){s.bm[t.i]=t.a;delete s.tick[TODAY]}}
+    if(now){const a=s0(s);s.tick[TODAY]={i:s.cur,a};s.bm[s.cur]=Math.min(P(s.cur),a+PERf())}else{const t=s.tick[TODAY];if(t){s.bm[t.i]=t.a;delete s.tick[TODAY]}}
     was=now;LS.set(KEY,s)}}if(_on)_on(k)};
  // for the Today checklist: today's portion, and the page he reached (also ticks the task)
- window.kLit={today:()=>{const x=at(TODAY);if(!x)return null;x.k=TODAY;const s=st(),t=s.tick[TODAY];return {i:x.i,title:LIT[x.i].title,author:String(LIT[x.i].author||'').split('،')[0],a:x.a,e:endOf(x),tot:P(x.i),rd:+s.bm[x.i]||0,rec:t?+s.bm[x.i]||0:null}},
+ window.kLit={per:PERf,today:()=>{const x=at(TODAY);if(!x)return null;x.k=TODAY;const s=st(),t=s.tick[TODAY];return {i:x.i,title:LIT[x.i].title,author:String(LIT[x.i].author||'').split('،')[0],a:x.a,e:endOf(x),tot:P(x.i),rd:+s.bm[x.i]||0,rec:t?+s.bm[x.i]||0:null}},
   set(v){const s=st(),T=TODO[TODAY]||(TODO[TODAY]={done:{},custom:[]});T.done=T.done||{};if(!s.tick[TODAY])s.tick[TODAY]={i:s.cur,a:s0(s)};
    s.bm[s.cur]=Math.max(0,Math.min(P(s.cur),+v||0));T.done.lit=true;was=true;LS.set('manhaj-todo',TODO);LS.set(KEY,s)}};
  // the card on the Today screen
  function draw(){let box=document.getElementById('kLit');if(!box){const ref=document.getElementById('dayMsg')||document.getElementById('todaySide');if(!ref)return;box=document.createElement('div');box.className='card klit';box.id='kLit';ref.insertAdjacentElement('afterend',box)}
   const s=st(),x=at(TODAY>=from()?TODAY:from()),i=x?x.i:s.cur,b=LIT[i]||{},rd=+s.bm[i]||0,p=P(i);
-  box.innerHTML=`<h3>📖 المكتبة الأدبية <span class="muted small" style="font-weight:400">١٠ صفحات كل يوم، تختار الكتاب بنفسك</span></h3>
+  box.innerHTML=`<h3>📖 المكتبة الأدبية <span class="muted small" style="font-weight:400">${nA(PERf())} صفحات كل يوم، تختار الكتاب بنفسك</span></h3>
    <div class="now"><div style="flex:1;min-width:0"><b>${esc(b.title||'')}</b><div class="muted small">${esc(String(b.author||'').split('،')[0])} · قرأت ${nA(rd)} من ${nA(p)}</div><div class="bar"><i style="width:${Math.min(100,rd/p*100)}%"></i></div></div>
-   <div class="pg">${x?`${TODAY>=from()?'اليوم':'يبدأ غدًا'}: ص ${nA(x.a+1)}–${nA(Math.min(x.a+PER,P(x.i)))}`:''}</div></div>
+   <div class="pg">${x?`${TODAY>=from()?'اليوم':'يبدأ غدًا'}: ص ${nA(x.a+1)}–${nA(Math.min(x.a+PERf(),P(x.i)))}`:''}</div></div>
    <div class="row">وصلت إلى صفحة <input type="number" min="0" max="${p}" value="${rd}" id="kLitBm" aria-label="آخر صفحة قرأتها"> <button class="btn" id="kLitSave" style="min-height:30px">احفظ</button></div>
    <details${window.__kLitOpen?' open':''}><summary>اختر كتابًا آخر من المكتبة الأدبية (${nA(LIT.length)})</summary><input type="search" id="kLitQ" placeholder="ابحث بعنوان الكتاب أو المؤلف…" aria-label="ابحث في المكتبة الأدبية" style="width:100%;box-sizing:border-box;margin-top:10px;font:inherit;padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink)"><div class="muted small" id="kLitN" style="margin-top:6px"></div><div class="shelf">${LIT.map((l,j)=>{const r=+s.bm[j]||0,pp=P(j);return `<button class="bk ${j===s.cur?'cur':''} ${r>=pp?'done':''}" data-lit="${j}" data-q="${esc(norm(l.title+' '+(l.author||'')))}"><b>${esc(l.title)}</b><small>${esc(String(l.author||'').split('،')[0])} · ${r>=pp?'قرأته':r?'قرأت '+nA(r)+' من '+nA(pp):nA(pp)+' صفحة'}</small></button>`}).join('')}</div></details>`;
   const dt=box.querySelector('details');dt.ontoggle=()=>{window.__kLitOpen=dt.open};
@@ -2416,8 +2430,8 @@ renderAll();show(LS.get('manhaj-tab2','today'));
  function item(k,t,st){const g=group(t.id),s=segOf(k,t.id),dn=!!st.done[t.id];let body='';
   if(g==='L'&&window.kLit){const x=kLit.today();if(x){const pct=Math.round(Math.min(1,x.rd/x.tot)*100);
     body=`<div class="kt">«${esc(x.title)}»</div><div class="ks">${esc(x.author)}</div>
-     <div class="kpg">${x.rec!=null?`سجّلت: وصلت إلى ص <b>${nA(x.rec)}</b>`:`اقرأ من ص <b>${nA(x.a+1)}</b> إلى <b>${nA(Math.min(x.a+10,x.tot))}</b>`} <span class="muted small">(من ${nA(x.tot)})</span></div><div class="kbar"><i style="width:${pct}%"></i></div>
-     <div class="krec">وصلت إلى ص <input type="number" min="0" max="${x.tot}" inputmode="numeric" data-klit value="${x.rec!=null?x.rec:''}" placeholder="${nA(Math.min(x.a+10,x.tot))}" aria-label="آخر صفحة قرأتها اليوم"><button class="btn" data-klitsave>سجّل</button><button class="linkbtn" data-klitpick>غيّر الكتاب</button></div>`}}
+     <div class="kpg">${x.rec!=null?`سجّلت: وصلت إلى ص <b>${nA(x.rec)}</b>`:`اقرأ من ص <b>${nA(x.a+1)}</b> إلى <b>${nA(Math.min(x.a+kLit.per(),x.tot))}</b>`} <span class="muted small">(من ${nA(x.tot)})</span></div><div class="kbar"><i style="width:${pct}%"></i></div>
+     <div class="krec">وصلت إلى ص <input type="number" min="0" max="${x.tot}" inputmode="numeric" data-klit value="${x.rec!=null?x.rec:''}" placeholder="${nA(Math.min(x.a+kLit.per(),x.tot))}" aria-label="آخر صفحة قرأتها اليوم"><button class="btn" data-klitsave>سجّل</button><button class="linkbtn" data-klitpick>غيّر الكتاب</button></div>`}}
   else if(s&&!s.rv&&!s.ex&&!s.course&&s.tot){const id=s.id,r=rec(k,id),start=s.a,pct=Math.round(Math.min(1,s.b/s.tot)*100);
    const ttl=s.ttl,sub=[who(id),(KMAP&&KMAP[id])||''].filter(Boolean).join(' · ');
    const line=s.adv?(s.b>=s.a?`سجّلت: قرأت من ص <b>${nA(s.a)}</b> إلى <b>${nA(s.b)}</b>`:`سجّلت: لم تتقدم في هذا الكتاب اليوم (موضعك ص ${nA(s.a-1)})`):`اقرأ من ص <b>${nA(s.a)}</b> إلى <b>${nA(s.b)}</b>`;
@@ -2457,6 +2471,53 @@ renderAll();show(LS.get('manhaj-tab2','today'));
   const lp=el.querySelector('[data-klitpick]');if(lp)lp.onclick=()=>{window.__kLitShow=1;window.__kLitOpen=1;const c2=document.getElementById('kLit');if(c2){c2.classList.remove('kHide');const d2=c2.querySelector('details');if(d2)d2.open=true;c2.scrollIntoView({behavior:'smooth',block:'start'})}}}
  const _rt=renderToday;renderToday=function(){_rt();try{draw()}catch(e){console.error(e)}};
  if(typeof repaint==='function')repaint();
+})();
+</script>
+<script>
+/* ===== Settings on Khaled's page: the daily portions, finish dates, up-to-date names ===== */
+(function(){if(!D.KCORE)return;
+ const DN=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+ const sciDays=()=>Object.keys(KDAY).filter(d=>String(KDAY[d]).includes('N')).map(Number);
+ const per=()=>window.kLit&&kLit.per?kLit.per():10;
+ // the names the engine shows for each track
+ const names=()=>{try{LANES.A.n='الورد الفكري';LANES.C.n='المنطق والكلام';LANES.L.n='التزكية'}catch(e){}};
+ {const _c=compute;compute=function(){_c();names()}}names();
+ // the numbers written inside the explanations
+ function fill(){const m={rot:+KCAP.rot,taz:+KCAP.taz,lit:per(),sci:+KCAP.sci};
+  document.querySelectorAll('[data-kc]').forEach(e=>{const k=e.dataset.kc;e.textContent=k==='day'?(sciDays().map(d=>DN[d]).join(' و')||'—'):nA(m[k])})}
+ const lastKey=M=>Object.keys(M||{}).sort().pop()||'';
+ // «الورد اليومي»
+ function drawDaily(){const el=document.getElementById('paceSet');if(!el)return;const sd=sciDays()[0];const o=LS.get('manhaj-kcap-v1',{})||{};
+  el.innerHTML=`<div class="kdaily">
+   <label>📘 الورد الفكري<span class="r"><input type="number" min="1" max="200" data-kd="rot" value="${+KCAP.rot}"> صفحة في اليوم</span><small>تسلسل واحد، كتاب بعد كتاب. لا يُقرأ يوم الجمعة ولا يوم العلوم ولا في الامتحانات.</small></label>
+   <label>🌿 الورد التزكوي<span class="r"><input type="number" min="1" max="100" data-kd="taz" value="${+KCAP.taz}"> صفحة كل يوم</span><small>من منهج «معارج العلوم» للأسطل، ويستمر في الامتحانات.</small></label>
+   <label>📖 الورد الأدبي<span class="r"><input type="number" min="1" max="100" data-kd="lit" value="${per()}"> صفحة كل يوم</span><small>من الكتاب الذي تختاره أنت في «وردك اليوم».</small></label>
+   <label>🧮 العلوم العقلية<span class="r"><input type="number" min="1" max="200" data-kd="sci" value="${+KCAP.sci}"> صفحة يوم <select data-kd="day">${[6,0,1,2,3,4,5].map(d=>`<option value="${d}" ${d===sd?'selected':''}>${DN[d]}</option>`).join('')}</select></span><small>يوم واحد في الأسبوع، ولا ورد فكري فيه.</small></label>
+   <label>🏛️ المنطق والكلام<span class="r"><input type="number" min="1" max="200" data-kd="method" value="${+KCAP.method}"> صفحة في اليوم</span><small>يبدأ بعد انتهاء الورد الفكري كله، مكانه.</small></label>
+   <label>📗 العلوم الشرعية<span class="r">ساعة في اليوم تضيفها أنت</span><small><button class="linkish" data-goto="shar">افتح «العلوم الشرعية» ←</button></small></label></div>
+   <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="kdReset" ${['rot','taz','lit','sci','method','week'].some(k=>o[k]!=null)?'':'disabled'}>رجوع للأعداد الأصلية</button></div>`;
+  el.querySelectorAll('[data-kd]').forEach(i=>i.onchange=()=>{const k=i.dataset.kd,o2=LS.get('manhaj-kcap-v1',{})||{};
+   if(k==='day'){const d=+i.value,w={};for(let x=0;x<7;x++)w[x]=x===d?'N':'A';o2.week=w;KCAP.week=w;KDAY=w}
+   else{const v=Math.max(1,Math.round(+i.value||0));if(!v)return;o2[k]=v;KCAP[k]=v}
+   LS.set('manhaj-kcap-v1',o2);renderAll();toast('✓ تغيّر الورد وأُعيد توزيع الجدول من اليوم.')});
+  el.querySelector('#kdReset').onclick=()=>{if(!confirm('ترجع أعداد الصفحات ويوم العلوم للأصل؟'))return;const o2=LS.get('manhaj-kcap-v1',{})||{};['rot','taz','lit','sci','method','week'].forEach(k=>{delete o2[k];delete KCAP[k]});
+   Object.assign(KCAP,{rot:D.KCORE.cfg.rot,taz:D.KCORE.cfg.taz,sci:D.KCORE.cfg.sci,method:D.KCORE.cfg.method});KDAY=D.KCORE.cfg.week||{};LS.set('manhaj-kcap-v1',o2);renderAll()};
+  const fl=document.getElementById('finishLine');if(fl){const f=k=>k?`<b>${esc(fL(toD(k)))}</b>`:'—',ia=d=>d?iso(d):'';
+   fl.innerHTML=`<div class="kfin"><div>📘 الورد الفكري ينتهي ${f(ia(LANEFIN.A))}</div><div>🏛️ المنطق والكلام ينتهي ${f(ia(LANEFIN.C))}</div><div>🌿 الورد التزكوي ينتهي ${f(lastKey(TZD))}</div><div>🧮 العلوم العقلية تنتهي ${f(lastKey(NATD))}</div></div>`}}
+ // the engine keeps its week map from the core file unless he chose a sciences day
+ {const w=(LS.get('manhaj-kcap-v1',{})||{}).week;if(w&&typeof w==='object'){KDAY=w;KCAP.week=w;renderAll()}}
+ {const _r=renderRef;renderRef=function(){_r();try{drawDaily();fill()}catch(e){console.error(e)}}}
+ // the logic tab: when it starts and ends now
+ {const _l=renderLK;renderLK=function(){_l();try{const ks=Object.keys(DAYS).sort().find(k=>DAYS[k].segs.some(s=>s.lane==='C'));const el=document.getElementById('lkInfo');
+   if(el)el.innerHTML=ks?`يبدأ ${esc(fL(toD(ks)))} بعد انتهاء الورد الفكري، وينتهي ${LANEFIN.C?'<b>'+esc(fL(LANEFIN.C))+'</b>':''} بالأرقام الحالية.`:'';fill()}catch(e){console.error(e)}}}
+ // the literature tab: pick a book to read now
+ {const _t=renderLit;renderLit=function(){_t();try{fill();const s=LS.get('manhaj-litpick-v1',{})||{},cur=+s.cur||0;
+   document.querySelectorAll('#litBody>li').forEach((li,i)=>{const t=li.querySelector('.t');if(!t||t.querySelector('.litpick'))return;
+    t.insertAdjacentHTML('beforeend',i===cur?' <span class="kchip litpick" style="color:var(--teal)">تقرؤه الآن</span>':` <button class="btn litpick" data-litnow="${i}">اقرأه الآن</button>`)});
+   document.querySelectorAll('[data-litnow]').forEach(b=>b.onclick=()=>{const s2=LS.get('manhaj-litpick-v1',{})||{};s2.cur=+b.dataset.litnow;LS.set('manhaj-litpick-v1',s2);renderAll();toast('✓ صار «'+LIT[+b.dataset.litnow].title+'» وردك الأدبي من اليوم.')})}catch(e){console.error(e)}}}
+ {const _p=renderPath;renderPath=function(){_p();fill()}}
+ {const _s=renderSci;renderSci=function(){_s();fill()}}
+ fill();if(typeof repaint==='function')repaint();
 })();
 </script>
 <script>
