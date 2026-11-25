@@ -1063,8 +1063,15 @@ html.k-calm #bookDlg.kbk,html.k-calm #bookDlg.kbk *,html.k-calm #bookDlg.kbk::ba
 #kRd .rpages{flex:1;overflow:auto;scrollbar-gutter:stable;padding:16px 16px 90px;scroll-behavior:auto;overscroll-behavior:contain}
 #kRd .rpg{direction:ltr;position:relative;margin:0 auto 16px;background:#fff;box-shadow:0 10px 30px -14px rgba(0,0,0,.55),0 0 0 1px rgba(0,0,0,.06);border-radius:4px;overflow:hidden}
 #kRd .rpg canvas{position:absolute;inset:0;display:block}
-#kRd.bookmode .rpages{display:flex;justify-content:center;align-items:center;overflow:hidden;perspective:2400px;padding:14px;gap:0;scrollbar-gutter:auto}
-#kRd.bookmode .rpg{display:none;margin:0;border-radius:3px;transform-style:preserve-3d;backface-visibility:hidden}
+#kRd.bookmode .rpages{display:flex;justify-content:safe center;align-items:safe center;overflow:hidden;perspective:2600px;padding:14px;gap:0;scrollbar-gutter:auto;position:relative;touch-action:pan-x pan-y}
+#kRd.bookmode.zoomed .rpages{overflow:auto}
+#kRd .rpages{touch-action:pan-x pan-y}
+#kRd .leaf{position:absolute;z-index:20;pointer-events:none;transform-style:preserve-3d;will-change:transform}
+#kRd .leaf .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.05)}
+#kRd .leaf .back{transform:rotateY(180deg)}
+#kRd .leaf .shade{position:absolute;inset:0;z-index:9;pointer-events:none}
+#kRd .cast{position:absolute;z-index:19;pointer-events:none}
+#kRd.bookmode .rpg{display:none;flex:none;margin:0;border-radius:3px;transform-style:preserve-3d;backface-visibility:hidden}
 #kRd.bookmode .rpg.on{display:block}
 #kRd.bookmode .rpg.on.r{border-radius:3px 6px 6px 3px;box-shadow:8px 14px 34px -18px rgba(0,0,0,.6)}
 #kRd.bookmode .rpg.on.l{border-radius:6px 3px 3px 6px;box-shadow:-8px 14px 34px -18px rgba(0,0,0,.6)}
@@ -2857,7 +2864,7 @@ function build(){if(R)return R;R=document.createElement('div');R.id='kRd';R.hidd
  R.innerHTML=`<div class="rtop g"><button class="ib" data-a="close" title="إغلاق القارئ (Esc)" aria-label="إغلاق القارئ">${ic('x')}</button><button class="ib" data-a="lib" title="مكتبتي" aria-label="مكتبتي">${ic('lib')}</button>
   <div class="tt"><b id="rdT">القارئ</b><small id="rdS"></small></div>
   <div class="pgn"><button class="ib" data-a="prev" aria-label="الصفحة السابقة">${ic('prev')}</button><input id="rdPg" type="number" min="1" inputmode="numeric" aria-label="رقم الصفحة"> / <span id="rdN">–</span><button class="ib" data-a="next" aria-label="الصفحة التالية">${ic('next')}</button></div>
-  <button class="ib hidem" data-a="zout" aria-label="تصغير">${ic('zout')}</button><button class="ib hidem" data-a="fit" title="ملء العرض" aria-label="ملء العرض">${ic('fit')}</button><button class="ib hidem" data-a="zin" aria-label="تكبير">${ic('zin')}</button>
+  <button class="ib" data-a="zout" aria-label="تصغير">${ic('zout')}</button><button class="ib" data-a="fit" title="ملء العرض" aria-label="ملء العرض">${ic('fit')}</button><button class="ib" data-a="zin" aria-label="تكبير">${ic('zin')}</button>
   <button class="ib" data-a="book" title="وضع الكتاب: صفحات متقابلة تتقلّب" aria-label="وضع الكتاب">${ic('flip')}</button><button class="tb" data-a="addpg" title="أضف صفحة فارغة أو مسطّرة بعد هذه الصفحة">＋ صفحة</button><button class="ib" data-a="undo" title="تراجع (Ctrl+Z)" aria-label="تراجع">${ic('undo')}</button><button class="ib" data-a="redo" title="إعادة" aria-label="إعادة">${ic('redo')}</button>
   <button class="tb pri" data-a="here" hidden>وصلت هنا</button><button class="ib" data-a="side" title="العلامات والتعليقات" aria-label="العلامات والتعليقات">${ic('side')}</button></div>
   <div class="rtools g" role="toolbar" aria-label="أدوات">${TOOLS.map(t=>t==='|'?'<span class="sep"></span>':`<button class="ib tool" data-t="${t[0]}" title="${t[1]}" aria-label="${t[1]}" aria-pressed="false">${ic(t[0])}<i></i></button>`).join('')}</div>
@@ -2948,7 +2955,7 @@ function pagePop(btn){const p=$('#rdPop',R);p.innerHTML=`<h4>＋ صفحة بعد
 const two=()=>innerWidth>=900&&$('#rdPages',R).clientWidth>=760;
 function spreadOf(k){const S=seq();let i=S.indexOf(k);if(i<0)i=0;if(!two())return [S[i]];if(i===0)return [S[0]];const st=i%2?i:i-1;return S.slice(st,st+2)}
 function bookFit(){const P=$('#rdPages',R),sp=ST.spread||[ST.cur],[w,h]=sizeOf(sp[0]);const n=sp.length>1||two()?2:1;
- ST.scale=Math.max(.2,Math.min((P.clientHeight-28)/h,(P.clientWidth-28)/(w*n)));$$('.rpg',P).forEach(d=>{const [a,b]=sizeOf(pkOf(d));d.style.width=a*ST.scale+'px';d.style.height=b*ST.scale+'px'});sp.forEach(p=>renderPage(p))}
+ ST.scale=Math.max(.2,Math.min((P.clientHeight-28)/h,(P.clientWidth-28)/(w*n)))*ST.zoom;R.classList.toggle('zoomed',ST.zoom>1.01);$$('.rpg',P).forEach(d=>{const [a,b]=sizeOf(pkOf(d));d.style.width=a*ST.scale+'px';d.style.height=b*ST.scale+'px'});sp.forEach(p=>renderPage(p))}
 function bookShow(k){const sp=spreadOf(k);ST.spread=sp;const P=$('#rdPages',R);$$('.rpg',P).forEach(d=>{const q=pkOf(d),i=sp.indexOf(q);d.classList.toggle('on',i>=0);d.classList.toggle('r',i===0&&sp.length>1);d.classList.toggle('l',i===1)});
  bookFit();const f=sp.find(q=>typeof q==='number');setCur(f!=null?f:((insOf(sp[0])||{}).after||1));
  // the next pages render ahead, so turning is instant
@@ -2957,24 +2964,61 @@ function bookMode(on,at){ST.book=!!on;R.classList.toggle('bookmode',ST.book);$('
  if(ST.meta){ST.meta.book=ST.book?1:0;RDB.put(ST.meta)}
  if(ST.book){bookShow(at||ST.cur);if(!LS.get('manhaj-rdbooktip',0)){toast('قلّب الصفحات بسحب الصفحة، أو اضغط طرفها، أو بالأسهم.');LS.set('manhaj-rdbooktip',1)}}
  else{$$('.rpg',R).forEach(d=>d.classList.remove('on','r','l'));ST.spread=null;relayout();go(at||ST.cur,true)}}
-let flipping=0;const anim=(el,k,o)=>Promise.race([el.animate(k,o).finished.catch(()=>{}),new Promise(r=>setTimeout(r,o.duration+150))]);
-async function flip(dir){if(!ST.book||flipping)return;const S=seq(),cur=ST.spread||[S[0]];let i=S.indexOf(cur[0]);if(i<0)i=0;
- const ni=dir>0?i+cur.length:(two()?Math.max(0,i-1):i-1);if(ni<0||ni>=S.length)return;const target=S[ni];
- const calm=document.documentElement.classList.contains('k-calm');if(calm){bookShow(target);return}
- flipping=1;const P=$('#rdPages',R);
- // Arabic book: going forward you turn the left page over the spine to the right
- const out=dir>0?(cur.length>1?pageEl(cur[1]):pageEl(cur[0])):pageEl(cur[0]);
- const o1=dir>0?(cur.length>1?'right center':'right center'):(cur.length>1?'left center':'left center');
- try{if(out){out.style.transformOrigin=o1;await anim(out,[{transform:'rotateY(0deg)',filter:'brightness(1)'},{transform:`rotateY(${dir>0?-90:90}deg)`,filter:'brightness(.75)'}],{duration:230,easing:'cubic-bezier(.45,.05,.55,.95)'});out.style.transformOrigin=''}}catch(e){}
- bookShow(target);const ns=ST.spread,inn=dir>0?pageEl(ns[0]):(ns.length>1?pageEl(ns[1]):pageEl(ns[0]));
- try{if(inn){inn.style.transformOrigin=dir>0?(ns.length>1?'left center':'right center'):(ns.length>1?'right center':'left center');await anim(inn,[{transform:`rotateY(${dir>0?90:-90}deg)`,filter:'brightness(.75)'},{transform:'rotateY(0deg)',filter:'brightness(1)'}],{duration:260,easing:'cubic-bezier(.2,.7,.3,1)'});inn.style.transformOrigin=''}}catch(e){}
- flipping=0}
-// swipe, edge click and wheel turn the pages in book mode
-{let sx=null,sy=0,st=0;document.addEventListener('pointerdown',e=>{if(!R||R.hidden||!ST.book||ST.tool!=='hand'||!e.target.closest('#rdPages')||e.target.closest('[data-aid],[data-bid],.pbar'))return;sx=e.clientX;sy=e.clientY;st=Date.now()},true);
- document.addEventListener('pointerup',e=>{if(sx==null)return;const dx=e.clientX-sx,dy=e.clientY-sy,quick=Date.now()-st<600;sx=null;
-  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)){flip(dx>0?1:-1);return}
-  if(Math.abs(dx)<6&&Math.abs(dy)<6&&quick&&!getSelection().toString()){const P=$('#rdPages',R).getBoundingClientRect(),x=(e.clientX-P.left)/P.width;if(x<.16)flip(1);else if(x>.84)flip(-1)}},true);
- let wl=0;document.addEventListener('wheel',e=>{if(!R||R.hidden||!ST.book||!e.target.closest('#rdPages'))return;e.preventDefault();const n=Date.now();if(n-wl<450)return;wl=n;flip(e.deltaY>0||e.deltaX<0?1:-1)},{passive:false})}
+let flipping=0;
+const flipOK=()=>!document.documentElement.classList.contains('k-calm');
+function faceOf(src){const c=document.createElement('div');c.style.cssText='position:absolute;inset:0;background:'+(src&&src.style.background?src.style.background:'#fff')+';background-color:#fff';if(!src)return c;
+ const a=src.querySelector('canvas');if(a&&a.width){const b=document.createElement('canvas');b.width=a.width;b.height=a.height;b.style.cssText='position:absolute;inset:0;width:100%;height:100%';try{b.getContext('2d').drawImage(a,0,0)}catch(e){}c.appendChild(b)}
+ src.querySelectorAll('svg.rsvg').forEach(s=>{const k=s.cloneNode(true);k.style.cssText='position:absolute;inset:0;width:100%;height:100%';if(s.classList.contains('hlay'))k.style.mixBlendMode='multiply';c.appendChild(k)});return c}
+// the stage shows these pages while a leaf turns over them
+function stageShow(rk,lk){$$('.rpg',$('#rdPages',R)).forEach(d=>{const q=pkOf(d),isR=rk!=null&&q===rk,isL=lk!=null&&q===lk;d.classList.toggle('on',isR||isL);d.classList.toggle('r',isR&&lk!=null);d.classList.toggle('l',isL&&rk!=null)})}
+function leafMake(over,front,back,origin){const P=$('#rdPages',R),pr=P.getBoundingClientRect(),r=over.getBoundingClientRect();
+ const L=document.createElement('div');L.className='leaf';L.style.cssText=`left:${r.left-pr.left+P.scrollLeft}px;top:${r.top-pr.top+P.scrollTop}px;width:${r.width}px;height:${r.height}px;transform-origin:${origin}`;
+ const f=document.createElement('div'),b=document.createElement('div');f.className='face front';b.className='face back';f.appendChild(faceOf(front));b.appendChild(faceOf(back));
+ const sf=document.createElement('i'),sb=document.createElement('i');sf.className='shade';sb.className='shade';f.appendChild(sf);b.appendChild(sb);L.append(f,b);P.appendChild(L);
+ const cast=document.createElement('i');cast.className='cast';P.appendChild(cast);L._cast=cast;return L}
+// deg: 0 (flat where it started) .. 180 (turned over the spine); sign +1 turns to the right, -1 to the left
+function leafAt(L,deg,sign,under){const k=Math.sin(deg*Math.PI/180),side=sign>0?'to left':'to right',back=sign>0?'to right':'to left';
+ L.style.transform=`rotateY(${sign*deg}deg) translateZ(${k*6}px)`;
+ L.querySelector('.front .shade').style.background=`linear-gradient(${side},rgba(0,0,0,${(.42*k).toFixed(3)}) 0%,rgba(0,0,0,${(.12*k).toFixed(3)}) 30%,rgba(255,255,255,${(.16*k).toFixed(3)}) 62%,rgba(0,0,0,${(.06*k).toFixed(3)}) 100%)`;
+ L.querySelector('.back .shade').style.background=`linear-gradient(${back},rgba(0,0,0,${(.38*k).toFixed(3)}) 0%,rgba(0,0,0,${(.08*k).toFixed(3)}) 40%,rgba(255,255,255,${(.1*k).toFixed(3)}) 75%,transparent 100%)`;
+ const c=L._cast;if(c&&under){const P=$('#rdPages',R),pr=P.getBoundingClientRect(),u=under.getBoundingClientRect();c.style.cssText=`left:${u.left-pr.left+P.scrollLeft}px;top:${u.top-pr.top+P.scrollTop}px;width:${u.width}px;height:${u.height}px;opacity:${(k*.9).toFixed(3)};background:linear-gradient(${sign>0?'to left':'to right'},rgba(0,0,0,.45) 0%,rgba(0,0,0,.12) ${Math.round(20+40*(deg/180))}%,transparent ${Math.round(40+55*(deg/180))}%)`}}
+function leafEnd(L){if(L._cast)L._cast.remove();L.remove()}
+function tween(from,to,ms,step){return new Promise(res=>{const t0=performance.now(),ease=x=>1-Math.pow(1-x,3);const f=n=>{const x=Math.min(1,(n-t0)/ms);step(from+(to-from)*ease(x));if(x<1)requestAnimationFrame(f);else res()};requestAnimationFrame(f);setTimeout(()=>{step(to);res()},ms+400)})}
+// prepare a turn: which page lifts, what is on its back, what lies beneath
+async function turnPrep(dir){const S=seq(),cur=ST.spread||[S[0]];let i=S.indexOf(cur[0]);if(i<0)i=0;
+ const ni=dir>0?i+cur.length:(two()?Math.max(0,i-1):i-1);if(ni<0||ni>=S.length||(dir<0&&i===0))return null;
+ const tgt=spreadOf(S[ni]);await Promise.all(tgt.map(q=>renderPage(q)));const E=pageEl,d2=two()&&cur.length+tgt.length>2;
+ let o={tgt,cur,dir};
+ if(d2&&dir>0){const lft=cur.length>1?cur[1]:cur[0];o.over=E(lft);o.front=E(lft);o.back=E(tgt[0]);o.origin='right center';o.sign=1;o.from=0;o.to=180;o.rk=cur.length>1?cur[0]:null;o.lk=tgt[1]!=null?tgt[1]:null;o.under=E(o.lk)}
+ else if(d2&&dir<0){o.over=E(cur[0]);o.front=E(cur[0]);o.back=E(tgt.length>1?tgt[1]:tgt[0]);o.origin='left center';o.sign=-1;o.from=0;o.to=180;o.rk=tgt.length>1?tgt[0]:null;o.lk=cur.length>1?cur[1]:null;o.under=E(o.rk)}
+ else if(dir>0){o.over=E(cur[0]);o.front=E(cur[0]);o.back=null;o.origin='right center';o.sign=1;o.from=0;o.to=180;o.rk=tgt[0];o.lk=null;o.under=E(tgt[0])}
+ else{o.over=E(cur[0]);o.front=E(tgt[0]);o.back=null;o.origin='right center';o.sign=1;o.from=180;o.to=0;o.rk=cur[0];o.lk=null;o.under=E(cur[0])}
+ return o}
+function turnStart(o){o.pw=o.over.getBoundingClientRect().width;const L=leafMake(o.over,o.front,o.back,o.origin);stageShow(o.rk,o.lk);leafAt(L,o.from,o.sign,o.under);o.L=L;return o}
+async function turnFinish(o,done){const L=o.L,cur=o.deg!=null?o.deg:o.from,end=done?o.to:o.from,ms=Math.max(160,Math.abs(end-cur)/180*720);
+ await tween(cur,end,ms,v=>{o.deg=v;leafAt(L,v,o.sign,o.under)});leafEnd(L);bookShow(done?o.tgt[0]:o.cur[0])}
+async function flip(dir){if(!ST.book||flipping)return;flipping=1;try{const o=await turnPrep(dir);if(!o)return;if(!flipOK()){bookShow(o.tgt[0]);return}turnStart(o);await turnFinish(o,true)}catch(e){console.error(e)}finally{flipping=0}}
+// drag a page: the leaf follows the hand; let go past a third (or flick) and it turns
+{let g=null;
+ document.addEventListener('pointerdown',e=>{if(!R||R.hidden||!ST.book||flipping||ST.tool!=='hand'||ST.zoom>1.01||e.button>0||!e.target.closest('#rdPages')||e.target.closest('[data-aid],[data-bid],.pbar'))return;
+  g={x:e.clientX,y:e.clientY,t:performance.now(),o:null,busy:0,id:e.pointerId}},true);
+ document.addEventListener('pointermove',async e=>{if(!g||e.pointerId!==g.id)return;const dx=e.clientX-g.x,dy=e.clientY-g.y;
+  if(!g.o&&!g.busy){if(Math.abs(dx)<10||Math.abs(dx)<Math.abs(dy))return;g.busy=1;flipping=1;const o=await turnPrep(dx>0?1:-1);if(!o||!g){flipping=0;if(g)g.busy=0;return}
+   if(!flipOK()){bookShow(o.tgt[0]);flipping=0;g=null;return}g.o=turnStart(o);g.w=Math.max(80,o.pw*(two()?2:1))}
+  if(g&&g.o){const o=g.o,pr=Math.min(1,Math.max(0,Math.abs(e.clientX-g.x)/g.w*1.15));o.deg=o.from+(o.to-o.from)*pr;leafAt(o.L,o.deg,o.sign,o.under);getSelection().removeAllRanges()}},true);
+ document.addEventListener('pointerup',async e=>{if(!g||e.pointerId!==g.id)return;const c=g;g=null;
+  if(!c.o){if(c.busy)return;const dx=e.clientX-c.x,dy=e.clientY-c.y;if(Math.abs(dx)<6&&Math.abs(dy)<6&&performance.now()-c.t<600&&!getSelection().toString()){const P=$('#rdPages',R).getBoundingClientRect(),x=(e.clientX-P.left)/P.width;if(x<.16)flip(1);else if(x>.84)flip(-1)}return}
+  const o=c.o,pr=Math.abs((o.deg-o.from)/(o.to-o.from)),fast=Math.abs(e.clientX-c.x)/(performance.now()-c.t)>.5;await turnFinish(o,pr>.33||fast);flipping=0},true);
+ document.addEventListener('pointercancel',async e=>{if(!g)return;const c=g;g=null;if(c.o){await turnFinish(c.o,false)}flipping=0},true);
+ let wl=0;document.addEventListener('wheel',e=>{if(!R||R.hidden||!e.target.closest('#rdPages'))return;
+  if(e.ctrlKey||e.metaKey){e.preventDefault();const n=Date.now();if(n-wl<60)return;wl=n;zoom(ST.zoom*(e.deltaY<0?1.12:1/1.12));return}
+  if(!ST.book||ST.zoom>1.01)return;e.preventDefault();const n=Date.now();if(n-wl<500)return;wl=n;flip(e.deltaY>0||e.deltaX<0?1:-1)},{passive:false})}
+// two fingers: pinch to zoom (a live preview, then the pages are drawn sharp at the new size)
+{const pts=new Map();let d0=0,z0=1,P0=null;
+ document.addEventListener('pointerdown',e=>{if(!R||R.hidden||e.pointerType!=='touch'||!e.target.closest('#rdPages'))return;pts.set(e.pointerId,[e.clientX,e.clientY]);if(pts.size===2){const [a,b]=[...pts.values()];d0=Math.hypot(a[0]-b[0],a[1]-b[1]);z0=ST.zoom;P0=$('#rdPages',R);P0.style.transformOrigin=`${(a[0]+b[0])/2-P0.getBoundingClientRect().left}px ${(a[1]+b[1])/2-P0.getBoundingClientRect().top}px`}},true);
+ document.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,[e.clientX,e.clientY]);if(pts.size===2&&d0&&P0){const [a,b]=[...pts.values()],k=Math.hypot(a[0]-b[0],a[1]-b[1])/d0;P0.style.transform=`scale(${Math.max(.5,Math.min(3,k))})`;e.preventDefault()}},{capture:true,passive:false});
+ const end=e=>{if(!pts.has(e.pointerId))return;if(pts.size===2&&d0&&P0){const [a,b]=[...pts.values()],k=Math.hypot(a[0]-b[0],a[1]-b[1])/d0;P0.style.transform='';P0.style.transformOrigin='';if(Math.abs(k-1)>.04)zoom(z0*k)}pts.delete(e.pointerId);if(pts.size<2){d0=0;P0=null}};
+ document.addEventListener('pointerup',end,true);document.addEventListener('pointercancel',end,true)}
 function close(){if(!R)return;saveNow();R.hidden=true;hidePop();deselect();document.documentElement.style.overflow='';if(typeof renderAll==='function')renderAll()}
 // ---------- layout and rendering ----------
 const fitScale=()=>{const P=$('#rdPages',R);return Math.max(.3,(P.clientWidth-(innerWidth<900?12:32))/ST.W)};
@@ -2995,7 +3039,7 @@ async function renderPage(p){const d=pageEl(p);if(!d||d._r===ST.scale)return;con
   const tc=await pg.getTextContent();if(d._r===sc){await lib.renderTextLayer({textContentSource:tc,container:tl,viewport:vp,textDivs:[]}).promise;const eoc=document.createElement('div');eoc.className='endOfContent';tl.appendChild(eoc)}
   ST.rendered.add(p);drawAnn(p);evict()}catch(e){if(!/cancel/i.test(String(e&&e.name||e)))console.error(e)}}
 function evict(){if(ST.rendered.size<=14)return;[...ST.rendered].filter(p=>typeof p==='number').sort((a,b)=>Math.abs(b-ST.cur)-Math.abs(a-ST.cur)).slice(0,ST.rendered.size-14).forEach(p=>{const d=pageEl(p);if(!d)return;const cv=d.querySelector('canvas');cv.width=cv.height=0;d.querySelector('.textLayer').innerHTML='';d._r=0;ST.rendered.delete(p)})}
-function zoom(z){ST.zoom=Math.max(.4,Math.min(4,z));if(ST.meta){ST.meta.zoom=ST.zoom;RDB.put(ST.meta)}relayout(true)}
+function zoom(z){ST.zoom=Math.max(.4,Math.min(4,z));if(R){const zb=$('[data-a="fit"]',R);if(zb)zb.title='ملء العرض ('+Math.round(ST.zoom*100)+'٪)'}if(ST.meta){ST.meta.zoom=ST.zoom;RDB.put(ST.meta)}relayout(true)}
 function go(p,instant){if(!ST.pdf)return;if(typeof p!=='string'||!/^x:/.test(p))p=Math.max(1,Math.min(ST.n,(+p)|0||1));const d=pageEl(p);if(!d)return;if(ST.book){bookShow(p);return}$('#rdPages',R).scrollTo({top:d.offsetTop-12,behavior:instant?'auto':'smooth'});setCur(typeof p==='string'?((insOf(p)||{}).after||1):p)}
 function setCur(p){if(p===ST.cur&&$('#rdPg',R).value==p)return;ST.cur=p;$('#rdPg',R).value=p;hereBtn();if(ST.meta){ST.meta.last=p;clearTimeout(ST._lt);ST._lt=setTimeout(()=>RDB.put(ST.meta),800)}}
 function onScroll(){if(ST.book)return;clearTimeout(ST._st);ST._st=setTimeout(()=>{const P=$('#rdPages',R),mid=P.scrollTop+P.clientHeight*0.35;let best=1;$$('.rpg',P).some(d=>{if(d.offsetTop<=mid){best=pkOf(d);return false}return true});setCur(typeof best==='string'?((insOf(best)||{}).after||1):best)},80)}
@@ -3123,6 +3167,7 @@ function onKey(e){if(!R||R.hidden)return;const inField=/^(INPUT|TEXTAREA|SELECT)
  if(inField)return;
  if((e.ctrlKey||e.metaKey)&&(e.code==='KeyZ'||e.key.toLowerCase()==='z')){e.preventDefault();e.shiftKey?redo():undo();return}
  if((e.ctrlKey||e.metaKey)&&(e.code==='KeyY'||e.key.toLowerCase()==='y')){e.preventDefault();redo();return}
+ if((e.ctrlKey||e.metaKey)&&['Equal','NumpadAdd','Minus','NumpadSubtract','Digit0','Numpad0'].includes(e.code)){e.preventDefault();zoom(/Digit0|Numpad0/.test(e.code)?1:/Equal|Add/.test(e.code)?ST.zoom*1.2:ST.zoom/1.2);return}
  if((e.key==='Delete'||e.key==='Backspace')&&ST.sel){e.preventDefault();removeSel();return}
  if(e.key==='PageDown'||e.key==='ArrowLeft'){e.preventDefault();ST.book?flip(1):go(ST.cur+1)}else if(e.key==='PageUp'||e.key==='ArrowRight'){e.preventDefault();ST.book?flip(-1):go(ST.cur-1)}}
 // ---------- the file's own bookmarks (outline): read once, then his to edit ----------
