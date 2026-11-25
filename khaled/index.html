@@ -787,7 +787,10 @@ body .dmsg blockquote,body .dmsg .bt span{font-family:"Thmanyah Serif Text","Seg
 .kdaily label small{font-weight:400;color:var(--muted);font-size:12px;line-height:1.6}
 .kdaily .r{display:flex;align-items:center;gap:8px;font-weight:400;color:var(--muted);font-size:13px}
 .kdaily input,.kdaily select{width:84px;font:inherit;font-size:15px;padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
-.kdaily select{width:auto}
+.kdaily select{width:auto;min-width:120px}
+.kdaily .r{white-space:nowrap}
+.kdaily input[type=number]{-moz-appearance:textfield;appearance:textfield;text-align:center}
+.kdaily input[type=number]::-webkit-inner-spin-button,.kdaily input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .kfin{margin-top:12px;display:grid;gap:4px;font-size:13.5px}
 .kfin b{color:var(--teal)}
 .litpick{margin-inline-start:8px;min-height:30px;padding:3px 12px;font-size:12.5px}
@@ -2492,7 +2495,7 @@ renderAll();show(LS.get('manhaj-tab2','today'));
    <label>📘 الورد الفكري<span class="r"><input type="number" min="1" max="200" data-kd="rot" value="${+KCAP.rot}"> صفحة في اليوم</span><small>تسلسل واحد، كتاب بعد كتاب. لا يُقرأ يوم الجمعة ولا يوم العلوم ولا في الامتحانات.</small></label>
    <label>🌿 الورد التزكوي<span class="r"><input type="number" min="1" max="100" data-kd="taz" value="${+KCAP.taz}"> صفحة كل يوم</span><small>من منهج «معارج العلوم» للأسطل، ويستمر في الامتحانات.</small></label>
    <label>📖 الورد الأدبي<span class="r"><input type="number" min="1" max="100" data-kd="lit" value="${per()}"> صفحة كل يوم</span><small>من الكتاب الذي تختاره أنت في «وردك اليوم».</small></label>
-   <label>🧮 العلوم العقلية<span class="r"><input type="number" min="1" max="200" data-kd="sci" value="${+KCAP.sci}"> صفحة يوم <select data-kd="day">${[6,0,1,2,3,4,5].map(d=>`<option value="${d}" ${d===sd?'selected':''}>${DN[d]}</option>`).join('')}</select></span><small>يوم واحد في الأسبوع، ولا ورد فكري فيه.</small></label>
+   <label>🧮 العلوم العقلية<span class="r"><input type="number" min="1" max="200" data-kd="sci" value="${+KCAP.sci}"> صفحة في يومها</span><span class="r">يومها: <select data-kd="day">${[6,0,1,2,3,4,5].map(d=>`<option value="${d}" ${d===sd?'selected':''}>${DN[d]}</option>`).join('')}</select></span><small>يوم واحد في الأسبوع، ولا ورد فكري فيه.</small></label>
    <label>🏛️ المنطق والكلام<span class="r"><input type="number" min="1" max="200" data-kd="method" value="${+KCAP.method}"> صفحة في اليوم</span><small>يبدأ بعد انتهاء الورد الفكري كله، مكانه.</small></label>
    <label>📗 العلوم الشرعية<span class="r">ساعة في اليوم تضيفها أنت</span><small><button class="linkish" data-goto="shar">افتح «العلوم الشرعية» ←</button></small></label></div>
    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="kdReset" ${['rot','taz','lit','sci','method','week'].some(k=>o[k]!=null)?'':'disabled'}>رجوع للأعداد الأصلية</button></div>`;
