@@ -19,7 +19,7 @@ const authErr = (status, msg) => status === 401 || status === 403 || /api key|un
 // Keys made in different Google Cloud projects have separate free quotas; keys in one project share it.
 // Each job may have backups (his request: «لكل واحد بديل… لما واحد يخلص التاني ياخد مكانه»): NAME, NAME_2 … NAME_5.
 // Order: the job's own keys, then the general keys (GEMINI_API_KEY, _2 … _5), then the other jobs' keys as a last resort.
-const KEY_OF = { khaled: 'GEMINI_KEY_KHALED', mohamed: 'GEMINI_KEY_MOHAMED', search: 'GEMINI_KEY_SEARCH', voice: 'GEMINI_KEY_VOICE' };
+const KEY_OF = { khaled: 'GEMINI_KEY_KHALED', mohamed: 'GEMINI_KEY_MOHAMED', search: 'GEMINI_KEY_SEARCH', voice: 'GEMINI_KEY_VOICE', reader: 'GEMINI_KEY_READER' };
 const many = (env, base) => [env[base], env[base + '_2'], env[base + '_3'], env[base + '_4'], env[base + '_5']];
 export const keysFor = (env, job) => {
   const own = KEY_OF[job] ? many(env, KEY_OF[job]) : [], gen = many(env, 'GEMINI_API_KEY');
@@ -50,8 +50,8 @@ async function geminiKey(key, model, sys, msgs, opt) {
   let last = '';const good = goodBy.get(key);
   for (const e of good ? [good] : ENDS) {
     const body = { systemInstruction: { parts: [{ text: sys }] },
-      contents: msgs.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
-      ...(opt.bare ? {} : { tools: [e.search] }), generationConfig: { temperature: 0.4, maxOutputTokens: 8192 } };
+      contents: msgs.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: m.parts || [{ text: m.content }] })),
+      ...(opt.bare ? {} : { tools: [e.search] }), generationConfig: { temperature: 0.4, maxOutputTokens: 8192, ...(opt.json ? { responseMimeType: 'application/json' } : {}) } };
     const r = await fetch(e.url(model), { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': key }, body: JSON.stringify(body) });
     const j = await r.json().catch(() => ({}));
     const msg = (j.error && j.error.message) || '';

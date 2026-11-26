@@ -9,7 +9,8 @@ import { DurableObject } from 'cloudflare:workers';
 import { makeBot } from '../../bot/core.mjs';
 import { askAI, AI_DAILY } from './ai.mjs';
 import { askAIK } from './aik.mjs';
-import { keysFor } from './gemini.mjs';   // a key for each job, the general key as fallback (26 Nov 2026)   // Khaled's assistant (Gemini); Mohamed's stays on ai.mjs
+import { keysFor } from './gemini.mjs';
+import { askReader, READ_DAILY } from './reader.mjs';   // «مساعد القراءة» in his PDF reader (26 Nov 2026)   // a key for each job, the general key as fallback (26 Nov 2026)   // Khaled's assistant (Gemini); Mohamed's stays on ai.mjs
 
 // keep in step with the site (bot/profiles in sync.mjs and the pages under /khaled and /mohamed)
 // review 24 Nov 2026: «/start constructor» crashed the webhook; only real profile names are accepted
@@ -170,6 +171,27 @@ export class BotState extends DurableObject {
         return Response.json({ ok: true, sent: !!(r && r.ok) }, { headers: cors });
       });
     }
+    if (path === '/read') { // «مساعد القراءة»: the page image and his request; only his private sync key is accepted
+      const cors = { 'access-control-allow-origin': '*' };
+      const pk = body && isProfile(body.p) ? body.p : null;
+      if (pk !== 'khaled' || !body.token || !String(body.ask || '').trim()) return new Response('bad request', { status: 400, headers: cors });
+      const keys = keysFor(this.env, 'reader');
+      if (!keys.length) return Response.json({ ok: false, error: 'مساعد القراءة غير مفعّل بعد.' }, { headers: cors });
+      const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo' }).format(new Date()), cKey = `rdN:${pk}:${day}`;
+      const gate = await this.lock(async () => {
+        await this.load();
+        const P = this.P[pk];
+        if (!P.S.syncToken || body.token !== P.S.syncToken) return 'forbidden';
+        const n = (await this.ctx.storage.get(cKey)) || 0;
+        if (n >= READ_DAILY) return 'limit';
+        await this.ctx.storage.put(cKey, n + 1);
+        return 'ok';
+      });
+      if (gate === 'forbidden') return new Response('forbidden', { status: 403, headers: cors });
+      if (gate === 'limit') return Response.json({ ok: false, error: `انتهت طلبات مساعد القراءة اليوم (${READ_DAILY}). يعود غدًا.` }, { headers: cors });
+      const r = await askReader(this.env, { keys, ask: body.ask, image: body.image, text: body.text, book: body.book, page: body.page, sel: body.sel, bms: body.bms, history: body.history, voice: !!body.voice });
+      return Response.json(r, { headers: cors });
+    }
     if (path === '/ai') { // the assistant on a person's page; only his private sync key is accepted
       const cors = { 'access-control-allow-origin': '*' };
       const pk = body && isProfile(body.p) ? body.p : null;
@@ -275,7 +297,7 @@ export default {
   async fetch(req, env) {
     const url = new URL(req.url);
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'POST, GET', 'access-control-allow-headers': 'content-type' } });
-    if (url.pathname === '/tg' || url.pathname === '/botname' || url.pathname === '/prefs' || url.pathname === '/push' || url.pathname === '/ai' || url.pathname === '/ainote' || url.pathname.startsWith('/sync/')) {
+    if (url.pathname === '/tg' || url.pathname === '/botname' || url.pathname === '/prefs' || url.pathname === '/push' || url.pathname === '/ai' || url.pathname === '/read' || url.pathname === '/ainote' || url.pathname.startsWith('/sync/')) {
       // review 24 Nov 2026: oversized bodies are refused before they reach the shared bot object
       const raw = req.method === 'POST' ? await req.text() : undefined;
       if (raw && raw.length > 1000000) return new Response('too large', { status: 413, headers: { 'access-control-allow-origin': '*' } });
