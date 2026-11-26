@@ -10,7 +10,8 @@ import { makeBot } from '../../bot/core.mjs';
 import { askAI, AI_DAILY } from './ai.mjs';
 import { askAIK } from './aik.mjs';
 import { keysFor } from './gemini.mjs';
-import { askReader, READ_DAILY } from './reader.mjs';   // «مساعد القراءة» in his PDF reader (26 Nov 2026)   // a key for each job, the general key as fallback (26 Nov 2026)   // Khaled's assistant (Gemini); Mohamed's stays on ai.mjs
+import { askReader, READ_DAILY } from './reader.mjs';
+import { dsKeys } from './deepseek.mjs';   // «مساعد القراءة» in his PDF reader (26 Nov 2026)   // a key for each job, the general key as fallback (26 Nov 2026)   // Khaled's assistant (Gemini); Mohamed's stays on ai.mjs
 
 // keep in step with the site (bot/profiles in sync.mjs and the pages under /khaled and /mohamed)
 // review 24 Nov 2026: «/start constructor» crashed the webhook; only real profile names are accepted
@@ -176,7 +177,7 @@ export class BotState extends DurableObject {
       const pk = body && isProfile(body.p) ? body.p : null;
       if (pk !== 'khaled' || !body.token || !String(body.ask || '').trim()) return new Response('bad request', { status: 400, headers: cors });
       const keys = keysFor(this.env, 'reader');
-      if (!keys.length) return Response.json({ ok: false, error: 'مساعد القراءة غير مفعّل بعد.' }, { headers: cors });
+      if (!keys.length && !this.env.AI && !dsKeys(this.env).length) return Response.json({ ok: false, error: 'مساعد القراءة غير مفعّل بعد.' }, { headers: cors });
       const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo' }).format(new Date()), cKey = `rdN:${pk}:${day}`;
       const gate = await this.lock(async () => {
         await this.load();
@@ -189,7 +190,7 @@ export class BotState extends DurableObject {
       });
       if (gate === 'forbidden') return new Response('forbidden', { status: 403, headers: cors });
       if (gate === 'limit') return Response.json({ ok: false, error: `انتهت طلبات مساعد القراءة اليوم (${READ_DAILY}). يعود غدًا.` }, { headers: cors });
-      const r = await askReader(this.env, { keys, ask: body.ask, image: body.image, text: body.text, book: body.book, page: body.page, sel: body.sel, bms: body.bms, history: body.history, voice: !!body.voice });
+      const r = await askReader(this.env, { keys, ask: body.ask, image: body.image, text: body.text, book: body.book, page: body.page, sel: body.sel, bms: body.bms, history: body.history, voice: !!body.voice, check: !!body.check, team: body.team !== false });
       return Response.json(r, { headers: cors });
     }
     if (path === '/ai') { // the assistant on a person's page; only his private sync key is accepted
@@ -211,9 +212,9 @@ export class BotState extends DurableObject {
       if (gate === 'limit') return Response.json({ ok: false, error: `انتهت أسئلة اليوم (${AI_DAILY}). يعود المساعد غدًا.` }, { headers: cors });
       if (pk === 'khaled') {
         const job = body.ctx && body.ctx.catalog ? 'search' : 'khaled';   // «ابحث بالمعنى» sends the book catalogue
-        const r = await askAIK(this.env, { name: PROFILES[pk].name, messages: body.messages, ctx: body.ctx, keys: keysFor(this.env, job) });
+        const r = await askAIK(this.env, { name: PROFILES[pk].name, messages: body.messages, ctx: body.ctx, keys: keysFor(this.env, job), team: job === 'khaled' && body.team !== false });
         if (!r.ok || r.fallback) console.error('aik', r.detail || 'fallback');
-        return Response.json({ ok: r.ok, reply: r.reply, actions: r.actions, remember: r.remember, forget: r.forget, sources: r.sources, model: r.model, error: r.error }, { headers: cors });
+        return Response.json({ ok: r.ok, reply: r.reply, actions: r.actions, remember: r.remember, forget: r.forget, sources: r.sources, model: r.model, team: r.team, error: r.error }, { headers: cors });
       }
       const r = await askAI(this.env, { name: PROFILES[pk].name, messages: body.messages, ctx: body.ctx, keys: keysFor(this.env, 'mohamed') });
       if (!r.ok) console.error('ai', r.detail);

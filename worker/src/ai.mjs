@@ -53,6 +53,8 @@ function parse(s) {
   return s ? { reply: s, actions: [] } : null;   // the model answered in plain words: show them
 }
 
+import { deepseek, dsKeys } from './deepseek.mjs';   // DeepSeek after Gemini, before Cloudflare (26 Nov 2026)
+
 export async function askAI(env, { name, messages, ctx, keys }) {
   const sys = SYSTEM(name) + '\n\nحالة الصفحة الآن (JSON):\n' + JSON.stringify(ctx || {}).slice(0, 24000);
   const msgs = [{ role: 'system', content: sys }].concat((Array.isArray(messages) ? messages : []).slice(-10)
@@ -74,6 +76,11 @@ export async function askAI(env, { name, messages, ctx, keys }) {
       } catch (e) { err = String(e && e.message || e).slice(0, 200); if (/ 40[13] |API key/i.test(err)) break; }
     }
   }
+  if (dsKeys(env).length) try {   // DeepSeek answers without the «ask me to search» rule; if it still asks, Cloudflare searches
+    const talk = msgs.slice(1); while (talk.length && talk[0].role !== 'user') talk.shift();
+    const d = await deepseek(env, sys.replace(/٥\) معك بحث في الإنترنت[\s\S]*?\n\n/, ''), talk, { json: true }); const j = parse(d.text);
+    if (j && !j.search && (j.reply || j.actions.length)) return { ok: true, reply: j.reply, actions: j.actions, model: d.model, searched };
+  } catch (e) { err = String(e && e.message || e).slice(0, 200); }
   for (let round = 0; round < 3; round++) {
     let j = null;
     for (const model of AI_MODELS) {

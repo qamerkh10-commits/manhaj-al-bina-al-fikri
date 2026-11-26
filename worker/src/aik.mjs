@@ -76,7 +76,10 @@ async function cloudflare(env, sys, msgs) {
   throw new Error(err || 'no answer');
 }
 
-export async function askAIK(env, { name, messages, ctx, keys }) {
+import { deepseek, dsKeys } from './deepseek.mjs';   // DeepSeek after Gemini, before Cloudflare (26 Nov 2026)
+import { teamPolish } from './team.mjs';   // «الفريق»: Gemini → Qwen → GLM → Gemini (26 Nov 2026)
+
+export async function askAIK(env, { name, messages, ctx, keys, team }) {
   const sys = SYSTEM(name) + '\n\nحالة الصفحة الآن (JSON):\n' + JSON.stringify(ctx || {}).slice(0, 60000);
   const msgs = (Array.isArray(messages) ? messages : []).slice(-16)
     .map(m => ({ role: m && m.role === 'assistant' ? 'assistant' : 'user', content: String((m && m.content) || '').slice(0, 4000) }));
@@ -84,10 +87,19 @@ export async function askAIK(env, { name, messages, ctx, keys }) {
   const errs = [];
   if (keys && keys.length) for (const model of models()) {
     try { const g = await gemini(env, model, sys, msgs, { keys }); const j = parse(g.text);
-      if (j && (j.reply || j.actions.length)) return { ok: true, ...j, model, sources: g.sources };
+      if (j && (j.reply || j.actions.length)) {
+        if (team && !j.actions.length && String(j.reply || '').length > 350 && env.AI) {
+          const q = (msgs.filter(x => x.role === 'user').pop() || {}).content || '';
+          const tp = await teamPolish(env, { keys, sys, question: q, source: msgs.slice(-5, -1).map(x => (x.role === 'user' ? 'خالد: ' : 'المساعد: ') + x.content).join('\n'), draft: j.reply, shape: '{"reply":"…"}' });
+          if (tp) { const f = parse(tp.text); if (f && f.reply) return { ok: true, ...j, reply: f.reply, model, sources: g.sources, team: ['Gemini'].concat(tp.steps, ['Gemini']).join(' ← ') } }
+        }
+        return { ok: true, ...j, model, sources: g.sources };
+      }
       errs.push(model + ' empty');
     } catch (e) { errs.push(String(e && e.message || e).slice(0, 200)); if (/ 40[13] |API key/i.test(String(e && e.message))) break; }   // a bad key: don't try the others
   }
+  if (dsKeys(env).length) try { const d = await deepseek(env, sys, msgs, { json: true }); const j = parse(d.text);
+    if (j && !j.search && (j.reply || j.actions.length)) return { ok: true, ...j, model: d.model, sources: [], fallback: 1, detail: errs.join(' | ').slice(0, 3000) }; errs.push(d.model + ' empty'); } catch (e) { errs.push(String(e && e.message || e).slice(0, 200)); }
   if (env.AI) try { const j = await cloudflare(env, sys, msgs); return { ok: true, ...j, fallback: 1, detail: errs.join(' | ').slice(0, 3000) }; } catch (e) { errs.push(String(e && e.message || e)); }
   return { ok: false, error: 'المساعد لا يعمل الآن، جرّب بعد قليل.', detail: errs.join(' | ').slice(0, 500) };
 }
