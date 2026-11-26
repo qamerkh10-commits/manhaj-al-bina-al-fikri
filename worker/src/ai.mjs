@@ -53,17 +53,17 @@ function parse(s) {
   return s ? { reply: s, actions: [] } : null;   // the model answered in plain words: show them
 }
 
-export async function askAI(env, { name, messages, ctx }) {
+export async function askAI(env, { name, messages, ctx, keys }) {
   const sys = SYSTEM(name) + '\n\nحالة الصفحة الآن (JSON):\n' + JSON.stringify(ctx || {}).slice(0, 24000);
   const msgs = [{ role: 'system', content: sys }].concat((Array.isArray(messages) ? messages : []).slice(-10)
     .map(m => ({ role: m && m.role === 'assistant' ? 'assistant' : 'user', content: String((m && m.content) || '').slice(0, 2000) })));
   let err = '', searched = [];
-  if (env.GEMINI_API_KEY) {   // Gemini searches Google itself; the links it used are added under the answer
+  if (keys && keys.length) {   // Gemini searches Google itself; the links it used are added under the answer
     const talk = msgs.slice(1); while (talk.length && talk[0].role !== 'user') talk.shift();
     // review 24 Nov 2026: Gemini searches Google itself, so it gets no «ask me to search» rule (that made it loop through every model)
     const gsys = sys.replace(/٥\) معك بحث في الإنترنت[\s\S]*?\n\n/, '');
     for (const model of models()) {
-      try { const g = await gemini(env, model, gsys, talk); const j = parse(g.text);
+      try { const g = await gemini(env, model, gsys, talk, { keys }); const j = parse(g.text);
         if (j && j.search) { err = model + ' asked to search'; break; }   // leave it to the Cloudflare path, which searches
         if (j && !j.search && (j.reply || j.actions.length)) {
           const src = g.sources.filter(x => x.url && !j.reply.includes(x.url)).slice(0, 4);

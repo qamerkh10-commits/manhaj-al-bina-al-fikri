@@ -76,14 +76,14 @@ async function cloudflare(env, sys, msgs) {
   throw new Error(err || 'no answer');
 }
 
-export async function askAIK(env, { name, messages, ctx }) {
+export async function askAIK(env, { name, messages, ctx, keys }) {
   const sys = SYSTEM(name) + '\n\nحالة الصفحة الآن (JSON):\n' + JSON.stringify(ctx || {}).slice(0, 60000);
   const msgs = (Array.isArray(messages) ? messages : []).slice(-16)
     .map(m => ({ role: m && m.role === 'assistant' ? 'assistant' : 'user', content: String((m && m.content) || '').slice(0, 4000) }));
   while (msgs.length && msgs[0].role !== 'user') msgs.shift();   // Gemini wants the talk to start with him
   const errs = [];
-  if (env.GEMINI_API_KEY) for (const model of models()) {
-    try { const g = await gemini(env, model, sys, msgs); const j = parse(g.text);
+  if (keys && keys.length) for (const model of models()) {
+    try { const g = await gemini(env, model, sys, msgs, { keys }); const j = parse(g.text);
       if (j && (j.reply || j.actions.length)) return { ok: true, ...j, model, sources: g.sources };
       errs.push(model + ' empty');
     } catch (e) { errs.push(String(e && e.message || e).slice(0, 200)); if (/ 40[13] |API key/i.test(String(e && e.message))) break; }   // a bad key: don't try the others
