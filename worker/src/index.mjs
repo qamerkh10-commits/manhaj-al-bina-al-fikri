@@ -182,7 +182,10 @@ export class BotState extends DurableObject {
       const az = body.mode === 'azure';   // «القراءة الاحترافية» (Azure or OCR.space): its own counts, apart from the assistant's 150 a day
       const eng = az ? proEngine(this.env) : '';
       if (az && !eng) return Response.json({ ok: false, code: 'noazure' }, { headers: cors });
-      if (az && !body.image) return Response.json({ ok: true, ready: 1 }, { headers: cors });   // the reader asks once whether it is set up
+      if (az && !body.image) {   // the reader asks once whether it is set up (and whether this device's sync key is still his)
+        const mine = await this.lock(async () => { await this.load(); const P = this.P[pk]; return !!P.S.syncToken && body.token === P.S.syncToken });
+        return mine ? Response.json({ ok: true, ready: 1, engine: eng }, { headers: cors }) : new Response('forbidden', { status: 403, headers: cors });
+      }
       if (!az && !keys.length && !this.env.AI && !dsKeys(this.env).length) return Response.json({ ok: false, error: 'مساعد القراءة غير مفعّل بعد.' }, { headers: cors });
       const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo' }).format(new Date()), cKey = az ? `azN:${pk}:${day.slice(0, 7)}` : `rdN:${pk}:${day}`, cMax = az ? (eng === 'azure' ? AZ_MONTHLY : OS_MONTHLY) : READ_DAILY, dKey = eng === 'ocrspace' ? `osN:${pk}:${day}` : '';
       const gate = await this.lock(async () => {

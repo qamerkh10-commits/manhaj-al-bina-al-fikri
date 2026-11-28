@@ -20,7 +20,10 @@ export async function ocrSpace(env, { image }) {
   const t = await r.text(); let j = null; try { j = JSON.parse(t) } catch (e) { }
   const msg = j ? [].concat(j.ErrorMessage || [], j.ErrorDetails || []).join(' ') : t.slice(0, 300);
   if (/api ?key|apikey/i.test(msg) && /invalid|not valid|wrong/i.test(msg)) return { ok: false, code: 'badkey', error: 'مفتاح OCR.space غير صحيح.' };
-  if (/maximum|times within|limit/i.test(msg) || r.status === 429) return { ok: false, code: 'quota', error: 'انتهت صفحات OCR.space المجانية لليوم.' };
+  if (msg) console.error('ocrspace', r.status, msg.slice(0, 300));   // seen with «wrangler tail»
+  // the daily cap reads «…upto maximum 500 number of times within 86400 seconds»; a too-big image also says «maximum … limit»
+  if (/number of times|times within/i.test(msg) || r.status === 429) return { ok: false, code: 'quota', error: 'انتهت صفحات OCR.space المجانية لليوم.' };
+  if (/file ?size|size limit|exceeds/i.test(msg)) return { ok: false, code: 'fail', error: 'صورة الصفحة أكبر من حدّ OCR.space.' };
   if (r.status === 401 || r.status === 403) return { ok: false, code: 'badkey', error: 'مفتاح OCR.space غير صحيح أو غير مفعّل بعد (افتح رابط التفعيل في بريدك).' };
   if (!r.ok || !j || j.IsErroredOnProcessing) { console.error('ocrspace', r.status, msg.slice(0, 300)); return { ok: false, code: /timed? ?out|E101|busy/i.test(msg) || r.status >= 500 ? 'busy' : 'fail', retry: 8, error: 'تعذّرت القراءة من OCR.space.' } }
   const res = (j.ParsedResults || [])[0] || {}, L = ((res.TextOverlay || {}).Lines) || [];
