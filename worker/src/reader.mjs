@@ -111,3 +111,23 @@ export async function askReader(env, { keys, ask, image, text, book, page, sel, 
   }
   return { ok: true, ...res, ocr: ocr || undefined };
 }
+
+// «النص المصحَّح» (28 Nov 2026, his request: «أداة… تعمل OCR للكتاب وأقدر أنسخ النصوص أحددها براحتي»): the clean text of
+// one page read from its image — Gemini first (the best at old Arabic print), then Cloudflare's vision models (no key).
+// The reader shows it beside the page to copy from, and keeps it for «مساعد القراءة».
+const OCR_SYS = 'أنت ناسخ دقيق للكتب العربية المطبوعة والمصوّرة. تنقل نص الصورة حرفيًّا كما هو، بتشكيله إن وُجد، ولا تصحح ولا تشرح.';
+const OCR_FULL = OCR_ASK + ' احفظ تقسيم الفقرات كما في الصفحة، واجعل كل فقرة في سطر مستقل. ولا تكتب رقم الصفحة ولا رأسها المتكرر (اسم الكتاب أو الباب في أعلاها). وإن كان في الصفحة شعر فاجعل كل بيت في سطر وبين شطريه « … ».';
+export async function transcribe(env, { keys, image, hint }) {
+  const m = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(String(image || ''));
+  if (!m) return { ok: false, error: 'لم تصل صورة الصفحة.' };
+  const ask = OCR_FULL + (hint ? `\n\nهذه قراءة آلية أولية للصفحة فيها أخطاء، قد تعينك على الكلمات غير الواضحة، لكن المرجع هو الصورة:\n${String(hint).slice(0, 6000)}` : '');
+  const errs = [];
+  if (keys && keys.length) for (const model of models()) {
+    try { const g = await gemini(env, model, OCR_SYS, [{ role: 'user', parts: [{ inlineData: { mimeType: m[1], data: m[2] } }, { text: ask }] }], { keys, bare: 1 });
+      const t = String(g.text || '').replace(/^```[a-z]*\n?|```$/g, '').trim(); if (t) return { ok: true, text: t.slice(0, 12000), model }; errs.push(model + ' empty') }
+    catch (e) { errs.push(String(e.message || e).slice(0, 300)); if (/ (400) /.test(' ' + e.message + ' ') && !/not found|is not supported|unknown/i.test(e.message)) break }
+  }
+  if (env.AI) { const o = await cfRun(env, CF_VISION, [{ role: 'user', content: [{ type: 'text', text: ask }, { type: 'image_url', image_url: { url: `data:${m[1]};base64,${m[2]}` } }] }], 4000); if (o) return { ok: true, text: o.text.trim().slice(0, 12000), model: o.model } }
+  console.error('transcribe', errs.join(' || '));
+  return { ok: false, error: 'تعذّرت قراءة الصفحة الآن. جرّب بعد قليل.' };
+}

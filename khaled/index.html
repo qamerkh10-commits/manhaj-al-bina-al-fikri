@@ -1159,6 +1159,17 @@ html.k-calm #bookDlg.kbk,html.k-calm #bookDlg.kbk *,html.k-calm #bookDlg.kbk::ba
 #kRd .ann small{color:var(--muted)}
 #kRd .map svg{display:block;max-width:none}
 #kRd .map .nd{cursor:pointer}
+#kRd .ochip{position:absolute;top:8px;left:8px;z-index:4;pointer-events:none;font:700 11.5px/1.2 inherit;direction:rtl;padding:5px 10px;border-radius:999px;background:color-mix(in srgb,var(--card) 82%,transparent);color:var(--ink);border:1px solid var(--lg-edge,var(--line));box-shadow:0 4px 14px rgba(0,0,0,.18)}
+#kRd .otx .ohd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:4px 0 8px}#kRd .otx .ohd small{color:var(--muted);font-size:12px}
+#kRd .otx .obtn{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}#kRd .otx .obtn .tb{padding:6px 10px;font-size:12.5px}
+#kRd .otx .osrc{font-size:12px;color:var(--teal);margin:2px 0 6px}
+#kRd .otx .ptx{white-space:pre-wrap;user-select:text;-webkit-user-select:text;cursor:text;font-size:15.5px;line-height:2;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:color-mix(in srgb,var(--card) 70%,transparent);max-height:52vh;overflow:auto;font-family:'Amiri','Noto Naskh Arabic','Traditional Arabic',serif}
+#kRd .otx .ptx[contenteditable="true"]{outline:2px solid var(--teal);background:var(--card)}
+#kRd .otx h5{margin:14px 0 6px;font-size:13px}#kRd .otx label{display:flex;gap:6px;align-items:flex-start;font-size:12.5px;line-height:1.6;margin:4px 0;cursor:pointer}
+#kRd .otx .ojob{margin:10px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px}
+#kRd .otx .obar{flex:1 1 100%;height:6px;border-radius:9px;background:var(--line);overflow:hidden}#kRd .otx .obar i{display:block;height:100%;background:var(--teal);transition:width .3s}
+#kRd .otx .note{font-size:12px;color:var(--muted);line-height:1.7;margin-top:8px}
+#kRd .otx .lk{background:none;border:0;color:var(--muted);font:inherit;font-size:12px;text-decoration:underline;cursor:pointer;padding:0;margin-top:10px}
 #kRd .empty{color:var(--muted);font-size:13px;padding:14px 4px;line-height:1.8}
 #kRd .lib{position:absolute;inset:0;overflow:auto;padding:18px;z-index:6;background:var(--bg)}
 #kRd .lib[hidden]{display:none}
@@ -1239,7 +1250,7 @@ dialog:not(#bookDlg)::backdrop{background:rgba(6,10,18,.38);-webkit-backdrop-fil
  #aiBox,#moreSheet .sheet,#kSr .pan,html.k-orbs nav.tabs.tabs,dialog:not(#bookDlg){background-color:var(--card)!important}
  #aiLog,#aiForm{background:var(--bg)!important}
  .toast{background-color:var(--deep)!important}}
-</style><meta name="kbuild" content="1795718052"></head>
+</style><meta name="kbuild" content="1795873183"></head>
 <body>
 <header class="top"><div class="wrap"><div class="row"><div class="brand"><span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="شعار منهج البناء الفكري"><rect width="512" height="512" rx="116" fill="#22304D"/><g transform="translate(0.0,0.0) scale(1.0)"><rect x="132" y="250" width="66" height="134" rx="10" fill="#F6F1E4"/><rect x="223" y="196" width="66" height="188" rx="10" fill="#F6F1E4"/><rect x="314" y="140" width="66" height="244" rx="10" fill="#F6F1E4"/><g fill="#9AA6BF"><rect x="132" y="276" width="66" height="10"/><rect x="223" y="222" width="66" height="10"/><rect x="314" y="166" width="66" height="10"/><rect x="132" y="352" width="66" height="6"/><rect x="223" y="352" width="66" height="6"/><rect x="314" y="352" width="66" height="6"/></g><path d="M352 140 L352 206 L364 194 L376 206 L376 140 Z" fill="#D2AE62"/><rect x="112" y="392" width="288" height="14" rx="7" fill="#D2AE62"/></g></svg></span><h1>منهج البناء الفكري</h1></div><div class="acts"><button class="themeBtn" id="dlBtn" aria-label="تنزيل التطبيق"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 19h16"/></svg><span class="dlTxt">تنزيل</span></button><button class="themeBtn" id="fsBtn" aria-label="حجم الخط" title="حجم الخط">أ<small>+</small></button><button class="themeBtn" id="themeBtn" aria-label="تبديل الوضع الليلي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button></div></div><div class="sub profbar" id="profBar" hidden></div></div></header>
 <nav class="tabs" id="mainNav" aria-label="التنقل"><div class="nbrand"><span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="شعار منهج البناء الفكري"><rect width="512" height="512" rx="116" fill="#22304D"/><g transform="translate(0.0,0.0) scale(1.0)"><rect x="132" y="250" width="66" height="134" rx="10" fill="#F6F1E4"/><rect x="223" y="196" width="66" height="188" rx="10" fill="#F6F1E4"/><rect x="314" y="140" width="66" height="244" rx="10" fill="#F6F1E4"/><g fill="#9AA6BF"><rect x="132" y="276" width="66" height="10"/><rect x="223" y="222" width="66" height="10"/><rect x="314" y="166" width="66" height="10"/><rect x="132" y="352" width="66" height="6"/><rect x="223" y="352" width="66" height="6"/><rect x="314" y="352" width="66" height="6"/></g><path d="M352 140 L352 206 L364 194 L376 206 L376 140 Z" fill="#D2AE62"/><rect x="112" y="392" width="288" height="14" rx="7" fill="#D2AE62"/></g></svg></span><b>منهج البناء الفكري</b></div><div class="wrap" id="tabbar" role="tablist"></div><div class="ntag">رفيق القراءة اليومي</div></nav><div id="moreSheet" hidden><div class="sheet" role="dialog" aria-label="أقسام"><div class="grab"></div><h3>أقسام المنهج</h3><div class="mgrid" id="moreGrid"></div></div></div>
@@ -2838,7 +2849,7 @@ const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelecto
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const r2=v=>Math.round(v*100)/100;
 try{SYNC_SKIP.push('rdmap-v1','rdtools-v1')}catch(e){}
-const IC={hand:'M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 16 0v-3a2 2 0 0 0-4 0',
+const IC={ocr:'M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 9h8M8 12h8M8 15h5',hand:'M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 16 0v-3a2 2 0 0 0-4 0',
  pen:'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z',hl:'m9 11-6 6v3h9l3-3M22 12l-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4',
  er:'m7 21-4.3-4.3a1 1 0 0 1 0-1.4l10-10a1 1 0 0 1 1.4 0l5.6 5.6a1 1 0 0 1 0 1.4L13 21M22 21H7M5 11l9 9',txt:'M4 7V4h16v3M9 20h6M12 4v16',
  rect:'<rect x="3" y="5" width="18" height="14" rx="2"/>',ell:'<ellipse cx="12" cy="12" rx="9" ry="7"/>',arrow:'M5 19 19 5M9 5h10v10',line:'M4 20 20 4',
@@ -2864,14 +2875,15 @@ const RDB={db:null,open(){return this.db?Promise.resolve(this.db):new Promise((r
  all(){return this.tx('files','readonly',s=>s.getAll())},put(m){return this.tx('files','readwrite',s=>s.put(m))},get(id){return this.tx('files','readonly',s=>s.get(id))},
  blob(id){return this.tx('blobs','readonly',s=>s.get(id))},putBlob(id,b){return this.tx('blobs','readwrite',s=>s.put(b,id))},
  ann(id){return this.tx('ann','readonly',s=>s.get(id))},putAnn(id,a){return this.tx('ann','readwrite',s=>s.put(a,id))},
- del(id){return this.open().then(db=>new Promise((res,rej)=>{const t=db.transaction(['files','blobs','ann'],'readwrite');['files','blobs','ann'].forEach(s=>t.objectStore(s).delete(id));t.oncomplete=res;t.onerror=()=>rej(t.error)}))}};
+ ocr(id){return this.tx('ann','readonly',s=>s.get('ocr:'+id))},putOcr(id,o){return this.tx('ann','readwrite',s=>s.put(o,'ocr:'+id))},
+ del(id){return this.open().then(db=>new Promise((res,rej)=>{const t=db.transaction(['files','blobs','ann'],'readwrite');['files','blobs','ann'].forEach(s=>t.objectStore(s).delete(id));t.objectStore('ann').delete('ocr:'+id);t.oncomplete=res;t.onerror=()=>rej(t.error)}))}};
 const MAP=()=>LS.get('manhaj-rdmap-v1',{})||{};
 const setMap=(k,id)=>{const m=MAP();if(id)m[k]=id;else delete m[k];LS.set('manhaj-rdmap-v1',m)};
 const CANDS=()=>{const o=[],seen=new Set(),add=(k,t,a)=>{if(!k||seen.has(k))return;seen.add(k);o.push({k,t,a:String(a||'').split('،')[0]})};
  BOOKS.forEach(b=>add(b.id,b.ttl,b.by));(D.LIT||[]).forEach((b,i)=>add('lit-'+i,b.title,b.author));(D.SCI||[]).forEach((b,i)=>add('sci-'+i,b.title,b.author));return o};
 const candT=k=>{const c=CANDS().find(x=>x.k===k);return c?c.t:''};
 // ---------- state ----------
-let lib=null,ST={meta:null,pdf:null,n:0,zoom:1,scale:1,W:595,H:842,sizes:{},tool:'hand',A:{anns:[],bms:[],links:[]},U:[],R:[],sel:null,cur:1,rendered:new Set(),side:'bm',linkFrom:null,dirty:0};
+let lib=null,ST={meta:null,pdf:null,n:0,zoom:1,scale:1,W:595,H:842,sizes:{},tool:'hand',A:{anns:[],bms:[],links:[]},O:{pages:{}},tq:{},oq:[],U:[],R:[],sel:null,cur:1,rendered:new Set(),side:'bm',linkFrom:null,dirty:0};
 const loadLib=()=>lib?Promise.resolve(lib):new Promise((res,rej)=>{const s=document.createElement('script');s.src=CDN+'pdf.min.js';s.onload=()=>{lib=window.pdfjsLib;lib.GlobalWorkerOptions.workerSrc=CDN+'pdf.worker.min.js';res(lib)};s.onerror=()=>rej(new Error('pdf.js'));document.head.appendChild(s)});
 // ---------- the frame ----------
 let R=null;
@@ -2881,9 +2893,9 @@ function build(){if(R)return R;R=document.createElement('div');R.id='kRd';R.hidd
   <div class="pgn"><button class="ib" data-a="prev" aria-label="الصفحة السابقة">${ic('prev')}</button><input id="rdPg" type="number" min="1" inputmode="numeric" aria-label="رقم الصفحة"> / <span id="rdN">–</span><button class="ib" data-a="next" aria-label="الصفحة التالية">${ic('next')}</button></div>
   <button class="ib" data-a="zout" aria-label="تصغير">${ic('zout')}</button><button class="ib" data-a="fit" title="ملء العرض" aria-label="ملء العرض">${ic('fit')}</button><button class="ib" data-a="zin" aria-label="تكبير">${ic('zin')}</button>
   <button class="ib" data-a="book" title="وضع الكتاب: صفحات متقابلة تتقلّب" aria-label="وضع الكتاب">${ic('flip')}</button><button class="tb" data-a="addpg" title="أضف صفحة فارغة أو مسطّرة بعد هذه الصفحة">＋ صفحة</button><button class="ib" data-a="undo" title="تراجع (Ctrl+Z)" aria-label="تراجع">${ic('undo')}</button><button class="ib" data-a="redo" title="إعادة" aria-label="إعادة">${ic('redo')}</button>
-  <button class="tb pri" data-a="here" hidden>وصلت هنا</button><button class="ib" data-a="mic" title="أمر بالصوت" aria-label="أمر بالصوت">${ic('mic')}</button><button class="ib" data-a="ai" title="مساعد القراءة" aria-label="مساعد القراءة">${ic('spark')}</button><button class="ib" data-a="side" title="العلامات والتعليقات" aria-label="العلامات والتعليقات">${ic('side')}</button></div>
+  <button class="tb pri" data-a="here" hidden>وصلت هنا</button><button class="ib" data-a="mic" title="أمر بالصوت" aria-label="أمر بالصوت">${ic('mic')}</button><button class="tb" data-a="ojob" id="rdOj" hidden title="القراءة الضوئية للكتاب"></button><button class="ib" data-a="ocr" title="نص الصفحة: القراءة الضوئية والنص المصحَّح (للكتب المصوّرة والمكسورة الترميز)" aria-label="نص الصفحة">${ic('ocr')}</button><button class="ib" data-a="ai" title="مساعد القراءة" aria-label="مساعد القراءة">${ic('spark')}</button><button class="ib" data-a="side" title="العلامات والتعليقات" aria-label="العلامات والتعليقات">${ic('side')}</button></div>
   <div class="rtools g" role="toolbar" aria-label="أدوات">${TOOLS.map(t=>t==='|'?'<span class="sep"></span>':`<button class="ib tool" data-t="${t[0]}" title="${t[1]}" aria-label="${t[1]}" aria-pressed="false">${ic(t[0])}<i></i></button>`).join('')}</div>
-  <div class="rbody"><div class="rpages" id="rdPages"></div><aside class="side g" id="rdSide" hidden><div class="stabs"><button class="tb" data-s="bm">العلامات</button><button class="tb" data-s="map">الخريطة</button><button class="tb" data-s="ann">تعليقاتك</button><button class="tb" data-s="ai">المساعد</button></div><div class="sb" id="rdSb"></div></aside>
+  <div class="rbody"><div class="rpages" id="rdPages"></div><aside class="side g" id="rdSide" hidden><div class="stabs"><button class="tb" data-s="bm">العلامات</button><button class="tb" data-s="map">الخريطة</button><button class="tb" data-s="ann">تعليقاتك</button><button class="tb" data-s="txt">النص</button><button class="tb" data-s="ai">المساعد</button></div><div class="sb" id="rdSb"></div></aside>
   <div class="lib" id="rdLib" hidden></div></div>
   <div class="pop g" id="rdPop" hidden></div><div class="selbar g" id="rdSel" hidden></div><input type="file" id="rdFile" accept="application/pdf,.pdf" multiple hidden><input type="file" id="rdImp" accept=".json,application/json" hidden>`;
  document.body.appendChild(R);
@@ -2905,7 +2917,7 @@ function onClick(e){const b=e.target.closest('[data-a],[data-t],[data-s]');if(!b
  if(a==='close')close();else if(a==='lib')showLib();else if(a==='prev'){if(ST.book)flip(-1);else go(ST.cur-1)}else if(a==='next'){if(ST.book)flip(1);else go(ST.cur+1)}else if(a==='book')bookMode(!ST.book);
  else if(a==='zin')zoom(ST.zoom*1.2);else if(a==='zout')zoom(ST.zoom/1.2);else if(a==='fit')zoom(1);
  else if(a==='undo')undo();else if(a==='redo')redo();else if(a==='side'){showSide($('#rdSide',R).hidden)}
- else if(a==='here')here();else if(a==='addpg')pagePop(b);else if(a==='ai')showSide(true,'ai');else if(a==='mic'){showSide(true,'ai');setTimeout(()=>{const m=$('[data-mic]',R);if(m)listen(m)},80)}}
+ else if(a==='here')here();else if(a==='addpg')pagePop(b);else if(a==='ai')showSide(true,'ai');else if(a==='ocr'||a==='ojob')showSide(true,'txt');else if(a==='mic'){showSide(true,'ai');setTimeout(()=>{const m=$('[data-mic]',R);if(m)listen(m)},80)}}
 function showSide(on,tab){const s=$('#rdSide',R);if(tab)ST.side=tab;const was=!s.hidden;s.hidden=!on;if(on)drawSide();if(was!==!!on)setTimeout(()=>relayout(true),30)}
 function setTool(t){ST.tool=t;R.dataset.tool=t;$$('.tool',R).forEach(b=>{b.setAttribute('aria-pressed',b.dataset.t===t);const c=TC[b.dataset.t];b.style.setProperty('--tc',c&&c.c?c.c:'transparent')});deselect();
  if(t!=='hand'&&t!=='er'&&!LS.get('manhaj-rdtip',0)){toast('اضغط الأداة مرة ثانية لتغيير لونها وسُمكها.');LS.set('manhaj-rdtip',1)}}
@@ -2940,7 +2952,7 @@ async function open(fileId,page){build();R.hidden=false;document.documentElement
  $('#rdT',R).textContent=meta.name;$('#rdS',R).textContent=meta.bookKey?('مربوط بـ «'+candT(meta.bookKey)+'»'):'غير مربوط بكتاب';
  const P=$('#rdPages',R);P.innerHTML='<div class="empty" style="text-align:center;padding:40px">جارٍ فتح الملف…</div>';
  try{await loadLib();const blob=await RDB.blob(fileId);const buf=await blob.arrayBuffer();if(ST.pdf){try{ST.pdf.destroy()}catch(e){}}
-  ST.pdf=await lib.getDocument({data:new Uint8Array(buf),standardFontDataUrl:FD+'standard_fonts/',cMapUrl:FD+'cmaps/',cMapPacked:true,useSystemFonts:false}).promise;ST.n=ST.pdf.numPages;const a=await RDB.ann(fileId);if(a)ST.A=Object.assign({anns:[],bms:[],links:[],ins:[]},a);
+  ST.pdf=await lib.getDocument({data:new Uint8Array(buf),standardFontDataUrl:FD+'standard_fonts/',cMapUrl:FD+'cmaps/',cMapPacked:true,useSystemFonts:false}).promise;ST.n=ST.pdf.numPages;const a=await RDB.ann(fileId);if(a)ST.A=Object.assign({anns:[],bms:[],links:[],ins:[]},a);ST.O=(await RDB.ocr(fileId).catch(()=>null))||{pages:{}};ST.tq={};ST.oq=[];ST.job=null;ojBtn();
   const p1=await ST.pdf.getPage(1),v=p1.getViewport({scale:1});ST.W=v.width;ST.H=v.height;if(meta.pages!==ST.n){meta.pages=ST.n;RDB.put(meta)}
  }catch(e){console.error(e);P.innerHTML='<div class="empty" style="text-align:center;padding:40px">تعذّر فتح الملف. تأكد من اتصالك بالإنترنت أول مرة (يُحمَّل محرك القراءة)، أو أن الملف PDF سليم.</div>';return}
  $('#rdN',R).textContent=nA(ST.n);buildPages();hereBtn();ST.book=false;R.classList.remove('bookmode');if(meta.book)bookMode(true,page||meta.last||1);else go(page||meta.last||1,true);drawSide();if(!meta.outlineDone)outlineImport(false)}
@@ -3055,12 +3067,12 @@ async function renderPage(p){const d=pageEl(p);if(!d||d._r===ST.scale)return;con
   if(d._task){try{d._task.cancel()}catch(e){}}cv.width=Math.floor(vp.width*dpr);cv.height=Math.floor(vp.height*dpr);cv.style.width=vp.width+'px';cv.style.height=vp.height+'px';
   d._task=pg.render({canvasContext:cv.getContext('2d'),viewport:vp,transform:dpr!==1?[dpr,0,0,dpr,0,0]:null});await d._task.promise;d._task=null;
   const tl=d.querySelector('.textLayer');tl.innerHTML='';tl.style.setProperty('--scale-factor',vp.scale);
-  const tc=await pg.getTextContent();if(d._r===sc){await lib.renderTextLayer({textContentSource:tc,container:tl,viewport:vp,textDivs:[]}).promise;const eoc=document.createElement('div');eoc.className='endOfContent';tl.appendChild(eoc)}
+  const tc=await pg.getTextContent();ST.tq[p]=tqOf(tc);tl.classList.remove('ocr');if(d._r===sc){if(useOcr(p)){if(ST.O.pages[p])ocrLayer(d,p);else oQueue(p)}else{await lib.renderTextLayer({textContentSource:tc,container:tl,viewport:vp,textDivs:[]}).promise;const eoc=document.createElement('div');eoc.className='endOfContent';tl.appendChild(eoc)}}
   ST.rendered.add(p);drawAnn(p);evict()}catch(e){if(!/cancel/i.test(String(e&&e.name||e)))console.error(e)}}
 function evict(){if(ST.rendered.size<=14)return;[...ST.rendered].filter(p=>typeof p==='number').sort((a,b)=>Math.abs(b-ST.cur)-Math.abs(a-ST.cur)).slice(0,ST.rendered.size-14).forEach(p=>{const d=pageEl(p);if(!d)return;const cv=d.querySelector('canvas');cv.width=cv.height=0;d.querySelector('.textLayer').innerHTML='';d._r=0;ST.rendered.delete(p)})}
 function zoom(z){ST.zoom=Math.max(.4,Math.min(4,z));if(R){const zb=$('[data-a="fit"]',R);if(zb)zb.title='ملء العرض ('+Math.round(ST.zoom*100)+'٪)'}if(ST.meta){ST.meta.zoom=ST.zoom;RDB.put(ST.meta)}relayout(true)}
 function go(p,instant){if(!ST.pdf)return;if(typeof p!=='string'||!/^x:/.test(p))p=Math.max(1,Math.min(ST.n,(+p)|0||1));const d=pageEl(p);if(!d)return;if(ST.book){bookShow(p);return}$('#rdPages',R).scrollTo({top:d.offsetTop-12,behavior:instant?'auto':'smooth'});setCur(typeof p==='string'?((insOf(p)||{}).after||1):p)}
-function setCur(p){if(p===ST.cur&&$('#rdPg',R).value==p)return;ST.cur=p;$('#rdPg',R).value=p;hereBtn();if(ST.meta){ST.meta.last=p;clearTimeout(ST._lt);ST._lt=setTimeout(()=>RDB.put(ST.meta),800)}}
+function setCur(p){if(p===ST.cur&&$('#rdPg',R).value==p)return;ST.cur=p;$('#rdPg',R).value=p;hereBtn();if(ST.side==='txt'&&!$('#rdSide',R).hidden){clearTimeout(ST._tx);ST._tx=setTimeout(()=>{if(!ST.txEdit)drawSide()},250)}if(ST.meta){ST.meta.last=p;clearTimeout(ST._lt);ST._lt=setTimeout(()=>RDB.put(ST.meta),800)}}
 function onScroll(){if(ST.book)return;clearTimeout(ST._st);ST._st=setTimeout(()=>{const P=$('#rdPages',R),mid=P.scrollTop+P.clientHeight*0.35;let best=1;$$('.rpg',P).some(d=>{if(d.offsetTop<=mid){best=pkOf(d);return false}return true});setCur(typeof best==='string'?((insOf(best)||{}).after||1):best)},80)}
 // ---------- annotations: drawing them ----------
 const pathOf=pts=>{if(!pts.length)return '';if(pts.length<3)return 'M'+pts.map(q=>q[0]+' '+q[1]).join(' L')+(pts.length===1?' l0.01 0':'');let d='M'+pts[0][0]+' '+pts[0][1];
@@ -3181,7 +3193,7 @@ function placeSel(){const S=$('#rdSel',R);if(S.hidden||!ST.sel)return;const el=$
 function deselect(){const p=ST.sel&&((ST.A.anns.find(x=>x.id===ST.sel)||ST.A.bms.find(x=>x.id===ST.sel)||{}).p);ST.sel=null;const S=R&&$('#rdSel',R);if(S)S.hidden=true;if(p)drawAnn(p)}
 function removeSel(){const id=ST.sel;if(!id)return;snap();const a=ST.A.anns.find(x=>x.id===id),b=ST.A.bms.find(x=>x.id===id);
  if(a)ST.A.anns=ST.A.anns.filter(x=>x!==a);if(b)removeBm(b.id,true);deselect();changed((a||b).p)}
-function onKey(e){if(!R||R.hidden)return;const inField=/^(INPUT|TEXTAREA|SELECT)$/.test((e.target||{}).tagName||'');
+function onKey(e){if(!R||R.hidden)return;const inField=/^(INPUT|TEXTAREA|SELECT)$/.test((e.target||{}).tagName||'')||!!(e.target&&e.target.isContentEditable);
  if(e.key==='Escape'){if(!$('#rdPop',R).hidden){hidePop();return}if(ST.sel){deselect();return}if(ST.linkFrom){ST.linkFrom=null;drawSide();return}close();return}
  if(inField)return;
  if((e.ctrlKey||e.metaKey)&&(e.code==='KeyZ'||e.key.toLowerCase()==='z')){e.preventDefault();e.shiftKey?redo():undo();return}
@@ -3206,7 +3218,7 @@ const desc=id=>{const o=new Set();const w=i=>kids(i).forEach(c=>{o.add(c.id);w(c
 function removeBm(id,silent){const b=ST.A.bms.find(x=>x.id===id);if(!b)return;if(!silent)snap();kids(id).forEach(c=>c.parent=b.parent||null);ST.A.bms=ST.A.bms.filter(x=>x.id!==id);ST.A.links=ST.A.links.filter(l=>l.a!==id&&l.b!==id);if(!silent)changed(b.p)}
 function flash(id,p){go(p);setTimeout(()=>{const el=$(`[data-bid="${id}"],[data-aid="${id}"]`,R);if(el){el.classList.remove('flash');void el.getBBox;el.classList.add('flash')}},450)}
 function drawSide(){if(!R)return;const sb=$('#rdSb',R);$$('.stabs .tb',R).forEach(b=>b.classList.toggle('pri',b.dataset.s===ST.side));if(!ST.pdf){sb.innerHTML='<div class="empty">افتح ملفًّا أولًا.</div>';return}
- if(ST.side==='ai')return aiPanel(sb);if(ST.side==='bm')return bmList(sb);if(ST.side==='map')return bmMap(sb);annList(sb)}
+ if(ST.side==='ai')return aiPanel(sb);if(ST.side==='txt')return txtPanel(sb);if(ST.side==='bm')return bmList(sb);if(ST.side==='map')return bmMap(sb);annList(sb)}
 function bmList(sb){const B=ST.A.bms,T=x=>(B.find(b=>b.id===x)||{}).title||'';const roots=B.filter(b=>!b.parent||!B.some(x=>x.id===b.parent)).sort((a,b)=>ordIdx(a.p)-ordIdx(b.p)||a.y-b.y);
  const node=(b,d)=>{const L=ST.A.links.filter(l=>l.a===b.id||l.b===b.id);return `<div class="bmi ${ST.linkFrom&&ST.linkFrom!==b.id?'lk':''}" style="--d:${Math.min(d,6)};--bc:${b.c||'#2F6BFF'}" data-bm="${b.id}">
   <div class="h"><i></i><b data-go="${b.id}">${esc(b.title)}</b><small>${b.src==='pdf'?'من الملف · ':''}${pL(b.p)}</small></div>
@@ -3272,7 +3284,8 @@ function bubble(m,i){return m.role==='user'?`<div class="aim u">${fmt(m.content)
 async function pageShot(p){if(typeof p!=='number')return '';await renderPage(p);const d=pageEl(p),cv=d&&d.querySelector('canvas');if(!cv||!cv.width)return '';
  const s=Math.min(1,1400/cv.width),c=document.createElement('canvas');c.width=Math.round(cv.width*s);c.height=Math.round(cv.height*s);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(cv,0,0,c.width,c.height);
  let q=.78,u=c.toDataURL('image/jpeg',q);while(u.length>820000&&q>.35){q-=.1;u=c.toDataURL('image/jpeg',q)}return u.length>900000?'':u}
-async function pageText(p){if(typeof p!=='number')return '';try{const pg=await ST.pdf.getPage(p),tc=await pg.getTextContent();return tc.items.map(i=>i.str).join(' ').replace(/\s+/g,' ').trim().slice(0,8000)}catch(e){return ''}}
+async function pageText(p){if(typeof p!=='number')return '';try{const pg=await ST.pdf.getPage(p),tc=await pg.getTextContent();if(!ST.tq[p])ST.tq[p]=tqOf(tc);
+  if(useOcr(p)){const o=ST.O.pages[p];return String((ST.A.ocr||{})[p]||(o&&o.t)||'').slice(0,8000)}return tc.items.map(i=>i.str).join(' ').replace(/\s+/g,' ').trim().slice(0,8000)}catch(e){return ''}}
 let busy=0;
 async function send(text,voice,sel,check){if(busy||!ST.pdf)return;const tok=typeof syncState==='function'?syncState():'';const H=ST.A.chat||(ST.A.chat=[]);
  if(!tok||!D.BOT_URL){H.push({role:'user',content:text},{role:'assistant',content:'اربط صفحتك بالبوت أولًا (من «الإعدادات» ← «حدّث البوت» أو اكتب للبوت /sync)، فمساعد القراءة يعمل من خلاله.'});drawSide();return}
@@ -3302,7 +3315,7 @@ function runAct(a){const cur=ST.cur;switch(a&&a.type){
  default:return ''}}
 // highlight a phrase the assistant names, on the current page's text (books with a text layer)
 function markText(ph){const d=pageEl(ST.cur);if(!d)return '';const N=s=>String(s).replace(/[ً-ْـ]/g,'').replace(/[أإآ]/g,'ا').replace(/\s+/g,' ').trim();const t=N(ph);if(t.length<3)return '';
- const spans=[...d.querySelectorAll('.textLayer span')].filter(sp=>{const s=N(sp.textContent);return s.length>2&&(s.includes(t)||t.includes(s))});if(!spans.length)return 'لم أجد العبارة في نص الصفحة (قد تكون الصفحة صورة بلا نص)';
+ const spans=[...d.querySelectorAll('.textLayer span')].filter(sp=>{const s=N(sp.textContent);return s.length>2&&(s.includes(t)||t.includes(s))});if(!spans.length)return (useOcr(ST.cur)&&!ST.O.pages[ST.cur]?'الصفحة صورة ولم تُقرأ ضوئيًّا بعد؛ افتح «النص» واضغط «اقرأها ضوئيًّا»':'لم أجد العبارة في نص الصفحة');
  const b=d.getBoundingClientRect(),[w,h]=sizeOf(ST.cur),rects=spans.map(sp=>{const q=sp.getBoundingClientRect();return [r2((q.left-b.left)/b.width*w),r2((q.top-b.top)/b.height*h),r2(q.width/b.width*w),r2(q.height/b.height*h)]}).filter(q=>q[2]>0&&q[3]>0);
  if(!rects.length)return '';snap();ST.A.anns.push({id:uid(),t:'mark',k:'mark',p:ST.cur,rects,c:TC.mark.c,o:TC.mark.o,txt:ph.slice(0,500)});changed(ST.cur);return 'ظُلّلت العبارة'}
 // voice: Arabic dictation in the browser, and the reply read aloud
@@ -3363,6 +3376,103 @@ function openBookKey(k,bookPage){const id=MAP()[k];if(id)return RDB.get(id).then
  document.addEventListener('drop',e=>{if(!isF(e))return;e.preventDefault();dn=0;if(ov){ov.remove();ov=null}if(R&&!R.hidden&&R.contains(e.target))return;
   const f=[...e.dataTransfer.files].filter(x=>/pdf$/i.test(x.name)||x.type==='application/pdf');if(!f.length){toast('أفلت ملف PDF فقط.');return}
   const b=bookOpen();build();if(b){ST.pendingBook=b;const t=todayFor(b);ST.pendingPage=t?t.a:0;const dl=document.getElementById('bookDlg');if(dl)dl.close()}addFiles(f)})}
+// ---------- «القراءة الضوئية» (28 Nov 2026, his request: «كتب PDF الترميز الداخلي مختلف وفيه كتب مصوّرة… أداة تعمل OCR
+// للكتاب وأقدر أنسخ النصوص أحددها براحتي»). Two layers:
+// 1) Tesseract.js on this device (free, no key, no limit): it reads the page and knows where each word is, so an invisible
+//    text layer is laid over the picture — select, copy, highlight as in a text book. Kept per file on this device.
+//    Pages with no text, or with a broken encoding (Latin-1 garbage, private-use glyphs, text stored backwards), are read
+//    on their own when they come into view («تلقائي»); «لكل الصفحات» ignores the file's own text; «نص الملف فقط» never reads.
+// 2) «النص المصحَّح»: Gemini (then Cloudflare's models) reads the page image for a clean text beside the page, to copy from;
+//    it is kept for the reading assistant too. One request of the 150 a day.
+const TS='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/',TCORE='https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1',TLANG='https://cdn.jsdelivr.net/npm/@tesseract.js-data/ara/4.0.0_best_int';
+const oMode=()=>(ST.meta&&ST.meta.ocrMode)||'auto';
+const useOcr=p=>typeof p==='number'&&(oMode()==='all'||(oMode()==='auto'&&!!ST.tq[p]&&ST.tq[p]!=='ok'));
+// how good is the file's own text on a page: 'none' (a picture), 'bad' (a broken encoding), 'ok'
+function tqOf(tc){const s=tc.items.map(i=>i.str+(i.hasEOL?' ':'')).join(''),L=s.replace(/[\s\d٠-٩.,:;!?()\[\]{}«»"'\-–—_*\/\|،؛؟…]/g,'');if(L.length<15)return 'none';
+ // letters that do not belong in an Arabic or English book: private-use glyphs, Latin-1 / Latin Extended look-alikes, control codes
+ const bad=(s.match(/[\uE000-\uF8FF\uFFFD\u0180-\u024F\u0000-\u0008\u000B\u000C\u000E-\u001F]/g)||[]).length,l1=(s.match(/[\u0080-\u017F]/g)||[]).length;if(bad/L.length>.08||l1/L.length>.3)return 'bad';
+ // Arabic words run together (the spaces were lost)
+ const AR=/[\u0621-\u064A\uFB50-\uFDFF\uFE70-\uFEFC]/,ar=(s.match(/[\u0621-\u064A\uFB50-\uFDFF\uFE70-\uFEFC]/g)||[]).length;if(ar>40&&ar/Math.max(1,s.split(/\s+/).filter(w=>AR.test(w)).length)>10)return 'bad';
+ const W=s.split(/\s+/),al=W.filter(w=>/^[وفبكل]?ال[ء-ي]{2}/.test(w)).length,la=W.filter(w=>/[ء-ي]{2}لا$/.test(w)).length;if(la>8&&la>al*2)return 'bad';return 'ok'}
+let TW=null;
+const loadJs=u=>new Promise((res,rej)=>{const s=document.createElement('script');s.src=u;s.onload=res;s.onerror=()=>rej(new Error(u));document.head.appendChild(s)});
+function tw(){if(!TW)TW=(async()=>{if(!window.Tesseract)await loadJs(TS+'tesseract.min.js');
+  const w=await Tesseract.createWorker('ara',1,{workerPath:TS+'worker.min.js',corePath:TCORE,langPath:TLANG,logger:m=>{const p=ST.oNow;if(!p)return;
+   if(/load|initializ/i.test(m.status||''))chip(p,'يحمّل محرك القراءة العربية (أول مرة فقط)…');else if(m.status==='recognizing text')chip(p,'يقرأ الصفحة ضوئيًّا… '+nA(Math.round((m.progress||0)*100))+'٪')}});
+  await w.setParameters({preserve_interword_spaces:'1'});return w})().catch(e=>{TW=null;throw e});return TW}
+function chip(p,s){const d=pageEl(p);if(!d)return;let c=d.querySelector('.ochip');if(!s){if(c)c.remove();return}if(!c){c=document.createElement('span');c.className='ochip';d.appendChild(c)}c.textContent=s}
+// Tesseract's lines and words, in page units (so the layer fits any zoom), and the page text with its paragraphs
+function pack(data,s){const r=v=>Math.round(v/s*10)/10,lines=[];
+ (data.blocks||[]).forEach(b=>(b.paragraphs||[]).forEach(pa=>(pa.lines||[]).forEach((l,i)=>lines.push([l,i===0]))));if(!lines.length)(data.lines||[]).forEach(l=>lines.push([l,false]));
+ const L=[],T=[];lines.forEach(([l,np])=>{let ws=(l.words||[]).filter(w=>String(w.text||'').trim());if(!ws.length)return;const ar=ws.filter(w=>/[؀-ۿ]/.test(w.text)).length>=ws.length/2;
+  ws=ws.slice().sort((a,b)=>ar?b.bbox.x0-a.bbox.x0:a.bbox.x0-b.bbox.x0);const b=l.bbox;
+  L.push([r(b.x0),r(b.y0),r(b.x1-b.x0),r(b.y1-b.y0),ws.map(w=>[w.text.trim(),r(w.bbox.x0),r(w.bbox.y0),r(w.bbox.x1-w.bbox.x0),r(w.bbox.y1-w.bbox.y0)])]);
+  if(np&&T.length)T.push('');T.push(ws.map(w=>w.text.trim()).join(' '))});
+ return {L,t:T.join('\n').replace(/\n{3,}/g,'\n\n').trim(),at:Date.now()}}
+// the invisible layer: one span per word at its place, a span over each gap (so copying keeps the spaces), a break per line
+let MC=null;
+function ocrLayer(d,p){const o=ST.O.pages[p],tl=d.querySelector('.textLayer');if(!o||!tl)return;tl.innerHTML='';tl.classList.add('ocr');const sc=ST.scale,cx=MC||(MC=document.createElement('canvas').getContext('2d')),F=document.createDocumentFragment();
+ // the glyphs of the line fill its box: the font size from the ink height of the line's words, the baseline where the ink is
+ const mk=(s,x,top,w,fs)=>{const sp=document.createElement('span');sp.textContent=s;cx.font=fs+'px sans-serif';const mw=cx.measureText(s).width||1;
+  sp.style.cssText=`left:${(x*sc).toFixed(1)}px;top:${top.toFixed(1)}px;font-size:${fs.toFixed(1)}px;font-family:sans-serif;transform:scaleX(${(Math.max(.5,w)*sc/mw).toFixed(3)})`;F.appendChild(sp)};
+ o.L.forEach(l=>{const ws=l[4];cx.font='100px sans-serif';const m=cx.measureText(ws.map(w=>w[0]).join(' ')),A=m.actualBoundingBoxAscent||80,Dn=m.actualBoundingBoxDescent||20,fA=m.fontBoundingBoxAscent||A,fD=m.fontBoundingBoxDescent||Dn;
+  const k=Math.max(.04,l[3]*sc/Math.max(1,A+Dn)),fs=Math.max(4,100*k),top=l[1]*sc+A*k-((fs-(fA+fD)*k)/2+fA*k);
+  ws.forEach((w,i)=>{mk(w[0],w[1],top,w[3],fs);const n=ws[i+1];if(n){const rtl=n[1]<w[1],gx=rtl?n[1]+n[3]:w[1]+w[3],gw=rtl?w[1]-gx:n[1]-gx;mk(' ',gw>0?gx:(rtl?w[1]:w[1]+w[3]),top,Math.max(.5,gw),fs)}});F.appendChild(document.createElement('br'))});
+ const e=document.createElement('div');e.className='endOfContent';F.appendChild(e);tl.appendChild(F)}
+let OSV=0;const saveOcr=()=>{clearTimeout(OSV);const id=ST.meta&&ST.meta.id,o=ST.O;OSV=setTimeout(()=>{if(id)RDB.putOcr(id,o).catch(e=>{console.error(e);toast('تعذّر حفظ القراءة الضوئية على هذا الجهاز: قد تكون المساحة ممتلئة.')})},600)};
+// the queue: pages in view first (nearest to the one he reads), then the whole-book job
+function oQueue(p){if(typeof p!=='number'||ST.O.pages[p]||ST.oq.includes(p))return;ST.oq.push(p);oPump()}
+let OB=0;
+async function oPump(){if(OB)return;OB=1;try{for(;;){const fid=ST.meta&&ST.meta.id;if(!fid)break;let p=0;
+  ST.oq=ST.oq.filter(q=>!ST.O.pages[q]&&Math.abs(q-ST.cur)<=6);if(ST.oq.length){ST.oq.sort((a,b)=>Math.abs(a-ST.cur)-Math.abs(b-ST.cur));p=ST.oq.shift()}
+  else if(ST.job&&!ST.job.stop&&ST.job.fid===fid){const J=ST.job;while(J.next<=ST.n){const q=J.next++;if(ST.O.pages[q]){J.done++;continue}
+    if(oMode()!=='all'){if(!ST.tq[q])try{ST.tq[q]=tqOf(await (await ST.pdf.getPage(q)).getTextContent())}catch(e){}if(!useOcr(q)){J.done++;continue}}p=q;break}
+   if(!p){const n=J.read;ST.job=null;ojBtn();toast(n?'✓ انتهت القراءة الضوئية للكتاب ('+nA(n)+' صفحة).':'كل صفحات هذا الملف فيها نص سليم؛ لا حاجة للقراءة الضوئية. وإن كان نصه مكسورًا فاختر «القراءة الضوئية لكل الصفحات».');if(ST.side==='txt')drawSide();break}}
+  else break;
+  try{await ocrOne(p,fid);if(ST.job&&ST.job.fid===fid&&p>=ST.job.next-1){ST.job.done++;ST.job.read++}}catch(e){console.error(e);ST.oq=[];if(ST.job)ST.job.stop=1;toast('تعذّر تشغيل القراءة الضوئية. تأكد من الإنترنت أول مرة (يُحمَّل محرك العربية مرة واحدة).');break}
+  ojBtn()}}finally{OB=0;ST.oNow=0;ojBtn()}}
+async function ocrOne(p,fid){ST.oNow=p;chip(p,'يجهّز القراءة الضوئية…');let w;try{w=await tw()}catch(e){chip(p,null);throw e}if(!ST.meta||ST.meta.id!==fid||ST.O.pages[p]){chip(p,null);return}chip(p,'يقرأ الصفحة ضوئيًّا…');
+ const pg=await ST.pdf.getPage(p),v1=pg.getViewport({scale:1}),s=Math.max(1,Math.min(4,2000/v1.width)),vp=pg.getViewport({scale:s}),c=document.createElement('canvas');c.width=Math.round(vp.width);c.height=Math.round(vp.height);
+ const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);await pg.render({canvasContext:x,viewport:vp}).promise;
+ let data;try{data=(await w.recognize(c,{},{text:true,blocks:true,hocr:false,tsv:false})).data}finally{c.width=c.height=0;chip(p,null)}
+ if(!ST.meta||ST.meta.id!==fid)return;ST.O.pages[p]=pack(data,s);saveOcr();const d=pageEl(p);if(d&&d._r&&useOcr(p))ocrLayer(d,p);if(ST.side==='txt'&&p===ST.cur&&!ST.txEdit)drawSide()}
+function ojBtn(){const b=R&&$('#rdOj',R);if(!b)return;const J=ST.job;b.hidden=!J;if(J)b.textContent='قراءة ضوئية '+nA(Math.min(J.done,ST.n))+' / '+nA(ST.n);if(J&&ST.side==='txt'){const i=$('.otx .obar i',R),s=$('.otx [data-jn]',R);if(i)i.style.width=Math.round(J.done/ST.n*100)+'%';if(s)s.textContent=nA(Math.min(J.done,ST.n))+' / '+nA(ST.n)}}
+function setMode(m){if(!ST.meta)return;ST.meta.ocrMode=m;RDB.put(ST.meta);ST.rendered.forEach(p=>{const d=pageEl(p);if(d)d._r=0;renderPage(p)})}
+// a sharp picture of the page for «النص المصحَّح» (drawn apart from the screen, so it does not depend on the zoom)
+async function hiShot(p){const pg=await ST.pdf.getPage(p),v1=pg.getViewport({scale:1}),vp=pg.getViewport({scale:Math.max(1,Math.min(4,1800/v1.width))}),c=document.createElement('canvas');c.width=Math.round(vp.width);c.height=Math.round(vp.height);
+ const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);await pg.render({canvasContext:x,viewport:vp}).promise;let q=.8,u=c.toDataURL('image/jpeg',q);while(u.length>820000&&q>.35){q-=.1;u=c.toDataURL('image/jpeg',q)}c.width=c.height=0;return u.length>900000?'':u}
+async function aiText(p){const tok=typeof syncState==='function'?syncState():'';if(!tok||!D.BOT_URL){toast('اربط صفحتك بالبوت أولًا (من «الإعدادات» ← «حدّث البوت» أو اكتب للبوت /sync)، فالنص المصحَّح يعمل من خلاله.');return}
+ if(ST.aiBusy)return;ST.aiBusy=p;drawSide();
+ try{const image=await hiShot(p);if(!image)throw new Error('shot');const o=ST.O.pages[p];
+  const res=await fetch(D.BOT_URL+'/read',{method:'POST',headers:{'content-type':'text/plain'},body:JSON.stringify({p:PROF.key,token:tok,mode:'ocr',image,hint:o?o.t.slice(0,6000):''})});
+  const j=res.status===403?{ok:false,error:'رابط المزامنة لم يعد صالحًا: اكتب للبوت /sync وافتح الرابط.'}:await res.json().catch(()=>({ok:false,error:'تعذّر الاتصال.'}));
+  if(j.ok&&j.text){(ST.A.ocr=ST.A.ocr||{})[p]=String(j.text).slice(0,12000);(ST.A.ocrBy=ST.A.ocrBy||{})[p]=j.model||'';ST.dirty=1;saveNow()}else toast(j.error||'تعذّرت قراءة الصفحة.')}
+ catch(e){console.error(e);toast('تعذّر الاتصال. تأكد من الإنترنت.')}finally{ST.aiBusy=0;if(ST.side==='txt'&&!ST.txEdit)drawSide()}}
+async function fileText(p){try{const tc=await (await ST.pdf.getPage(p)).getTextContent();return tc.items.map(i=>i.str+(i.hasEOL?'\n':'')).join('').replace(/[ \t]+\n/g,'\n').trim()}catch(e){return ''}}
+// the «النص» tab
+function txtPanel(sb){ST.txEdit=0;const p=ST.cur;if(typeof p!=='number'){sb.innerHTML='<div class="empty">صفحة مضافة: لا نص فيها.</div>';return}
+ const ai=(ST.A.ocr||{})[p],by=(ST.A.ocrBy||{})[p],o=ST.O.pages[p],q=ST.tq[p],m=oMode(),use=useOcr(p),J=ST.job,busyP=ST.oNow===p||ST.oq.includes(p);
+ const st=q==='none'?'الصفحة صورة بلا نص':q==='bad'?'نص الملف هنا مكسور الترميز':q==='ok'?'في الملف نص سليم لهذه الصفحة':'';
+ const src=ai?(by==='يدوي'?'نصّك المصحَّح بيدك':'النص المصحَّح بالذكاء'+(by?' · '+MN(by):'')):use?(o?'قراءة ضوئية آلية على جهازك — قد تكون فيها أخطاء؛ «✦ النص المصحَّح» أدق':busyP?'يقرأ الصفحة ضوئيًّا الآن…':'لم تُقرأ هذه الصفحة ضوئيًّا بعد'):'نص الملف نفسه';
+ const R1=(v,l)=>`<label><input type="radio" name="om" value="${v}" ${m===v?'checked':''}> <span>${l}</span></label>`;
+ sb.innerHTML=`<div class="otx"><div class="ohd"><b>نص ${pL(p)}</b><small>${st}</small></div>
+  <div class="obtn"><button class="tb pri" data-ot="ai" ${ST.aiBusy?'disabled':''}>${ST.aiBusy===p?'يقرأ… (١٠–٢٠ ثانية)':ai?'✦ أعد التصحيح':'✦ النص المصحَّح'}</button>${use?`<button class="tb" data-ot="ocr" ${busyP?'disabled':''}>${o?'أعد القراءة الضوئية':'اقرأها ضوئيًّا'}</button>`:''}<button class="tb" data-ot="copy">انسخ الكل</button><button class="tb" data-ot="edit">✎ صحّح بيدك</button></div>
+  <div class="osrc">${esc(src)}</div><div class="ptx" id="rdTx" dir="rtl">${ai?esc(ai):use?(o?esc(o.t)||'<span style="color:var(--muted)">لم يُعثر على نص في الصفحة.</span>':''):'…'}</div>
+  <h5>النص الذي تحدده على الصفحة نفسها</h5>${R1('auto','تلقائي: يقرأ ضوئيًّا الصفحات المصوّرة والمكسورة الترميز وحدها، عند فتحها')}${R1('all','القراءة الضوئية لكل الصفحات (إن كان نص الملف مكسورًا ولم يُكتشف)')}${R1('off','نص الملف فقط، بلا قراءة ضوئية')}
+  <div class="ojob">${J?`<span>يقرأ الكتاب: <b data-jn>${nA(Math.min(J.done,ST.n))} / ${nA(ST.n)}</b></span><button class="tb" data-ot="stop">أوقف</button><div class="obar"><i style="width:${Math.round(J.done/ST.n*100)}%"></i></div>`:`<button class="tb" data-ot="all" ${m==='off'?'disabled':''}>اقرأ الكتاب كله ضوئيًّا</button><small style="color:var(--muted)">${nA(Object.keys(ST.O.pages).length)} صفحة مقروءة</small>`}</div>
+  <div class="note">القراءة الضوئية تعمل على جهازك: مجانية بلا حدّ، ولا تحتاج الإنترنت بعد أول مرة، والصفحة تأخذ ثواني. «✦ النص المصحَّح» يقرأ الصورة بالذكاء: أدق بكثير في الكتب القديمة والحواشي، وهو طلب واحد من ${nA(150)} في اليوم، ويستعمله مساعد القراءة أيضًا.</div>
+  ${Object.keys(ST.O.pages).length?'<button class="lk" data-ot="clear">احذف القراءة الضوئية لهذا الملف</button>':''}</div>`;
+ const tx=$('#rdTx',sb);if(!ai&&!use)fileText(p).then(s=>{if(ST.cur===p&&ST.side==='txt'&&!ST.txEdit)tx.textContent=s||'لا نص في هذه الصفحة.'});
+ sb.onchange=e=>{if(e.target.name==='om')setMode(e.target.value),drawSide()};sb.oninput=null;
+ sb.onclick=e=>{const b=e.target.closest('[data-ot]');if(!b)return;const k=b.dataset.ot;
+  if(k==='ai')aiText(p);
+  else if(k==='ocr'){delete ST.O.pages[p];ST.oq.unshift(p);oPump();setTimeout(()=>drawSide(),50)}
+  else if(k==='copy'){const s=tx.innerText.trim();if(!s)return;(navigator.clipboard?navigator.clipboard.writeText(s):Promise.reject()).then(()=>toast('✓ نُسخ نص الصفحة.'),()=>{const g=getSelection(),rg=document.createRange();rg.selectNodeContents(tx);g.removeAllRanges();g.addRange(rg);toast('حدّدته لك: اضغط Ctrl+C.')})}
+  else if(k==='edit'){const keep=()=>{if(!ST.txEdit)return;ST.txEdit=0;tx.contentEditable='false';const s=tx.innerText.trim();if(s){(ST.A.ocr=ST.A.ocr||{})[p]=s.slice(0,12000);(ST.A.ocrBy=ST.A.ocrBy||{})[p]='يدوي';ST.dirty=1;saveNow();toast('✓ حُفظ نصك المصحَّح لهذه الصفحة.')}drawSide()};
+   if(ST.txEdit){keep();return}ST.txEdit=1;tx.contentEditable='true';tx.focus();b.textContent='✓ احفظ';tx.onblur=()=>setTimeout(keep,200)}
+  else if(k==='all'){ST.job={fid:ST.meta.id,next:1,done:0,read:0,stop:0};ojBtn();oPump();drawSide()}
+  else if(k==='stop'){if(ST.job)ST.job.stop=1;ST.job=null;ojBtn();drawSide()}
+  else if(k==='clear'){if(!confirm('تحذف القراءة الضوئية لكل صفحات هذا الملف؟ (النص المصحَّح بالذكاء يبقى)'))return;ST.O={pages:{}};ST.job=null;ST.oq=[];RDB.putOcr(ST.meta.id,ST.O);ST.rendered.forEach(q=>{const d=pageEl(q);if(d)d._r=0;renderPage(q)});ojBtn();drawSide()}}}
 window.kReader={open:(id,p)=>open(id,p),lib:showLib,book:openBookKey,has:k=>!!MAP()[k]};
 // ---------- entry points: the header, «أقسام», the book page, وردك اليوم ----------
 {const acts=document.querySelector('.top .acts');if(acts){const b=document.createElement('button');b.className='themeBtn';b.id='kRdBtn';b.title='القارئ: ملفاتك PDF';b.setAttribute('aria-label','القارئ');

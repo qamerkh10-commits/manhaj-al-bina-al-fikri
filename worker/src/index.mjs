@@ -10,7 +10,7 @@ import { makeBot } from '../../bot/core.mjs';
 import { askAI, AI_DAILY } from './ai.mjs';
 import { askAIK } from './aik.mjs';
 import { keysFor } from './gemini.mjs';
-import { askReader, READ_DAILY } from './reader.mjs';
+import { askReader, READ_DAILY, transcribe } from './reader.mjs';
 import { dsKeys } from './deepseek.mjs';   // «مساعد القراءة» in his PDF reader (26 Nov 2026)   // a key for each job, the general key as fallback (26 Nov 2026)   // Khaled's assistant (Gemini); Mohamed's stays on ai.mjs
 
 // keep in step with the site (bot/profiles in sync.mjs and the pages under /khaled and /mohamed)
@@ -175,7 +175,7 @@ export class BotState extends DurableObject {
     if (path === '/read') { // «مساعد القراءة»: the page image and his request; only his private sync key is accepted
       const cors = { 'access-control-allow-origin': '*' };
       const pk = body && isProfile(body.p) ? body.p : null;
-      if (pk !== 'khaled' || !body.token || !String(body.ask || '').trim()) return new Response('bad request', { status: 400, headers: cors });
+      if (pk !== 'khaled' || !body.token || (!String(body.ask || '').trim() && body.mode !== 'ocr')) return new Response('bad request', { status: 400, headers: cors });
       const keys = keysFor(this.env, 'reader');
       if (!keys.length && !this.env.AI && !dsKeys(this.env).length) return Response.json({ ok: false, error: 'مساعد القراءة غير مفعّل بعد.' }, { headers: cors });
       const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo' }).format(new Date()), cKey = `rdN:${pk}:${day}`;
@@ -190,6 +190,7 @@ export class BotState extends DurableObject {
       });
       if (gate === 'forbidden') return new Response('forbidden', { status: 403, headers: cors });
       if (gate === 'limit') return Response.json({ ok: false, error: `انتهت طلبات مساعد القراءة اليوم (${READ_DAILY}). يعود غدًا.` }, { headers: cors });
+      if (body.mode === 'ocr') return Response.json(await transcribe(this.env, { keys, image: body.image, hint: body.hint }), { headers: cors });   // «النص المصحَّح» of one page
       const r = await askReader(this.env, { keys, ask: body.ask, image: body.image, text: body.text, book: body.book, page: body.page, sel: body.sel, bms: body.bms, history: body.history, voice: !!body.voice, check: !!body.check, team: body.team !== false });
       return Response.json(r, { headers: cors });
     }
