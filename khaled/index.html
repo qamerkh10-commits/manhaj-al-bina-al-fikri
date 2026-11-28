@@ -1250,7 +1250,7 @@ dialog:not(#bookDlg)::backdrop{background:rgba(6,10,18,.38);-webkit-backdrop-fil
  #aiBox,#moreSheet .sheet,#kSr .pan,html.k-orbs nav.tabs.tabs,dialog:not(#bookDlg){background-color:var(--card)!important}
  #aiLog,#aiForm{background:var(--bg)!important}
  .toast{background-color:var(--deep)!important}}
-</style><meta name="kbuild" content="1795882432"></head>
+</style><meta name="kbuild" content="1795890756"></head>
 <body>
 <header class="top"><div class="wrap"><div class="row"><div class="brand"><span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="شعار منهج البناء الفكري"><rect width="512" height="512" rx="116" fill="#22304D"/><g transform="translate(0.0,0.0) scale(1.0)"><rect x="132" y="250" width="66" height="134" rx="10" fill="#F6F1E4"/><rect x="223" y="196" width="66" height="188" rx="10" fill="#F6F1E4"/><rect x="314" y="140" width="66" height="244" rx="10" fill="#F6F1E4"/><g fill="#9AA6BF"><rect x="132" y="276" width="66" height="10"/><rect x="223" y="222" width="66" height="10"/><rect x="314" y="166" width="66" height="10"/><rect x="132" y="352" width="66" height="6"/><rect x="223" y="352" width="66" height="6"/><rect x="314" y="352" width="66" height="6"/></g><path d="M352 140 L352 206 L364 194 L376 206 L376 140 Z" fill="#D2AE62"/><rect x="112" y="392" width="288" height="14" rx="7" fill="#D2AE62"/></g></svg></span><h1>منهج البناء الفكري</h1></div><div class="acts"><button class="themeBtn" id="dlBtn" aria-label="تنزيل التطبيق"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 19h16"/></svg><span class="dlTxt">تنزيل</span></button><button class="themeBtn" id="fsBtn" aria-label="حجم الخط" title="حجم الخط">أ<small>+</small></button><button class="themeBtn" id="themeBtn" aria-label="تبديل الوضع الليلي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button></div></div><div class="sub profbar" id="profBar" hidden></div></div></header>
 <nav class="tabs" id="mainNav" aria-label="التنقل"><div class="nbrand"><span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="شعار منهج البناء الفكري"><rect width="512" height="512" rx="116" fill="#22304D"/><g transform="translate(0.0,0.0) scale(1.0)"><rect x="132" y="250" width="66" height="134" rx="10" fill="#F6F1E4"/><rect x="223" y="196" width="66" height="188" rx="10" fill="#F6F1E4"/><rect x="314" y="140" width="66" height="244" rx="10" fill="#F6F1E4"/><g fill="#9AA6BF"><rect x="132" y="276" width="66" height="10"/><rect x="223" y="222" width="66" height="10"/><rect x="314" y="166" width="66" height="10"/><rect x="132" y="352" width="66" height="6"/><rect x="223" y="352" width="66" height="6"/><rect x="314" y="352" width="66" height="6"/></g><path d="M352 140 L352 206 L364 194 L376 206 L376 140 Z" fill="#D2AE62"/><rect x="112" y="392" width="288" height="14" rx="7" fill="#D2AE62"/></g></svg></span><b>منهج البناء الفكري</b></div><div class="wrap" id="tabbar" role="tablist"></div><div class="ntag">رفيق القراءة اليومي</div></nav><div id="moreSheet" hidden><div class="sheet" role="dialog" aria-label="أقسام"><div class="grab"></div><h3>أقسام المنهج</h3><div class="mgrid" id="moreGrid"></div></div></div>
@@ -2081,7 +2081,9 @@ renderAll();show(LS.get('manhaj-tab2','today'));
    say:a=>{const p=[];if(a.start!=null)p.push(a.start?'يبدأ '+dA(a.start):'بلا موعد بدء خاص');if(a.with!=null)p.push(a.with?'يُقرأ مع غيره في اليوم نفسه':'يُقرأ وحده في يومه');if(a.pages!=null)p.push('عدده '+a.pages);return `أعدّل «${SHC(a.id).ttl}»: ${p.join('، ')}`},
    run:a=>{const c=SHC(a.id);if(a.start!=null){if(a.start)c.start=a.start;else delete c.start}if(a.with!=null)c.with=a.with?1:0;if(a.pages!=null)c.pages=+a.pages;return 1}},
   set_start:{ok:a=>TRK[a.track]&&OKD(a.date),say:a=>`أجعل مسار «${TRK[a.track]}» يبدأ ${dA(a.date)}`,
-   run:a=>{const k=a.track,v=a.date;if(k==='H'){hsfCfg.start=v;LS.set('manhaj-listen-v1',hsfCfg)}else if(k==='L'){lkCfg.start=v;LS.set('manhaj-lk-v1',lkCfg)}else{const o=LS.get('manhaj-kcap-v1',{});o['start'+k]=v;LS.set('manhaj-kcap-v1',o);KCAP['start'+k]=v}return 1}},
+   run:a=>{kRestartTrack(a.track,a.date);return 0}},
+  reset_plan:{ok:a=>!a.date||OKD(a.date),say:a=>`أبدأ الخطة كلها من جديد ${dA(a.date&&a.date>TODAY?a.date:TODAY)}: كل ورد من أول كتابه، وأمسح ما علّمته والصفحات التي سجّلتها${a.clear_read?' وعلامات «قرأته كله»':''} (تبقى تعليقاتك وإعداداتك، وتقدر تتراجع من «مواعيد البدء»)`,
+   run:a=>{kResetPlan(a.date||TODAY,!!a.clear_read);return 0}},
   set_pages:{ok:a=>B(a.id)&&+a.pages>0,say:a=>`أجعل عدد صفحات «${T(a.id)}» ${a.pages}`,run:a=>{pOver[T(a.id)]=+a.pages;LS.set('manhaj-pages-v1',pOver);return 0}},
   mark_read:{ok:a=>B(a.id),say:a=>a.undo?`ألغي علامة «قرأته» عن «${T(a.id)}»`:`أعلّم «${T(a.id)}» أنه قُرئ كله`,run:a=>{if(a.undo)delete done[a.id];else done[a.id]=1;LS.set('manhaj-bina-fikri-v1',done);return 0}},
   tick:{ok:a=>{const k=a.date||TODAY;return OKD(k)&&dayTasks(k).some(t=>t.id===a.task)},say:a=>{const k=a.date||TODAY,x=dayTasks(k).find(t=>t.id===a.task);return `${a.undo?'ألغي إتمام':'أعلّم إتمام'} مهمة «${x.txt}» (${dA(k)})`},
@@ -2254,10 +2256,9 @@ renderAll();show(LS.get('manhaj-tab2','today'));
    +`<label>🎧 المسموع<br><input type="date" data-sd="H" value="${hsfCfg.start}" style="width:100%;margin:4px 0 0"></label></div>`
    +`<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="sdAll">اجعلها كلها تبدأ في يوم واحد</button><button class="btn" id="sdReset">رجوع للمواعيد الأصلية</button></div>`;
   sdCard.querySelectorAll('[data-sd]').forEach(inp=>inp.onchange=()=>{const v=inp.value;if(!/^\d{4}-\d{2}-\d{2}$/.test(v))return;const k=inp.dataset.sd;
-   if(k==='H'){hsfCfg.start=v;LS.set('manhaj-listen-v1',hsfCfg)}else if(k==='L'){lkCfg.start=v;LS.set('manhaj-lk-v1',lkCfg)}
-   else{const o=LS.get('manhaj-kcap-v1',{});o['start'+k]=v;LS.set('manhaj-kcap-v1',o);KCAP['start'+k]=v}
-   renderAll();drawStarts();toast('✓ تغيّر موعد البدء وأُعيد توزيع الجدول.')});
-  sdCard.querySelector('#sdAll').onclick=()=>{const v=prompt('تاريخ البداية لكل الأوراد (YYYY-MM-DD):',kBaseFrom()||kStart());if(!v||!/^\d{4}-\d{2}-\d{2}$/.test(v))return;const o=LS.get('manhaj-kcap-v1',{});SD.forEach(([k])=>{o['start'+k]=v;KCAP['start'+k]=v});LS.set('manhaj-kcap-v1',o);renderAll();drawStarts();toast('✓ تبدأ الأوراد كلها يوم '+fL(toD(v)))};
+   const w=kRestartTrack(k,v);drawStarts();if(!w)return;
+   toast((w!==v?'لا يتغير ما مضى، فصار يبدأ اليوم. ':'')+(k==='H'?'✓ يبدأ المسموع ':'✓ يبدأ هذا الورد ')+fL(toD(w))+(k==='H'?'.':' من الصفحة التي سجّلت أنك وصلت إليها (أو من أول الكتاب).'))});
+  sdCard.querySelector('#sdAll').onclick=()=>{const v=prompt('تاريخ البداية لكل الأوراد (YYYY-MM-DD):',kBaseFrom()||kStart());if(!v||!/^\d{4}-\d{2}-\d{2}$/.test(v))return;let w=v;SD.forEach(([k])=>{w=kRestartTrack(k,v)||w});drawStarts();toast('✓ تبدأ الأوراد كلها يوم '+fL(toD(w)))};
   sdCard.querySelector('#sdReset').onclick=()=>{if(!confirm('ترجع مواعيد البدء كلها للأصل؟'))return;const o=LS.get('manhaj-kcap-v1',{});SD.forEach(([k])=>{delete o['start'+k];delete KCAP['start'+k]});LS.set('manhaj-kcap-v1',o);renderAll();drawStarts()}}
  drawStarts();
  const ref=document.querySelector('section[data-tab="ref"] .h2');if(ref)ref.insertAdjacentElement('afterend',fsCard);
@@ -2690,6 +2691,83 @@ renderAll();show(LS.get('manhaj-tab2','today'));
  {const _p=renderPath;renderPath=function(){_p();fill()}}
  {const _s=renderSci;renderSci=function(){_s();fill()}}
  fill();if(typeof repaint==='function')repaint();
+})();
+</script>
+<script>
+/* ===== «ابدأ الخطة من جديد» and start dates that restart their portion (28 Nov 2026) ===== */
+(function(){if(!D.KCORE)return;
+ const OKD=s=>/^\d{4}-\d{2}-\d{2}$/.test(String(s||''));
+ // the segments of one portion in a frozen day, with the id of its task in that day's checklist
+ const SRC={A:e=>((e.d&&e.d.segs)||[]).map((s,i)=>[s,'s'+i+'-'+(s&&s.id)]).filter(([s])=>s&&s.lane!=='C'),
+  B:e=>((e.d&&e.d.segs)||[]).map((s,i)=>[s,'s'+i+'-'+(s&&s.id)]).filter(([s])=>s&&s.lane==='C'),
+  N:e=>(e.n||[]).map((s,i)=>[s,'nat'+i+'-'+(s&&s.id)]),T:e=>(e.t||[]).map((s,i)=>[s,'tz'+i+'-'+(s&&s.id)]),S:e=>(e.s||[]).map((s,i)=>[s,'sh'+i+'-'+(s&&s.id)])};
+ const FLD={N:'n',T:'t',S:'s'};
+ function restart(L,v){if(!OKD(v))return null;if(v<TODAY)v=TODAY;
+  if(L==='H'){hsfCfg.start=v;LS.set('manhaj-listen-v1',hsfCfg);renderAll();return v}
+  if(L==='L'){lkCfg.start=v;LS.set('manhaj-lk-v1',lkCfg);renderAll();return v}
+  if(!SRC[L])return null;
+  if(L==='S'){let ch=0;(EDIT.custom||[]).forEach(c=>{if(c.shar&&c.start&&c.start<v){delete c.start;ch=1}});if(ch)LS.set('manhaj-edit',EDIT)}
+  const o=LS.get('manhaj-kcap-v1',{})||{};o['start'+L]=v;LS.set('manhaj-kcap-v1',o);KCAP['start'+L]=v;   // this also freezes the past as it was planned
+  try{kSnap()}catch(e){}
+  const past=LS.get('manhaj-kpast-v1',{})||{},dd=LS.get('manhaj-daydone',{})||{},adv=LS.get('manhaj-kadv-v1',{})||{},got={},ids=new Set();
+  Object.keys(past).forEach(k=>{if(k>=TODAY)return;const e=past[k]||{},st=((TODO[k]||{}).done)||{},keep=new Set();
+   const mine=new Set();
+   SRC[L](e).forEach(([s,tid])=>{mine.add(s);const tk=!!(st[tid]||dd[k]);if(tk)keep.add(s);if(!s.id||s.rv)return;ids.add(s.id);if(tk&&s.b)got[s.id]=Math.max(got[s.id]||0,+s.b)});
+   // the days he did not tick leave the calendar for this portion (ticked ones stay as they were)
+   if(L==='A'||L==='B'){if(e.d&&e.d.segs){const segs=e.d.segs.filter(s=>!mine.has(s)||keep.has(s));
+     if(segs.length!==e.d.segs.length){if(segs.length)e.d=Object.assign({},e.d,{segs});else delete e.d}}}
+   else{const f=FLD[L];if(e[f]){const a=e[f].filter(s=>keep.has(s));if(a.length)e[f]=a;else delete e[f]}}
+   if(!Object.keys(e).length)delete past[k];else past[k]=e});
+  Object.keys(adv).forEach(k=>{if(k>=TODAY)return;Object.entries(adv[k]||{}).forEach(([id,p])=>{if(ids.has(id)&&+p>0)got[id]=Math.max(got[id]||0,+p)})});
+  const b=kBase(),pos=Object.assign({},b.pos||{}),rs=Object.assign({},b.rs||{});
+  ids.forEach(id=>{if(got[id])pos[id]=got[id];else{delete pos[id];delete rs[id]}});
+  LS.set('manhaj-kpast-v1',past);KBASE={asOf:b.asOf&&b.asOf>TODAY?b.asOf:TODAY,pos,rs};LS.set('manhaj-kbase-v1',KBASE);
+  renderAll();return v}
+ const BAK='manhaj-kreset-bak-v1',KEYS=['todo','daydone','unrecskip','kadv-v1','litpick-v1','bina-fikri-v1','kbase-v1','kpast-v1','kcap-v1','listen-v1','edit'];
+ function reset(v,clr){if(!OKD(v)||v<TODAY)v=TODAY;
+  const bak={at:new Date().toISOString(),from:v};KEYS.forEach(k=>{bak[k]=LS.get('manhaj-'+k,null)});LS.set(BAK,bak);
+  const o=LS.get('manhaj-kcap-v1',{})||{};['A','B','N','T','S'].forEach(k=>{o['start'+k]=v;KCAP['start'+k]=v});LS.set('manhaj-kcap-v1',o);
+  hsfCfg.start=v;LS.set('manhaj-listen-v1',hsfCfg);
+  let ch=0;(EDIT.custom||[]).forEach(c=>{if(c.shar&&c.start&&c.start<v){delete c.start;ch=1}});if(ch)LS.set('manhaj-edit',EDIT);
+  Object.keys(TODO).forEach(k=>{if(OKD(k)&&TODO[k])TODO[k].done={}});LS.set('manhaj-todo',TODO);   // his own tasks stay
+  LS.set('manhaj-daydone',{});LS.set('manhaj-unrecskip',{});LS.set('manhaj-kadv-v1',{});
+  const lit=LS.get('manhaj-litpick-v1',null)||{};LS.set('manhaj-litpick-v1',{cur:+lit.cur||0,bm:{},tick:{}});
+  if(clr){Object.keys(done).forEach(k=>delete done[k]);LS.set('manhaj-bina-fikri-v1',done)}
+  LS.set('manhaj-kpast-v1',{});LS.set('manhaj-kbase-v1',{asOf:TODAY,pos:{},rs:{}});KBASE=null;   // last: nothing planned before counts as read
+  renderAll();return v}
+ function undo(){const b=LS.get(BAK,null);if(!b)return false;
+  KEYS.forEach(k=>{if(b[k]==null)return;if(k==='todo'){Object.keys(TODO).forEach(x=>delete TODO[x]);Object.assign(TODO,b[k])}
+   if(k==='bina-fikri-v1'){Object.keys(done).forEach(x=>delete done[x]);Object.assign(done,b[k])}
+   if(k==='kcap-v1'){['A','B','N','T','S'].forEach(x=>{delete KCAP['start'+x]});Object.assign(KCAP,b[k])}
+   if(k==='listen-v1')Object.assign(hsfCfg,b[k]);if(k==='edit')Object.assign(EDIT,b[k]);
+   LS.set('manhaj-'+k,b[k])});
+  ['kpast-v1','kbase-v1'].forEach(k=>LS.set('manhaj-'+k,b[k]));KBASE=null;LS.set(BAK,null);renderAll();return true}
+ window.kRestartTrack=restart;window.kResetPlan=(v,c)=>{const r=reset(v,c);HAS=true;return r};window.kResetUndo=()=>{const r=undo();if(r)HAS=false;return r};
+ // «ابدأ الخطة من جديد» in «مواعيد البدء»
+ const css=document.createElement('style');css.textContent=`#kRst{margin-top:12px;padding:12px 14px;border-radius:16px;border:1px solid var(--line);background:var(--soft)}
+ #kRst h4{margin:0 0 6px;font-size:15px}#kRst ul{margin:6px 0;padding-inline-start:20px;font-size:13.5px;line-height:1.8}#kRst .r{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+ #kRst input[type=date]{font:inherit;padding:5px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+ .btn.kdanger{border-color:#c0392b;color:#c0392b}`;document.head.appendChild(css);
+ function addBtn(){const c=document.getElementById('startCard');if(!c)return;const row=c.querySelector('#sdReset');if(!row)return;
+  let u=c.querySelector('#kRstUndo');if(HAS&&!u){row.insertAdjacentHTML('afterend',' <button class="btn" id="kRstUndo">↩︎ تراجع عن البداية الجديدة</button>');u=c.querySelector('#kRstUndo');
+   u.onclick=()=>{if(!confirm('ترجع الخطة كما كانت قبل البداية الجديدة؟'))return;if(undo()){HAS=false;addBtn();toast('✓ رجعت الخطة كما كانت.')}}}
+  else if(!HAS&&u)u.remove();
+  if(c.querySelector('#kRstGo'))return;
+  row.insertAdjacentHTML('afterend',' <button class="btn kdanger" id="kRstGo">🔄 ابدأ الخطة من جديد</button>');
+  c.querySelector('#kRstGo').onclick=()=>{let p=c.querySelector('#kRst');if(p){p.remove();return}
+   c.insertAdjacentHTML('beforeend',`<div id="kRst"><h4>تبدأ الخطة كلها من جديد</h4><ul>
+    <li>كل ورد يبدأ من أول كتابه، من التاريخ الذي تختاره.</li>
+    <li>يُمسح ما علّمته من مهام، والصفحات التي سجّلت أنك وصلت إليها، وموضعك في الكتاب الأدبي.</li>
+    <li>يبقى كما هو: تعليقاتك، والامتحانات والإجازات، والإعدادات وعدد الصفحات، والكتب التي أضفتها.</li>
+    <li>تُحفظ نسخة مما مُسح، وتقدر ترجع لها بزر «تراجع».</li></ul>
+    <div class="r"><label>تبدأ يوم <input type="date" id="kRstD" value="${TODAY}" min="${TODAY}"></label>
+    <label class="small"><input type="checkbox" id="kRstR"> وامسح أيضًا علامات «قرأته كله»</label></div>
+    <div class="r"><button class="btn primary" id="kRstOk">ابدأ من جديد</button><button class="btn" id="kRstNo">إلغاء</button></div></div>`);
+   p=c.querySelector('#kRst');p.querySelector('#kRstNo').onclick=()=>p.remove();
+   p.querySelector('#kRstOk').onclick=()=>{const v=reset(p.querySelector('#kRstD').value,p.querySelector('#kRstR').checked);HAS=true;p.remove();addBtn();toast('✓ بدأت الخطة من جديد يوم '+fL(toD(v))+'، وكل ورد من أول كتابه. وتقدر تتراجع من هنا.');if(typeof show==='function')show('today')}}}
+ let HAS=false;try{HAS=!!LS.get(BAK,null)}catch(e){}
+ {const _r=renderRef;renderRef=function(){_r();try{addBtn()}catch(e){console.error(e)}}}
+ new MutationObserver(()=>addBtn()).observe(document.body,{childList:true,subtree:true});addBtn();
 })();
 </script>
 <script>
