@@ -1256,7 +1256,17 @@ dialog:not(#bookDlg)::backdrop{background:rgba(6,10,18,.38);-webkit-backdrop-fil
  #aiBox,#moreSheet .sheet,#kSr .pan,html.k-orbs nav.tabs.tabs,dialog:not(#bookDlg){background-color:var(--card)!important}
  #aiLog,#aiForm{background:var(--bg)!important}
  .toast{background-color:var(--deep)!important}}
-</style><meta name="kbuild" content="1795891801"></head>
+</style><style id="kBeCss">
+.kbe{margin-top:10px;display:grid;gap:8px}
+.kbe details{border:1px solid var(--line);border-radius:14px;padding:8px 12px;background:var(--soft)}
+.kbe summary{cursor:pointer;font-weight:700;color:var(--teal);font-size:14px}
+.kbe .kbf{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin-top:8px}
+.kbe label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.kbe input{font:inherit;font-size:14px;padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.kbe .r{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.kbe .kau{padding:10px 12px;border-radius:14px;border:1px solid var(--gold);background:var(--soft);font-size:14px}
+.kconv{margin-inline-start:6px}
+</style><meta name="kbuild" content="1795892888"></head>
 <body>
 <header class="top"><div class="wrap"><div class="row"><div class="brand"><span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="شعار منهج البناء الفكري"><rect width="512" height="512" rx="116" fill="#22304D"/><g transform="translate(0.0,0.0) scale(1.0)"><rect x="132" y="250" width="66" height="134" rx="10" fill="#F6F1E4"/><rect x="223" y="196" width="66" height="188" rx="10" fill="#F6F1E4"/><rect x="314" y="140" width="66" height="244" rx="10" fill="#F6F1E4"/><g fill="#9AA6BF"><rect x="132" y="276" width="66" height="10"/><rect x="223" y="222" width="66" height="10"/><rect x="314" y="166" width="66" height="10"/><rect x="132" y="352" width="66" height="6"/><rect x="223" y="352" width="66" height="6"/><rect x="314" y="352" width="66" height="6"/></g><path d="M352 140 L352 206 L364 194 L376 206 L376 140 Z" fill="#D2AE62"/><rect x="112" y="392" width="288" height="14" rx="7" fill="#D2AE62"/></g></svg></span><h1>منهج البناء الفكري</h1></div><div class="acts"><button class="themeBtn" id="dlBtn" aria-label="تنزيل التطبيق"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 19h16"/></svg><span class="dlTxt">تنزيل</span></button><button class="themeBtn" id="fsBtn" aria-label="حجم الخط" title="حجم الخط">أ<small>+</small></button><button class="themeBtn" id="themeBtn" aria-label="تبديل الوضع الليلي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button></div></div><div class="sub profbar" id="profBar" hidden></div></div></header>
 <nav class="tabs" id="mainNav" aria-label="التنقل"><div class="nbrand"><span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="شعار منهج البناء الفكري"><rect width="512" height="512" rx="116" fill="#22304D"/><g transform="translate(0.0,0.0) scale(1.0)"><rect x="132" y="250" width="66" height="134" rx="10" fill="#F6F1E4"/><rect x="223" y="196" width="66" height="188" rx="10" fill="#F6F1E4"/><rect x="314" y="140" width="66" height="244" rx="10" fill="#F6F1E4"/><g fill="#9AA6BF"><rect x="132" y="276" width="66" height="10"/><rect x="223" y="222" width="66" height="10"/><rect x="314" y="166" width="66" height="10"/><rect x="132" y="352" width="66" height="6"/><rect x="223" y="352" width="66" height="6"/><rect x="314" y="352" width="66" height="6"/></g><path d="M352 140 L352 206 L364 194 L376 206 L376 140 Z" fill="#D2AE62"/><rect x="112" y="392" width="288" height="14" rx="7" fill="#D2AE62"/></g></svg></span><b>منهج البناء الفكري</b></div><div class="wrap" id="tabbar" role="tablist"></div><div class="ntag">رفيق القراءة اليومي</div></nav><div id="moreSheet" hidden><div class="sheet" role="dialog" aria-label="أقسام"><div class="grab"></div><h3>أقسام المنهج</h3><div class="mgrid" id="moreGrid"></div></div></div>
@@ -1502,7 +1512,8 @@ function kAfter(){const K=D.KCORE;TZD={};KX={};const H=HOLD||PSTART;const HT=kS(
 }
 (function applyEdits(){
  (EDIT.custom||[]).forEach(c=>{if(BOOKS.some(b=>b.id===c.id))return;BOOKS.push({id:c.id,phase:c.period.split('-')[0],period:c.period,t:c.t||(c.lane==='B'?'gharb':c.lane==='C'?'manhaj':'tasawwur'),ttl:c.ttl,by:c.by||'',note:'كتاب أضفته أنت',link:'',o:'',srcKey:'user',src:'أضفته أنت',core:1,w:1,lane:c.lane,sub:c.sub,lv:c.v,sci:c.c,shar:c.shar?1:0,course:c.kind==='course'?1:0,lessons:c.kind==='course'?+c.pages:0,url:c.url||'',note:c.shar?(c.kind==='course'?'دورة شرعية أضفتها أنت':'كتاب شرعي أضفته أنت'):'كتاب أضفته أنت',custom:1});if(c.pages&&c.kind!=='course')pOver[c.ttl]=+c.pages});
- BOOKS.forEach(b=>{if(EDIT.hide[b.id])b.core=0;if(EDIT.add[b.id])b.core=1;const m=EDIT.move[b.id];if(m){b.period=m.p;b.phase=m.p.split('-')[0];b.sub=m.s;b.lane=m.l;if(m.v!=null)b.lv=m.v;if(m.c)b.sci=m.c}});
+ BOOKS.forEach(b=>{const mt=(EDIT.meta||{})[b.id];if(mt){if(b.ttl0==null){b.ttl0=b.ttl;b.by0=b.by}if(mt.ttl)b.ttl=mt.ttl;if(mt.by!=null)b.by=mt.by}if(EDIT.hide[b.id])b.core=0;if(EDIT.add[b.id])b.core=1;const m=EDIT.move[b.id];if(m){b.period=m.p;b.phase=m.p.split('-')[0];b.sub=m.s;b.lane=m.l;if(m.v!=null)b.lv=m.v;if(m.c)b.sci=m.c}const au=(EDIT.audio||{})[b.id];if(au&&!au.off)b.core=0});
+ Object.entries(EDIT.audio||{}).forEach(([id,o])=>{const b=BOOKS.find(x=>x.id===id);D.AUDIO.push(o.off||!b?{series:'',hsf:1,off:1,conv:id}:{series:b.ttl,speaker:String(b.by||'').split('،')[0],episodes:Math.max(1,+o.n||1),url:o.url||'',platform:o.url?'التسجيل':'',topic:'كان كتابًا في خطتك فحوّلته لمسموع',from:o.from||'',conv:id,lv:b.lv})});
 })();
 const saveEdit=()=>{LS.set('manhaj-edit',EDIT);clearTimeout(pushT);pushPrefs();location.reload()};
 function moveBefore(id,refId,add){const y=BOOKS.find(b=>b.id===refId);if(!y)return;EDIT.move[id]={p:y.period,s:posOf(y)-0.3,l:laneOf(y),v:y.lv,c:y.sci};if(add){EDIT.add[id]=1;delete EDIT.hide[id]}saveEdit()}
@@ -1666,7 +1677,7 @@ function compute(){
  const withOf=a=>{if(!a.with)return null;const w=a.with==='مدخل المنطق'?LOG[0]:a.with==='مدخل الكلام'?KAL[0]:(LKALL.find(b=>{const x=b.title||'';return x.startsWith(a.with)||x.includes('('+a.with)||(x.length>5&&a.with.startsWith(x.split(' (')[0]))})||BOOKS.find(b=>b.core&&(b.ttl.startsWith(a.with)||(b.ttl.length>5&&a.with.startsWith(b.ttl.split(':')[0])))));return w&&RANGE[w.id]?RANGE[w.id].s:null};
  const LVS={};BOOKS.forEach(b=>{if(b.core&&!b.shar&&b.lv!=null&&RANGE[b.id]){const s=RANGE[b.id].s;if(!LVS[b.lv]||s<LVS[b.lv])LVS[b.lv]=s}});
  const alv=a=>a.lv!=null?a.lv:({'مبتدئ':1,'متوسط':2,'متقدم':3}[a.level]||2);
- const aq=D.AUDIO.map((a,i)=>{const dt=S.dates[a.start]||['2027-07-01'];const ws=a.first&&LOG[0]&&RANGE[LOG[0].id]?RANGE[LOG[0].id].s:withOf(a);return {a,i,st:ws||(a.now?PSTART:a.with?'9999-12-31':(LVS[alv(a)]||(dt[0]==='chain'?'2031-10-01':dt[0]))),lv:alv(a),w:(ws||a.now)?1:0,n:a.episodes||8,est:!a.episodes,ep:0}}).filter(x=>!x.a.hsf&&!(D.KCORE&&(x.a.now||x.a.first))).map(x=>{if(!x.a.now&&HOLD&&x.st<HOLD)x.st=HOLD;return x}).sort((x,y)=>x.st<y.st?-1:x.st>y.st?1:x.i-y.i);
+ const aq=D.AUDIO.map((a,i)=>{const dt=S.dates[a.start]||['2027-07-01'];const ws=a.first&&LOG[0]&&RANGE[LOG[0].id]?RANGE[LOG[0].id].s:withOf(a);return {a,i,st:a.from||ws||(a.now?PSTART:a.with?'9999-12-31':(LVS[alv(a)]||(dt[0]==='chain'?'2031-10-01':dt[0]))),lv:alv(a),w:(a.from||ws||a.now)?1:0,n:a.episodes||8,est:!a.episodes,ep:0}}).filter(x=>!x.a.hsf&&!(D.KCORE&&(x.a.now||x.a.first))).map(x=>{if(!x.a.now&&HOLD&&x.st<HOLD)x.st=HOLD;return x}).sort((x,y)=>x.st<y.st?-1:x.st>y.st?1:x.i-y.i);
  hsfLayout();const hEnd=Object.keys(HSF).sort().pop()||'';
  Object.keys(DAYS).sort().forEach(k=>{const isL=DAYS[k].segs.some(s=>s.lane==='L'),ok=x=>x.st<=k&&x.ep<x.n;const c=(hEnd&&k<=hEnd)?(isL?null:aq.find(x=>x.w&&ok(x))):isL?(aq.find(x=>x.a.tz&&ok(x))||aq.find(x=>x.w&&ok(x))||aq.find(x=>!x.a.tz&&ok(x))):(aq.find(x=>x.w&&ok(x))||aq.find(x=>!x.a.tz&&ok(x)));if(c){c.ep++;AUD[k]={...c.a,ep:c.ep,n:c.n,est:c.est,i:c.i}}});
 }
@@ -3652,6 +3663,49 @@ if(typeof renderToday==='function'){const _rt=renderToday;renderToday=function()
   if(kp){k=kp.dataset.kp;a=(+kp.min||0)+1}else if(lit&&window.kLit&&kLit.today()){const x=kLit.today();k='lit-'+x.i;a=x.a+1}if(!k)return;
   const b=document.createElement('button');b.className='linkbtn';b.dataset.rdgo=k;b.textContent='افتح الكتاب في القارئ';b.onclick=()=>openBookKey(k,a);r.appendChild(b)})}catch(e){console.error(e)}}}
 if(typeof repaint==='function')repaint();
+})();
+</script>
+<script>
+/* ===== edit a book's details; turn a book into listening (28 Nov 2026) ===== */
+(function(){if(typeof openBook!=='function')return;
+ const OKU=u=>!u||/^https?:\/\//.test(u);
+ const flash=(tab,msg)=>{try{sessionStorage.setItem('kFlash',JSON.stringify({msg}))}catch(e){}if(tab)LS.set('manhaj-tab2',tab);if(tab==='audio'){LS.set('manhaj-audtab','rest');LS.set('manhaj-audgrp','all')}};   // «بقية المسموع», where it now is
+ try{const f=JSON.parse(sessionStorage.getItem('kFlash')||'null');if(f){sessionStorage.removeItem('kFlash');setTimeout(()=>toast(f.msg),600)}}catch(e){}
+ function block(id){const b=BOOKS.find(x=>x.id===id);const box=document.querySelector('#dlgBody .editbox');if(!b||!box||box.querySelector('.kbe'))return;
+  const c=(EDIT.custom||[]).find(x=>x.id===id),pg=pages(b.ttl)[0],r=RANGE[id],au=(EDIT.audio||{})[id],isAu=au&&!au.off,from0=r&&r.s>TODAY?r.s:TODAY;
+  box.insertAdjacentHTML('beforeend',`<div class="kbe">
+   ${isAu?`<div class="kau">🎧 هذا الكتاب صار مسموعًا في «المسموع»: ${nA(+au.n||0)} حلقة، حلقة في كل يوم قراءة من ${esc(fL(toD(au.from||TODAY)))}.<div class="r"><button class="btn" id="kaBack">📖 رجّعه كتابًا</button><button class="btn" data-goto="audio" onclick="document.getElementById('bookDlg').close()">افتح «المسموع» ←</button></div></div>`:''}
+   <details><summary>✏️ عدّل بيانات الكتاب</summary>
+    <div class="kbf"><label>العنوان<input id="kbT" value="${esc(b.ttl)}"></label><label>المؤلف<input id="kbA" value="${esc(b.by||'')}"></label>
+     <label>عدد الصفحات<input id="kbP" type="number" min="1" value="${pg}"></label><label>رابط الكتاب (اختياري)<input id="kbU" type="url" value="${esc(MYL[b.ttl]||'')}" placeholder="https://…"></label></div>
+    <div class="r"><button class="btn primary" id="kbSave">احفظ التعديل</button>${(EDIT.meta||{})[id]?'<button class="btn" id="kbOrig">رجوع للبيانات الأصلية</button>':''}</div></details>
+   ${isAu||b.shar?'':`<details><summary>🎧 حوّله لمسموع بدل كتاب</summary>
+    <p class="muted small" style="margin:6px 0 0">يخرج من ورد القراءة ويُضاف إلى «المسموع»: حلقة في كل يوم قراءة من اليوم الذي تختاره، وتظهر في «وردك اليوم». وتقدر ترجّعه كتابًا بعدين.</p>
+    <div class="kbf"><label>عدد الحلقات أو المقاطع<input id="kaN" type="number" min="1" value="${au&&au.n||''}" placeholder="مثلًا ٢٠"></label><label>رابط التسجيل (اختياري)<input id="kaU" type="url" value="${esc(au&&au.url||'')}" placeholder="يوتيوب أو غيره"></label>
+     <label>يبدأ السماع<input id="kaF" type="date" value="${from0}" min="${TODAY}"></label></div>
+    <div class="r"><button class="btn primary" id="kaGo">🎧 حوّله لمسموع</button></div></details>`}</div>`);
+  const q=s=>box.querySelector(s);
+  q('#kbSave').onclick=()=>{const t=q('#kbT').value.trim(),a=q('#kbA').value.trim(),p=Math.round(+q('#kbP').value||0),u=q('#kbU').value.trim(),old=b.ttl;
+   if(!t){alert('اكتب عنوان الكتاب');return}if(!OKU(u)){alert('الرابط لازم يبدأ بـ http');return}
+   if(c){c.ttl=t;c.by=a;if(p>0&&c.kind!=='course')c.pages=p}
+   else{EDIT.meta=EDIT.meta||{};const m={};if(t!==(b.ttl0||b.ttl))m.ttl=t;if(a!==(b.by0!=null?b.by0:b.by))m.by=a;if(Object.keys(m).length)EDIT.meta[id]=m;else delete EDIT.meta[id]}
+   if(p>0&&(t!==old||p!==pg))pOver[t]=p;LS.set('manhaj-pages-v1',pOver);
+   if(t!==old){if(MYL[old]&&!u){MYL[t]=MYL[old]}if(!u&&!MYL[t]&&D.LINKS&&D.LINKS[old])MYL[t]=D.LINKS[old].u;delete MYL[old]}
+   if(u)MYL[t]=u;else if(t===old)delete MYL[t];LS.set('manhaj-mylinks',MYL);
+   flash('','✓ حُفظت بيانات «'+t+'».');saveEdit()};
+  if(q('#kbOrig'))q('#kbOrig').onclick=()=>{delete EDIT.meta[id];flash('','✓ رجعت بيانات الكتاب الأصلية.');saveEdit()};
+  if(q('#kaGo'))q('#kaGo').onclick=()=>{const n=Math.round(+q('#kaN').value||0),u=q('#kaU').value.trim();let f=q('#kaF').value||TODAY;if(f<TODAY)f=TODAY;
+   if(!(n>0)){alert('اكتب عدد الحلقات أو المقاطع');return}if(!OKU(u)){alert('الرابط لازم يبدأ بـ http');return}
+   EDIT.audio=EDIT.audio||{};EDIT.audio[id]={n,url:u,from:f,ttl:b.ttl};flash('audio','✓ صار «'+b.ttl+'» مسموعًا: '+nA(n)+' حلقة، حلقة في كل يوم قراءة من '+fL(toD(f))+'.');saveEdit()};
+  if(q('#kaBack'))q('#kaBack').onclick=()=>back(id)}
+ function back(id){const au=(EDIT.audio||{})[id];if(!au||!confirm('ترجّع «'+(au.ttl||'')+'» كتابًا في ورد القراءة؟'))return;au.off=1;flash('','✓ رجع «'+(au.ttl||'')+'» كتابًا في ورد القراءة.');saveEdit()}
+ const _ob=openBook;openBook=function(id){_ob(id);try{block(id)}catch(e){console.error(e)}};
+ // «المسموع»: the books he turned into listening say so, and can go back
+ {const _r=renderAudio;renderAudio=function(){_r();try{D.AUDIO.forEach((a,i)=>{if(!a.conv||a.off)return;const cb=document.querySelector(`#audioGrid [data-done="a-${i}"]`),li=cb&&(cb.closest('.acard')||cb.closest('li'));if(!li||li.querySelector('.kconv'))return;
+    const t=li.querySelector('.chips')||li.querySelector('.t');if(t)t.insertAdjacentHTML('beforeend',`<span class="kconv" style="color:var(--gold)">كان كتابًا</span>`);
+    li.insertAdjacentHTML('beforeend',`<div class="kconv" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px"><button class="linkish small" data-kback="${esc(a.conv)}">📖 رجّعه كتابًا</button><button class="linkish small" data-open="${esc(a.conv)}">✏️ بياناته</button></div>`)});
+   document.querySelectorAll('#audioGrid [data-kback]').forEach(x=>x.onclick=()=>back(x.dataset.kback))}catch(e){console.error(e)}}}
+ if(typeof repaint==='function')repaint();
 })();
 </script>
 <script>
